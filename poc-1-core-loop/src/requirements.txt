@@ -1,0 +1,2 @@
+google-adk
+python-dotenv # Used by main.py to load optional .env file
