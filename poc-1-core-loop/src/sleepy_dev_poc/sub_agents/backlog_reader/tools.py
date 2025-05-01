@@ -31,7 +31,9 @@ def process_backlog_file(tool_context: Optional[ToolContext] = None) -> Dict[str
         - 'message': A descriptive message about the outcome or error.
     """
     file_path = constants.BACKLOG_FILE_PATH
-    logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Processing backlog file: {file_path}")
+    abs_file_path = os.path.abspath(file_path) # Get absolute path
+    logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Processing backlog file relative path: {file_path}")
+    logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Attempting to access absolute path: {abs_file_path}") # Log absolute path
 
     # --- Context Check ---
     if tool_context is None:
@@ -41,9 +43,9 @@ def process_backlog_file(tool_context: Optional[ToolContext] = None) -> Dict[str
 
     try:
         # --- File Check ---
-        # Check if the file exists and is not empty
-        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-            logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file is empty or does not exist at '{file_path}'. Signaling escalation.")
+        # Check if the file exists and is not empty using the absolute path
+        if not os.path.exists(abs_file_path) or os.path.getsize(abs_file_path) == 0:
+            logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file is empty or does not exist at absolute path '{abs_file_path}'. Signaling escalation.")
             # Signal to the LoopAgent to stop
             tool_context.actions.escalate = True
             return {"status": "empty", "message": "Backlog is empty or not found."}
@@ -58,18 +60,18 @@ def process_backlog_file(tool_context: Optional[ToolContext] = None) -> Dict[str
                  logger.warning(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Directory '{file_dir}' for backlog file does not exist. Attempting to read anyway.")
                  # Proceed to let the open() call handle the FileNotFoundError if the dir is truly missing
 
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(abs_file_path, 'r', encoding='utf-8') as f: # Use absolute path
                 lines = f.readlines()
         except FileNotFoundError:
-            # This case should ideally be caught by the initial os.path.exists check,
+            # This case should ideally be caught by the initial os.path.exists check using abs_file_path,
             # but handle it defensively.
-            logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file not found during read at '{file_path}'. Signaling escalation.")
+            logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file not found during read at absolute path '{abs_file_path}'. Signaling escalation.")
             tool_context.actions.escalate = True
             return {"status": "empty", "message": "Backlog file not found."}
 
 
         if not lines: # Double-check if file was empty after opening (e.g., race condition or empty file)
-             logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file at '{file_path}' contained no lines after opening. Signaling escalation.")
+             logger.info(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Backlog file at absolute path '{abs_file_path}' contained no lines after opening. Signaling escalation.")
              tool_context.actions.escalate = True
              return {"status": "empty", "message": "Backlog file is empty."}
 
@@ -90,7 +92,7 @@ def process_backlog_file(tool_context: Optional[ToolContext] = None) -> Dict[str
                  return {"status": "error", "message": f"Failed to create directory for backlog file: {e}"}
 
 
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(abs_file_path, 'w', encoding='utf-8') as f: # Use absolute path
             f.writelines(remaining_lines)
             # Ensure newline at end of file if remaining_lines is not empty
             if remaining_lines and not remaining_lines[-1].endswith('\n'):
@@ -104,7 +106,7 @@ def process_backlog_file(tool_context: Optional[ToolContext] = None) -> Dict[str
         return {"status": "ok", "task_description": first_line, "message": "Task processed successfully."}
 
     except Exception as e:
-        logger.error(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Error processing backlog file {file_path}: {e}", exc_info=True)
+        logger.error(f"{constants.BACKLOG_READER_AGENT_NAME} - Tool: Error processing backlog file at absolute path {abs_file_path}: {e}", exc_info=True) # Log absolute path in error
         # Signal escalation on error to prevent potential infinite loops
         if tool_context: # Check again in case error happened before context check
              tool_context.actions.escalate = True

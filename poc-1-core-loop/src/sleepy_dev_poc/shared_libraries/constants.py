@@ -8,11 +8,8 @@ BACKLOG_READER_AGENT_NAME = "BacklogReaderAgent_PoC"
 # Path to the backlog file (as specified in PRD).
 # Using an absolute path starting from root. Adjust if needed.
 # Ensure this path is accessible from where the agent runs.
-# NOTE: The tech spec uses an absolute path "/ai-tasks/backlog.md".
-# This might cause issues on Windows or if the execution context isn't the project root.
-# Using a relative path from the project root is generally safer.
-# Assuming the agent runs from the project root (where ai-tasks/ exists).
-BACKLOG_FILE_PATH = "ai-tasks/backlog.md" # Adjusted to relative path
+# TODO: Update this to be gathered when we specify which project we want it to work on
+BACKLOG_FILE_PATH = "C:\\GithubRepos\\Sleepy-Dev-Team\\poc-1-core-loop\\ai-tasks\\backlog.md"
 
 # --- Optional Configuration ---
 # Specify a model if LlmAgent is used and needs specific reasoning capabilities.
