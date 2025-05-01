@@ -1,0 +1,129 @@
+Commit: 9a6d58feb7e4ba675e342a628744b0fd4f8e0774
+Message:
+Remove main.py which isn't needed for adk web interface
+
+---
+
+Diff:
+
+diff --git a/poc-1-core-loop/src/sleepy_dev_poc/main.py b/poc-1-core-loop/src/sleepy_dev_poc/main.py
+deleted file mode 100644
+index 75c1f50b0e1ef1f8c9643101a1bb71e4c7c73b0d..0000000000000000000000000000000000000000
+--- a/poc-1-core-loop/src/sleepy_dev_poc/main.py
++++ /dev/null
+@@ -1,114 +0,0 @@
+-# Script to configure and run the ADK Runner for the PoC
+-import asyncio
+-import logging
+-import os
+-from dotenv import load_dotenv
+-
+-from google.adk.runners import Runner
+-from google.adk.sessions import InMemorySessionService
+-
+-# Import the root agent and constants using relative paths
+-# Assuming this script is run as a module from the project root (e.g., python -m sleepy_dev_poc.main)
+-from .agent import root_agent
+-from .shared_libraries import constants
+-
+-# Configure logging
+-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+-logger = logging.getLogger(__name__)
+-
+-async def run_agent():
+-    """Configures and runs the ADK agent PoC."""
+-    load_dotenv() # Load .env file if it exists
+-
+-    # --- Pre-run Checks & Setup ---
+-    # Ensure the backlog directory and a sample file exist for the PoC run
+-    backlog_path = constants.BACKLOG_FILE_PATH
+-    backlog_dir = os.path.dirname(backlog_path)
+-
+-    try:
+-        # Create directory if it doesn't exist
+-        if backlog_dir and not os.path.exists(backlog_dir):
+-            os.makedirs(backlog_dir)
+-            logger.info(f"Created backlog directory: {backlog_dir}")
+-
+-        # Create a sample backlog file if it doesn't exist
+-        if not os.path.exists(backlog_path):
+-             with open(backlog_path, 'w', encoding='utf-8') as f:
+-                f.write("* Sample Task 1: Run the PoC application.\n")
+-                f.write("* Sample Task 2: Verify file modification.\n")
+-                f.write("* Sample Task 3: Check termination logic.\n") # Added another task
+-             logger.info(f"Created sample backlog file: {backlog_path}")
+-        else:
+-             logger.info(f"Using existing backlog file: {backlog_path}")
+-             # Optional: Log current content for debugging
+-             try:
+-                 with open(backlog_path, 'r', encoding='utf-8') as f_read:
+-                     content = f_read.read()
+-                     logger.debug(f"Current backlog content:\n{content}")
+-             except Exception as read_err:
+-                 logger.warning(f"Could not read existing backlog file content: {read_err}")
+-
+-
+-    except OSError as e:
+-        logger.error(f"Error setting up backlog directory/file at {backlog_path}: {e}. Check permissions.")
+-        return # Cannot proceed without backlog setup
+-
+-
+-    # --- ADK Runner Setup ---
+-    session_service = InMemorySessionService()
+-    runner = Runner(
+-        app_name="SleepyDevTeam_PoC",
+-        agent=root_agent,
+-        session_service=session_service,
+-        # Provide API key if required by the model/ADK version
+-        # api_key=os.getenv("GEMINI_API_KEY") # Example - uncomment if needed
+-    )
+-
+-    logger.info(f"Starting run for agent: {runner.agent.name}...")
+-    session = session_service.create_session(app_name=runner.app_name)
+-    logger.info(f"Created session ID: {session.id}")
+-
+-    # --- Agent Execution Loop ---
+-    try:
+-        # Start the agent run with an initial message or empty content
+-        # Using a simple trigger message
+-        initial_message = "Start processing the backlog."
+-        logger.info(f"Sending initial message to agent: '{initial_message}'")
+-
+-        async for event in runner.run_async(session_id=session.id, user_content=initial_message):
+-            # Log agent's textual response
+-            if event.content and event.content.parts and event.content.parts[0].text:
+-                 logger.info(f"Agent ({event.author}): {event.content.parts[0].text}")
+-
+-            # Log tool calls/responses for debugging (use DEBUG level)
+-            if event.content and event.content.parts:
+-                 part = event.content.parts[0]
+-                 if part.function_call:
+-                     logger.debug(f"Agent ({event.author}) calling tool: {part.function_call.name} with args: {part.function_call.args}")
+-                 if part.function_response:
+-                      # Log the response dict from the tool
+-                      tool_resp = part.function_response.response
+-                      logger.debug(f"Agent ({event.author}) received tool response: {tool_resp}")
+-
+-
+-            # Check for escalation signal (primary loop termination condition)
+-            # LoopAgent handles this internally, but logging confirms it happened
+-            if event.actions and event.actions.escalate:
+-                 logger.info(f"Agent ({event.author}) signaled escalate=True. Loop terminating.")
+-                 # No need to break here, LoopAgent stops yielding events upon escalation.
+-
+-        logger.info(f"Agent run finished for session {session.id}.")
+-
+-    except Exception as e:
+-        logger.error(f"An error occurred during the agent run: {e}", exc_info=True)
+-    finally:
+-        # Optional: Clean up session if needed, though InMemorySessionService is ephemeral
+-        logger.info("Cleanup complete.")
+-
+-if __name__ == "__main__":
+-    logger.info("Executing PoC main script...")
+-    # Ensure the script is run from the project root directory
+-    # so relative paths work correctly.
+-    # Example: python -m src.sleepy_dev_poc.main
+-    asyncio.run(run_agent())
+-    logger.info("PoC main script finished.")
+\ No newline at end of file

@@ -2,7 +2,7 @@
 
 This list provides core Python best practices, suitable for priming an LLM agent.
 
-*   **PEP 8 Compliance:** Adhere to the standard style guide (indentation, naming, line length). Consistency is key.
+*   **PEP 8 Compliance:** Adhere to the standard style guide (indentation, naming, line length). Consistency is key. Ensure files end with a single newline character.
 *   **Naming Conventions:**
     *   `snake_case` for variables, functions, methods, modules.
     *   `CapWords` (CamelCase) for classes.
@@ -150,3 +150,7 @@ itinerary_agent = Agent(
 **8. Artifact Creation:**
 
 *   **Reliable Artifact Parts:** When creating `google.genai.types.Part` objects for artifacts, prefer using the constructor with `inline_data`: `types.Part(inline_data=types.Blob(data=..., mime_type=...))`. While documentation might mention a `types.Part.from_data(...)` convenience method, it may not be available in all library versions and can lead to `AttributeError`. Using the constructor directly is more robust.
+
+**9. Configuration & Constants:**
+
+*   **Avoid Hardcoded Absolute Paths:** Do not hardcode absolute file paths directly in constants or configuration files. This hinders portability and maintainability. Instead, construct paths dynamically relative to the project structure (e.g., using `os.path.dirname(__file__)` and `os.path.join`) or use environment variables/configuration files for path settings.
