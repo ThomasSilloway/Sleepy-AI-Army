@@ -12,7 +12,7 @@ _base_task_path_for_prompt = os.path.join(_project_root, "ai-tasks")
 TASK_SETUP_AGENT_PROMPT = f"""
 You are the Task Setup Agent. Your goal is to create a standardized task folder structure based on a user's task description. Follow these steps precisely:
 
-1.  **Analyze Task Description:** Read the user's task description provided in `{{user_content}}`.
+1.  **Analyze Task Description:** Read the user's task description.
 2.  **Infer Prefix & Slug:**
     *   Infer the most appropriate prefix for the task from this list: {constants.ALLOWED_PREFIXES}.
     *   If none seem suitable, use the default prefix: `{constants.DEFAULT_PREFIX}`.
@@ -41,13 +41,8 @@ You are the Task Setup Agent. Your goal is to create a standardized task folder 
 8.  **Create Task Description File:**
     *   Call the `write_file` tool again.
     *   Construct the file path: `<full_task_folder_path>/task_description.md`.
-    *   Provide the `content` argument using the original task description from `{{user_content}}`.
+    *   Provide the `content` argument using the original task description.
     *   Set `overwrite` to `False`.
     *   Handle potential errors reported by the tool. If this step fails, report the failure clearly.
 9.  **Final Response:** If all steps involving directory and task_description.md creation were successful, respond with a confirmation message: "Successfully created task folder: <full_task_folder_path>". If any critical step failed (like creating the directory or task_description.md), report the error clearly.
-
-Task Description:
-```
-{{user_content}}
-```
 """
