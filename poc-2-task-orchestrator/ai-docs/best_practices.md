@@ -98,6 +98,9 @@ root_agent = Agent(
 )
 ```
  - Do not use Custom agents unless specifically requested
+*   **Prompt-Driven vs. Custom Agent Logic:** Consider the trade-off for complex orchestration (e.g., multi-step tool sequences, conditional logic).
+    *   **Prompt-Driven (Standard `LlmAgent`):** Leverages the LLM's ability to follow instructions, simplifying Python code. Can be effective for sequential tasks but debugging complex logic within a prompt can be challenging. Requires careful prompt engineering.
+    *   **Custom Agent Logic (Subclassing `Agent`/`LlmAgent`):** Allows explicit Python control flow (`_run_async_impl`), which can be easier to debug and test for complex, stateful, or highly conditional logic. May require more boilerplate Python code. Choose based on the complexity and debugging needs of the specific agent's task.
 *   **Sub-agent definitions** - Should always be formatted like the following, do not use special classes
 ```
 itinerary_agent = Agent(
@@ -122,6 +125,9 @@ itinerary_agent = Agent(
 *   **Modularity:** Design specialized agents for specific tasks and compose them hierarchically.
 *   **Clear Roles:** Define distinct roles and capabilities via agent descriptions to enable effective LLM-driven delegation and routing between agents.
 *   **Orchestration:** Use a central `host_agent` or specific workflow agents (`Sequential`, `Parallel`, `Loop`) to manage interactions and task flow between sub-agents.
+*   **Composition: `AgentTool` vs. `sub_agents`:** Choose the appropriate mechanism for agent composition:
+    *   **`sub_agents`:** Suitable for hierarchical delegation where a parent agent routes tasks to specialized child agents, potentially involving complex conversational flow or state sharing managed by the parent.
+    *   **`AgentTool`:** Ideal when one agent needs to invoke another agent to perform a specific, well-defined function, treating the called agent like a powerful, self-contained tool. This can simplify the calling agent's structure. Use `disallow_transfer_to_parent/peers` on the agent being used as a tool if it should always complete its task and return without further delegation.
 *   **Inter-Agent Communication:** Standardize communication protocols if building custom agent interactions (e.g., using REST APIs with shared schemas, like the Agent-to-Agent (A2A) protocol pattern).
 
 **4. State Management:**
@@ -153,4 +159,4 @@ itinerary_agent = Agent(
 
 **9. Configuration & Constants:**
 
-*   **Avoid Hardcoded Absolute Paths:** Do not hardcode absolute file paths directly in constants or configuration files. This hinders portability and maintainability. Instead, construct paths dynamically relative to the project structure (e.g., using `os.path.dirname(__file__)` and `os.path.join`) or use environment variables/configuration files for path settings.
+*   **Avoid Hardcoded Absolute Paths:** Do not hardcode absolute file paths directly in constants, configuration files, or prompts. This hinders portability and maintainability. While dynamic path construction (e.g., using `os.path.dirname(__file__)` and `os.path.join`) is necessary, avoid embedding the *resulting absolute path* directly into prompts if possible; prefer passing such configuration via context or relative paths where feasible.

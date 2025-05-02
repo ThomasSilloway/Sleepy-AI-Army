@@ -1,0 +1,28 @@
+Commit: 3684cbc61abfd74bd05b9893111a6c934f681204
+Message:
+Update model to use gemini-2.0-flash to start with
+
+---
+
+Diff:
+
+diff --git a/poc-2-task-orchestrator/src/sleepy_dev_poc/shared_libraries/constants.py b/poc-2-task-orchestrator/src/sleepy_dev_poc/shared_libraries/constants.py
+index aa02d0dd9dbdb538f64f0b2b845f58a59a62430f..a70ffa380d2ff329ffa95edf001390f24d5da75f 100644
+--- a/poc-2-task-orchestrator/src/sleepy_dev_poc/shared_libraries/constants.py
++++ b/poc-2-task-orchestrator/src/sleepy_dev_poc/shared_libraries/constants.py
+@@ -2,12 +2,12 @@ import os
+ 
+ ROOT_AGENT_NAME = "SingleTaskOrchestrator"
+ TASK_SETUP_AGENT_NAME = "TaskSetupAgent"
+ # Construct the absolute path relative to this file's location
+ # Assuming this file is in src/sleepy_dev_poc/shared_libraries/
+ # Go up two levels to src/sleepy_dev_poc/, then up one more to the project root
+ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+ BASE_TASK_PATH = os.path.join(project_root, "ai-tasks")
+ ALLOWED_PREFIXES = ["Bug_", "Polish_", "Feature_", "Refactor_"]
+ DEFAULT_PREFIX = "Task_"
+-MODEL_NAME = "gemini-1.5-flash" # Using flash as per tech arch, not 2.5 as per tech details
+-NNN_PADDING = 3
+\ No newline at end of file
++MODEL_NAME = "gemini-2.0-flash" 
++NNN_PADDING = 3

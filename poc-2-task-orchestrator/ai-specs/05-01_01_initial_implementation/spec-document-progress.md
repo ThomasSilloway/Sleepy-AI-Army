@@ -62,11 +62,20 @@ This second Proof-of-Concept (PoC2) for the "Sleepy Dev Team" project focuses on
 
 ### Analyze Git Commits for Best Practice
 ```
-- LOCATE ai-specs/05-01_01_initial_implementation/generated/git_changes directory in the current feature's spec folder
-- ITERATE through all `NN_<hash>.diff` files chronologically
-- ANALYZE each commit message and diff to identify coding mistakes
-- GENERATE the feature-specific ai-specs/05-01_01_initial_implementation/generated/coding_mistakes.md with findings
-- UPDATE `ai-docs/best_practices.md` by extracting general patterns from the analysis and merging new patterns intelligently
-  - IMPORTANT: Avoid duplication
-  - IMPORTANT: Maintain clear organization
+### Analyze Implementation Refinements for Best Practices
+- PREMISE - Each diff represents a necessary correction or refinement addressing issues or limitations in the preceding code implementation.
+- LOCATE - The `ai-specs/05-01_01_initial_implementation/generated/git_changes` directory within the current feature's spec folder.
+- ITERATE - Through all `NN_<hash>.diff` files chronologically based on their numeric prefix.
+- ANALYZE - Each commit message and diff to understand the implementation's evolution:
+    - SUMMARIZE The specific code modifications introduced by the diff.
+    - INFER The underlying reason, issue, or limitation in the *previous* code state that necessitated this change.
+    - IDENTIFY The corrective pattern, technique, or programming principle applied in the solution.
+- GENERATE - A feature-specific report named ai-specs/05-01_01_initial_implementation/generated/refinement_analysis.md
+ This report should detail, for each commit:
+    - The inferred reason for the change (original issue/limitation).
+    - The corrective pattern or principle applied.
+- SYNTHESIZE - Generalizable lessons, recurring patterns, and actionable principles by reviewing the complete `refinement_analysis.md`.
+- UPDATE - The central ai-docs/best_practices.md document by intelligently integrating the synthesized findings.
+    - IMPORTANT: Ensure new additions are non-redundant with existing content.
+    - IMPORTANT: Maintain or improve the document's clear and logical organization.
 ```
