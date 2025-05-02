@@ -9,5 +9,5 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 BASE_TASK_PATH = os.path.join(project_root, "ai-tasks")
 ALLOWED_PREFIXES = ["Bug_", "Polish_", "Feature_", "Refactor_"]
 DEFAULT_PREFIX = "Task_"
-MODEL_NAME = "gemini-1.5-flash" # Using flash as per tech arch, not 2.5 as per tech details
+MODEL_NAME = "gemini-2.0-flash" 
 NNN_PADDING = 3
