@@ -1,7 +1,7 @@
 import os
 
-ROOT_AGENT_NAME = "SingleTaskOrchestrator_PoC2"
-TASK_SETUP_AGENT_NAME = "TaskSetupAgent_PoC2"
+ROOT_AGENT_NAME = "SingleTaskOrchestrator"
+TASK_SETUP_AGENT_NAME = "TaskSetupAgent"
 # Construct the absolute path relative to this file's location
 # Assuming this file is in src/sleepy_dev_poc/shared_libraries/
 # Go up two levels to src/sleepy_dev_poc/, then up one more to the project root
