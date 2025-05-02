@@ -24,3 +24,26 @@
         - Respond directly if `action` is "exists".
         - Handle errors during LLM call or parsing.
     - Ensured trailing newlines in created files.
+## v03
+- **Description:** Refactored TaskSetupAgent (TSA) based on feedback to use prompt-driven orchestration instead of custom Python logic.
+- **Details:**
+    - Rewrote `src/sleepy_dev_poc/sub_agents/task_setup_agent/agent.py` to define `task_setup_agent` as a standard `LlmAgent`, removing the custom class and `_run_async_impl` method.
+    - Updated `src/sleepy_dev_poc/sub_agents/task_setup_agent/prompt.py` (`TASK_SETUP_AGENT_PROMPT`) with detailed, step-by-step instructions for the LLM to:
+        - Infer prefix and slug.
+        - Call `get_next_task_number` tool with correct arguments.
+        - Format the returned number (NNN padding).
+        - Construct the full task directory path.
+        - Call `create_directory` tool.
+        - Call `write_file` tool for `changelog.md`.
+        - Call `write_file` tool for `task_description.md`.
+        - Handle errors and provide appropriate final responses.
+    - Ensured the agent definition in `agent.py` correctly references the updated prompt and necessary tools (`get_next_task_number_tool`, `create_directory_tool`, `write_file_tool`).
+## v04
+- **Description:** Refactored SingleTaskOrchestrator (STO) based on feedback to use prompt-driven routing instead of custom Python logic.
+- **Details:**
+    - Rewrote `src/sleepy_dev_poc/agent.py` to define `root_agent` as a standard `LlmAgent`, removing the custom `SingleTaskOrchestrator` class and `_run_async_impl` method.
+    - Updated `src/sleepy_dev_poc/prompt.py` (`STO_PROMPT`) with detailed instructions for the LLM to:
+        - Analyze user input for existing task patterns (`/ai-tasks/` path or `Prefix_NNN_slug` format).
+        - Output JSON `{"action": "exists", "detail": "<path/name>"}` if an existing task is detected.
+        - Output JSON `{"action": "delegate", "sub_agent_name": "TaskSetupAgent_PoC2"}` if a new task is detected, allowing the ADK framework to handle delegation.
+    - Ensured the agent definition in `agent.py` correctly references the updated prompt and the `TaskSetupAgent` sub-agent instance.
