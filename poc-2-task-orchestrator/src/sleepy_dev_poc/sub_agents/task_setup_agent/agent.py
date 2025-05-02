@@ -27,6 +27,8 @@ task_setup_agent = LlmAgent(
     name=constants.TASK_SETUP_AGENT_NAME,
     model=constants.MODEL_NAME,
     instruction=tsa_prompt.TASK_SETUP_AGENT_PROMPT,
+	disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     tools=[ # Tools the LLM can orchestrate
         get_next_task_number_tool,
         create_directory_tool,
