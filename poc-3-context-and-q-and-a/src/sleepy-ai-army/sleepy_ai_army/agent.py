@@ -1,7 +1,7 @@
 """Defines the root agent (TaskPlannerAgent) for the Sleepy AI Army."""
 
-from google.cloud.aiplatform.agent_tooling.framework.agents import Agent
-from google.cloud.aiplatform.agent_tooling.framework.tools import FunctionTool
+from google.adk.agents import Agent
+from google.adk.tools import FunctionTool
 
 # Import prompts and tools
 from . import prompt
