@@ -12,3 +12,11 @@ The text sent to the changelog agent was correct, but the changelog agent made u
 ## Context agent
 
 The list directories part of the context agent only listed top level directories and didn't do it recursively based off of folders it fiinds interesting - probably a prompting issue.
+
+## Session state usage
+
+we probably are utilizing the session state enough or at all. 
+
+Not exactly sure how that's supposed to work, but I'm curious if the q&a or context agents are reading the status file at all. If they are, we can prevent that by putting the current task status into the session. Then the other agents can use that
+
+Should probably do the same thing with the file paths so we have less places to update later on when we want to remove it from the constants.py
