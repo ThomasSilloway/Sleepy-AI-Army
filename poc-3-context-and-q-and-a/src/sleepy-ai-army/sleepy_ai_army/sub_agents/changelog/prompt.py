@@ -2,7 +2,7 @@
 
 import datetime
 import os
-from sleepy_ai_army.shared_libraries import constants
+from ...shared_libraries import constants
 
 # Helper function to get timestamp (can be used by agent logic if needed,
 # but the LLM can also generate it based on the prompt)

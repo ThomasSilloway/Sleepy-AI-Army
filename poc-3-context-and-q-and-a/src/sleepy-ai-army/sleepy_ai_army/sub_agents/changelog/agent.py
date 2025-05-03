@@ -6,7 +6,7 @@ from google.adk.tools.agent_tool import AgentTool
 
 # Import prompts and shared tools
 from . import prompt
-from sleepy_ai_army.shared_tools import file_system
+from ...shared_tools import file_system
 
 # Define tools used by the ChangelogAgent
 append_file_tool = FunctionTool(

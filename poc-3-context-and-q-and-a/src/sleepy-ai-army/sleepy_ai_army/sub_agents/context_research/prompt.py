@@ -1,7 +1,7 @@
 """Prompts for the ContextResearchAgent."""
 
 import os
-from sleepy_ai_army.shared_libraries import constants
+from ...shared_libraries import constants
 
 # The task folder path is now defined as a constant
 CONTEXT_RESEARCH_AGENT_INSTRUCTIONS = f"""

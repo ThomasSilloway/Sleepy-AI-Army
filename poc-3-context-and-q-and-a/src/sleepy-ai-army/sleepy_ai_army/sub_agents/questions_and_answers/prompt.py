@@ -1,7 +1,7 @@
 """Prompts for the QnAAgent."""
 
 import os
-from sleepy_ai_army.shared_libraries import constants
+from ...shared_libraries import constants
 
 # The task folder path is now defined as a constant
 QNA_AGENT_INSTRUCTIONS = f"""

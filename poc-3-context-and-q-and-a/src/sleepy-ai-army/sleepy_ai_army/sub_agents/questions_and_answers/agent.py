@@ -6,10 +6,10 @@ from google.adk.tools.agent_tool import AgentTool
 
 # Import prompts and shared tools
 from . import prompt
-from sleepy_ai_army.shared_tools import file_system
+from ...shared_tools import file_system
 
 # Import the ChangelogAgent to use as a tool (placeholder for now)
-from sleepy_ai_army.sub_agents.changelog import changelog_agent # Placeholder import
+from ..changelog import changelog_agent # Placeholder import
 
 # Define tools used by the QnAAgent
 read_file_tool = FunctionTool(
