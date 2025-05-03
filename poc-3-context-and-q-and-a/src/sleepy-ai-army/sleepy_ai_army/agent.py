@@ -14,8 +14,7 @@ from .sub_agents.questions_and_answers import qna_agent # Placeholder import
 
 # Define tools used by the TaskPlannerAgent
 read_file_tool = FunctionTool(
-    fn=file_system.read_file,
-    description="Reads the entire content of a specified file. Use this to read the task status file."
+    func=file_system.read_file
 )
 
 # Define the root agent (TaskPlannerAgent)

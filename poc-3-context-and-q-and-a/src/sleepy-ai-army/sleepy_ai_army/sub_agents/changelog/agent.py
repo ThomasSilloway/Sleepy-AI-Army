@@ -10,8 +10,7 @@ from ...shared_tools import file_system
 
 # Define tools used by the ChangelogAgent
 append_file_tool = FunctionTool(
-    fn=file_system.append_file,
-    description="Appends content to the specified file. Use this to add the formatted entry to the changelog.md file."
+    func=file_system.append_file
 )
 
 # Define the ChangelogAgent

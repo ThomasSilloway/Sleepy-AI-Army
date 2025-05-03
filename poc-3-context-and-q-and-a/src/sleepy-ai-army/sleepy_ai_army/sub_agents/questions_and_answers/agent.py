@@ -13,23 +13,16 @@ from ..changelog import changelog_agent # Placeholder import
 
 # Define tools used by the QnAAgent
 read_file_tool = FunctionTool(
-    fn=file_system.read_file,
-    description="Reads the entire content of a specified file. Use this for task_context.md, questions-and-answers.md, and task_status.md."
+    func=file_system.read_file
 )
 
 write_file_tool = FunctionTool(
-    fn=file_system.write_file,
-    description="Writes content to a file, overwriting if it exists. Use this to update questions-and-answers.md and task_status.md."
+    func=file_system.write_file
 )
 
 # Wrap ChangelogAgent as a tool
 changelog_agent_tool = AgentTool(
-    agent=changelog_agent, # The actual agent instance
-    description=(
-        "Appends a provided text entry to the task's changelog.md file. "
-        "Use this tool *after* successfully updating the Q&A and status files (unless no feedback was found). "
-        "Pass the changelog message as the 'changelog_entry_text' argument."
-    )
+    agent=changelog_agent
 )
 
 # Define the QnAAgent

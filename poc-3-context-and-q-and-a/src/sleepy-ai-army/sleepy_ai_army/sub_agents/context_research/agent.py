@@ -13,28 +13,20 @@ from ..changelog import changelog_agent # Placeholder import
 
 # Define tools used by the ContextResearchAgent
 read_file_tool = FunctionTool(
-    fn=file_system.read_file,
-    description="Reads the entire content of a specified file. Use this for task_description.md and tech_architecture.md."
+    func=file_system.read_file
 )
 
 list_directory_tool = FunctionTool(
-    fn=file_system.list_directory,
-    description="Lists files and directories within a specified path. Use this to list the task folder contents."
+    func=file_system.list_directory
 )
 
 write_file_tool = FunctionTool(
-    fn=file_system.write_file,
-    description="Writes content to a file, overwriting if it exists. Use this to create task_context.md and task_status.md."
+    func=file_system.write_file
 )
 
 # Wrap ChangelogAgent as a tool
 changelog_agent_tool = AgentTool(
-    agent=changelog_agent, # The actual agent instance
-    description=(
-        "Appends a provided text entry to the task's changelog.md file. "
-        "Use this tool *after* successfully creating the context and status files. "
-        "Pass the changelog message as the 'changelog_entry_text' argument."
-    )
+    agent=changelog_agent
 )
 
 # Define the ContextResearchAgent
