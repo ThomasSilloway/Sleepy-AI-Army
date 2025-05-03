@@ -39,9 +39,9 @@ This PoC directly addresses aspects of FR-005 (`TaskPlannerAgent`'s routing logi
     1.  Attempt to read `task_status.md` within the task folder.
     2.  **If Read Fails (File Not Found):** Transfer control to `ContextResearchAgent`.
     3.  **If Read Succeeds:** Parse the first line for status string.
-        * If status is `AWAITING_CONTEXT_REVIEW`: Respond "Initial context generated in `task_context.md`. Please review/update and then change `task_status.md` to `AWAITING_QUESTIONS`." Stop processing for this task cycle.
+        * If status is `HUMAN_REQUIRED_REVIEW_CONTEXT`: Respond "Initial context generated in `task_context.md`. Please review/update and then change `task_status.md` to `AWAITING_QUESTIONS`." Stop processing for this task cycle.
         * If status is `AWAITING_QUESTIONS`: Transfer control to `QnAAgent`.
-        * If status is `AWAITING_USER_FEEDBACK`: Transfer control to `QnAAgent`.
+        * If status is `HUMAN_REQUIRED_ANSWER_QUESTIONS`: Transfer control to `QnAAgent`.
         * If status is `READY_FOR_PRD`: Respond "Q&A ready for user review and next step assignment." Stop processing for this task cycle.
         * If status is unexpected/empty: Respond with error message and stop.
 * **Output:** Delegation to another agent or a status message to the user.
@@ -60,7 +60,7 @@ This PoC directly addresses aspects of FR-005 (`TaskPlannerAgent`'s routing logi
     6.  Use `WriteFile` to create `task_context.md` containing: Task Description, Extracted Architecture Context (if any), File List.
     7.  Use `WriteFile` to create `task_status.md` with content:
         ```
-        AWAITING_CONTEXT_REVIEW
+        HUMAN_REQUIRED_REVIEW_CONTEXT
         # Note: After reviewing context, update this status to AWAITING_QUESTIONS
         ```
     8.  Formulate changelog entry text (e.g., "Generated initial context, awaiting review.").
@@ -73,23 +73,23 @@ This PoC directly addresses aspects of FR-005 (`TaskPlannerAgent`'s routing logi
 * **Tools:** `ReadFile`, `WriteFile`, `AgentTool` (for `ChangelogAgent`).
 * **Input:** Task folder path, `task_context.md`, `questions-and-answers.md` (if exists).
 * **Processing Logic:**
-    1.  Triggered by `TaskPlannerAgent` if status is `AWAITING_QUESTIONS` or `AWAITING_USER_FEEDBACK`.
+    1.  Triggered by `TaskPlannerAgent` if status is `AWAITING_QUESTIONS` or `HUMAN_REQUIRED_ANSWER_QUESTIONS`.
     2.  Read `task_context.md`.
     3.  Read `questions-and-answers.md` (if exists).
     4.  Parse feedback sections (between `` tags).
     5.  **Check for Feedback:**
-        * If status was `AWAITING_USER_FEEDBACK` and no actual feedback text was found (all sections contain only placeholder):
+        * If status was `HUMAN_REQUIRED_ANSWER_QUESTIONS` and no actual feedback text was found (all sections contain only placeholder):
             * Respond "Checked Q&A file; no new user feedback provided yet."
-            * Ensure `task_status.md` is `AWAITING_USER_FEEDBACK` (with its note).
+            * Ensure `task_status.md` is `HUMAN_REQUIRED_ANSWER_QUESTIONS` (with its note).
             * Do **not** call `ChangelogAgent`.
             * End turn.
         * **Otherwise (initial run or feedback found):**
             * Use LLM (Gemini 2.5) to process existing context and any new feedback.
             * Generate/update assumptions.
             * Generate/update clarifying questions.
-            * Use LLM to determine readiness status (`AWAITING_USER_FEEDBACK` or `READY_FOR_PRD`).
+            * Use LLM to determine readiness status (`HUMAN_REQUIRED_ANSWER_QUESTIONS` or `READY_FOR_PRD`).
             * Use `WriteFile` to overwrite `questions-and-answers.md` with updated assumptions, questions, and feedback placeholders (`USER FEEDBACK REQUIRED` between tags).
-            * Use `WriteFile` to update `task_status.md` with the determined status and corresponding instructional note (e.g., `AWAITING_USER_FEEDBACK\n# Note: After providing feedback...` or `READY_FOR_PRD\n# Note: Q&A complete...`).
+            * Use `WriteFile` to update `task_status.md` with the determined status and corresponding instructional note (e.g., `HUMAN_REQUIRED_ANSWER_QUESTIONS\n# Note: After providing feedback...` or `READY_FOR_PRD\n# Note: Q&A complete...`).
             * Formulate appropriate changelog entry text (e.g., "Generated initial questions.", "Processed feedback, updated Q&A.").
             * Call `ChangelogAgent` tool with `changelog_entry_text`.
             * End turn.
@@ -139,8 +139,8 @@ This PoC directly addresses aspects of FR-005 (`TaskPlannerAgent`'s routing logi
 
 * `TaskPlannerAgent` correctly routes to `ContextResearchAgent` or `QnAAgent` based on `task_status.md`.
 * `TaskPlannerAgent` correctly identifies the `READY_FOR_PRD` status and reports appropriately.
-* `ContextResearchAgent` successfully creates `task_context.md` and sets status to `AWAITING_CONTEXT_REVIEW`.
-* `QnAAgent` successfully generates initial questions/assumptions and sets status to `AWAITING_USER_FEEDBACK`.
+* `ContextResearchAgent` successfully creates `task_context.md` and sets status to `HUMAN_REQUIRED_REVIEW_CONTEXT`.
+* `QnAAgent` successfully generates initial questions/assumptions and sets status to `HUMAN_REQUIRED_ANSWER_QUESTIONS`.
 * `QnAAgent` correctly parses feedback provided between designated comment tags.
 * `QnAAgent` correctly handles the "no feedback provided" scenario.
 * `QnAAgent` successfully updates `questions-and-answers.md` and `task_status.md` after processing feedback.
