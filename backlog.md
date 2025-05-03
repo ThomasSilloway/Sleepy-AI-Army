@@ -1,0 +1,1 @@
+- Combine PoC 1 and Poc2 into a new folder that'll be used for the first prototype that connects all the pocs. The root agent of Poc2 should be in the sub agents folder of poc1 and then hooked up properly as either a sub agent or agenttool
