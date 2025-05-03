@@ -20,7 +20,7 @@ read_file_tool = FunctionTool(
 
 # Define the root agent (TaskPlannerAgent)
 root_agent = Agent(
-    model="gemini-1.0-pro", # Using Gemini Pro as it needs to follow routing logic precisely
+    model="gemini-2.0-flash", 
     name="TaskPlannerAgent",
     description=(
         "Acts as the entry point for processing a task. Reads the task status file "
@@ -32,6 +32,5 @@ root_agent = Agent(
     sub_agents=[
         context_research_agent, # Will handle initial context generation
         qna_agent               # Will handle Q&A iterations
-    ],
-    enable_logging=True # Enable logging for better debugging
+    ]
 )

@@ -30,6 +30,7 @@ Full path to generated folder: {{ generated_folder }}
 
 ### Implement PRD
  - Implement the PRD, keeping in mind to limit files to 500 lines of code or less. For each feature/section in the PRD that makes sense, create a new subtask for boomerang mode. Implement using the technical architecture
+ - TODO: Figure out how to ask it to generate all of the small files inside of a batch file and then run the batch file to generate them. Could even do this with every file. maybe to save API calls
 
 {{ task_change_notes }}
 

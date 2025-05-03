@@ -33,7 +33,7 @@ changelog_agent_tool = AgentTool(
 
 # Define the QnAAgent
 qna_agent = Agent(
-    model="gemini-1.5-pro-preview-0409", # Using Gemini 1.5 Pro as specified in PRD FR-PoC3-003 (closest available to 2.5)
+    model="gemini-2.5-pro-exp-03-25", 
     name="QnAAgent",
     description=(
         "Generates assumptions and questions based on task context, processes user feedback "
@@ -45,6 +45,5 @@ qna_agent = Agent(
         read_file_tool,
         write_file_tool,
         changelog_agent_tool
-    ],
-    enable_logging=True
+    ]
 )

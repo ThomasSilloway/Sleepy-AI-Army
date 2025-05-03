@@ -38,7 +38,7 @@ changelog_agent_tool = AgentTool(
 
 # Define the ContextResearchAgent
 context_research_agent = Agent(
-    model="gemini-1.0-flash", # Using Flash as specified in PRD FR-PoC3-002
+    model="gemini-2.0-flash", # Using Flash as specified in PRD FR-PoC3-002
     name="ContextResearchAgent",
     description=(
         "Generates the initial task_context.md by reading task_description.md, "
@@ -51,6 +51,5 @@ context_research_agent = Agent(
         list_directory_tool,
         write_file_tool,
         changelog_agent_tool
-    ],
-    enable_logging=True
+    ]
 )

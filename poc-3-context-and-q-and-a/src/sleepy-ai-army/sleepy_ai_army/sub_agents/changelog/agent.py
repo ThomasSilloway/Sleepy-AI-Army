@@ -17,7 +17,7 @@ append_file_tool = FunctionTool(
 # This agent is intended to be used as an AgentTool by other agents.
 # It expects 'changelog_entry_text' to be passed in the input/arguments when called.
 changelog_agent = Agent(
-    model="gemini-1.0-flash", # Using Flash as specified in PRD FR-PoC3-004
+    model="gemini-2.0-flash", # Using Flash as specified in PRD FR-PoC3-004
     name="ChangelogAgent",
     description=(
         "Appends a timestamped entry to the task's changelog.md file. "
@@ -27,6 +27,5 @@ changelog_agent = Agent(
     tools=[append_file_tool],
     # Since this is used as a tool, disallow transfer to prevent unexpected delegation
     disallow_transfer_to_parent=True,
-    disallow_transfer_to_peers=True,
-    enable_logging=True
+    disallow_transfer_to_peers=True
 )
