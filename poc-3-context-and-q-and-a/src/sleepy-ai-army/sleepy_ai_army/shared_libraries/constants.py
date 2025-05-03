@@ -3,6 +3,7 @@
 # Absolute Paths
 DEFAULT_TASK_FOLDER_PATH = r"C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype\ai-tasks\Bug_01_players-pathing-destroyed-walls"
 TECH_ARCHITECTURE_FILE_PATH = r"C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype\project-tech-design.md"
+DEFAULT_CODE_FOLDER_PATH = r"C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype\isometric_2d_prototype"
 
 # File Names
 TASK_DESCRIPTION_FILE = "task_description.md"

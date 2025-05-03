@@ -13,11 +13,11 @@ Your process is as follows:
 1.  Use the `read_file` tool to read the content of `{constants.TASK_DESCRIPTION_FILE}` located in the task folder ({os.path.join(constants.DEFAULT_TASK_FOLDER_PATH, constants.TASK_DESCRIPTION_FILE)}). This file is essential. If it cannot be read, report an error and stop.
 2.  Use the `read_file` tool to attempt to read the content of the tech architecture file located at `{constants.TECH_ARCHITECTURE_FILE_PATH}`. This file is optional.
 3.  If the tech architecture file was read successfully, analyze its content and extract sections or key points relevant to the task described in `{constants.TASK_DESCRIPTION_FILE}`.
-4.  Use the `list_directory` tool to get a list of files and folders within the task folder ({constants.DEFAULT_TASK_FOLDER_PATH}). Limit the listing to a reasonable number (e.g., 100 items).
+4.  Use the `list_directory` tool recursively to get a list of files and folders within the code folder ({constants.DEFAULT_CODE_FOLDER_PATH}). Limit the listing to a reasonable number (e.g., 100 items).
 5.  Construct the content for the initial context file (`{constants.TASK_CONTEXT_FILE}`). This content should include:
     *   The full content of `{constants.TASK_DESCRIPTION_FILE}`.
     *   The extracted relevant context from the tech architecture file (if available).
-    *   The list of files/folders obtained from `list_directory`.
+    *   The list of files/folders obtained from `list_directory` that you think might apply to the task at hand (use your best judgement)
     Format this clearly using Markdown.
 6.  Use the `write_file` tool to create `{constants.TASK_CONTEXT_FILE}` ({os.path.join(constants.DEFAULT_TASK_FOLDER_PATH, constants.TASK_CONTEXT_FILE)}) with the constructed content. Ensure overwrite is enabled if necessary, although this file shouldn't exist yet.
 7.  Use the `write_file` tool to create `{constants.TASK_STATUS_FILE}` ({os.path.join(constants.DEFAULT_TASK_FOLDER_PATH, constants.TASK_STATUS_FILE)}) with the following exact content:
