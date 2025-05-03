@@ -1,5 +1,9 @@
 """Constants used across the Sleepy AI Army project."""
 
+# Absolute Paths
+DEFAULT_TASK_FOLDER_PATH = r"C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype\ai-tasks\Bug_01_players-pathing-destroyed-walls"
+TECH_ARCHITECTURE_FILE_PATH = r"C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype\project-tech-design.md"
+
 # File Names
 TASK_DESCRIPTION_FILE = "task_description.md"
 TECH_ARCHITECTURE_FILE = "tech_architecture.md"
