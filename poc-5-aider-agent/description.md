@@ -1,0 +1,1 @@
+Identify smallest possible tasks, if they are doable, execute them directly with aider
