@@ -26,6 +26,10 @@ Sleepy AI Army is your **AI-powered assistant crew**, designed to help you make 
 
 Think of it as a team diligently chipping away at your to-do list while you're occupied, ensuring slow but steady progress across your entire project.
 
+<center>
+  <img src="army.png" alt="AI Army icon">
+</center>
+
 ## What Sleepy AI Army Doesn't Do
 
 Let's be clear about the boundaries:
