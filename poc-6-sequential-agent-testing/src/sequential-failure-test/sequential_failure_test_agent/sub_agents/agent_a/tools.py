@@ -4,12 +4,11 @@ import json # Using json import for potential future use, though not strictly ne
 
 def _failing_tool_impl() -> dict:
     """
-    Simulates a tool execution.
-    *** MVP Step 1: For initial setup, this simulates SUCCESS. ***
+    Simulates a tool execution that fails.
     """
-    print("Tool: _failing_tool_impl running (simulating success).")
-    # In later steps, this will be modified to return failure.
-    return {"status": "success", "message": "Tool executed successfully (MVP1)"}
+    print("Tool: _failing_tool_impl running (simulating failure).")
+    # This simulates a tool encountering an error.
+    return {"status": "error", "message": "Simulated tool failure"}
 
 failing_tool = FunctionTool(
     func=_failing_tool_impl
