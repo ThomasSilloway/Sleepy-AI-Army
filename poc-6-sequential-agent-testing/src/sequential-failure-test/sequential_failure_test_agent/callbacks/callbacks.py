@@ -3,7 +3,7 @@ import json
 from google.adk.agents.callback_context import CallbackContext
 from google.genai import types
 
-def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Content | None:
+def check_outcome_and_skip_callback(callback_context: CallbackContext) -> types.Content | None:
     """
     Checks the outcome of the previous agent in the sequence.
 
@@ -17,7 +17,7 @@ def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Conten
     If the previous agent succeeded, or if its state cannot be read/parsed,
     it returns None, allowing the current agent to execute normally.
     """
-    current_agent_name = context.agent_name
+    current_agent_name = callback_context.agent_name
     previous_agent_state_key = None
     current_agent_output_key = None
 
@@ -38,7 +38,7 @@ def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Conten
     print(f"Callback: Running for {current_agent_name}. Checking outcome of {previous_agent_name} (state key: {previous_agent_state_key}).")
 
     # Read the previous agent's outcome JSON string from state
-    previous_outcome_json = context.state.get(previous_agent_state_key)
+    previous_outcome_json = callback_context.state.get(previous_agent_state_key)
 
     if not previous_outcome_json:
         print(f"Callback Warning: State key '{previous_agent_state_key}' not found for {previous_agent_name}. Allowing {current_agent_name} execution.")
@@ -67,7 +67,7 @@ def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Conten
 
             # Write the skipped outcome to the *current* agent's state key
             if current_agent_output_key:
-                context.state[current_agent_output_key] = skipped_outcome_json
+                callback_context.state[current_agent_output_key] = skipped_outcome_json
                 print(f"Callback: Set state '{current_agent_output_key}' to: {skipped_outcome_json}")
             else:
                  print(f"Callback Warning: Cannot set skipped state for {current_agent_name} as its output key is unknown.")
@@ -91,7 +91,7 @@ def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Conten
         skipped_outcome = {"status": "skipped", "message": skip_message}
         skipped_outcome_json = json.dumps(skipped_outcome)
         if current_agent_output_key:
-             context.state[current_agent_output_key] = skipped_outcome_json
+             callback_context.state[current_agent_output_key] = skipped_outcome_json
              print(f"Callback: Set state '{current_agent_output_key}' to: {skipped_outcome_json}")
         return types.Content(parts=[types.Part(text=f"Skipping {current_agent_name} due to JSON error.")])
     except Exception as e:
@@ -103,6 +103,6 @@ def check_outcome_and_skip_callback(context: CallbackContext, /) -> types.Conten
         skipped_outcome = {"status": "skipped", "message": skip_message}
         skipped_outcome_json = json.dumps(skipped_outcome)
         if current_agent_output_key:
-             context.state[current_agent_output_key] = skipped_outcome_json
+             callback_context.state[current_agent_output_key] = skipped_outcome_json
              print(f"Callback: Set state '{current_agent_output_key}' to: {skipped_outcome_json}")
         return types.Content(parts=[types.Part(text=f"Skipping {current_agent_name} due to callback error.")])
