@@ -1,2 +1,6 @@
 # poc6_sequential_failure/sub_agents/agent_c/prompt.py
-AGENT_C_INSTR = """Log 'Agent C running primary task.' Then, output a JSON string like '{"status": "success", "result": "Agent C finished its task."}'. Ensure your final output is *only* the valid JSON string."""
+AGENT_C_INSTR = """
+Perform the following steps every time:
+1. Output a final JSON string like `{"status": "success", "result": "Agent B finished its task."}` 
+IMPORANT: Ensure your final output is *only* the valid JSON string.
+"""
