@@ -25,3 +25,23 @@ I think my idea approach would be something like approach 3, but instead of the 
 ## Next steps 
 
 - create PoC 6 to see if something like that is possible using the callbacks to prevent the next items in the sequence from running except the final summarization agent would still run no matter what and return back to the root agent
+
+## Poc6 findings
+
+- We can have specific agents skip their execution if a prior agent fails using the before_agent_callback
+
+- We have a nice system for that in poc 6 that we can re-use. basically each agent in the sequence returns only json. that json can be parsed in the before_agent_callback of the next agent & it can decide to skip or not skip. it will also update the state if it skips, so the next agent in the sequence knows to skip. 
+
+the final agent can still run then, which can compile the results into whatever format they need to be in. 
+
+poc 6 is set up the same as approach 3,so that's the one we should go with. 
+
+use the codebase for Poc6 as a template for this one. 
+
+this one will be more complex bc each agent will have their own tools and functionality 
+
+## Next steps
+
+pass this info with Poc6 as sample project and our prd and tech brainstorming into the next step which is the technical architecture and scaffolding process. 
+
+one thing I learned from before is that we want the tech architecture document to be generated one section at a time bc any issues at the beginning will cause trickling down issues
