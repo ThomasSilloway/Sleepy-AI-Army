@@ -12,6 +12,5 @@ def _failing_tool_impl() -> dict:
     return {"status": "success", "message": "Tool executed successfully (MVP1)"}
 
 failing_tool = FunctionTool(
-    func=_failing_tool_impl,
-    description="A tool that simulates an operation (returns success in MVP1)."
+    func=_failing_tool_impl
 )
