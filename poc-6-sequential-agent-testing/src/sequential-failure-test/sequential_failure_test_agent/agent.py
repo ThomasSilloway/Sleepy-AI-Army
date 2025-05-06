@@ -5,6 +5,9 @@
 
 from google.adk.agents import Agent, SequentialAgent
 
+# Import root prompt
+from . import prompt
+
 # Import sub-agents relatively
 from .sub_agents.agent_a.agent import agent_a
 from .sub_agents.agent_b.agent import agent_b
@@ -27,6 +30,6 @@ root_agent = Agent(
     name="RootAgent",
     model="gemini-2.0-flash",
     description="The root agent that initiates and oversees the PoC 6 sequence.",
-    instruction=f"Run the {error_test_sequence.name} subagent. Report completion when it's done.",
+    instruction=prompt.ROOT_AGENT_INSTR.format(error_test_sequence=error_test_sequence), # Use imported prompt
     sub_agents=[error_test_sequence] # Make sequence accessible
 )
