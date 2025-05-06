@@ -28,23 +28,23 @@ error_test_sequence = SequentialAgent(
 
 # ---------------- SEQUENCE AS AGENTTOOL ----------------
 
-# error_test_tool = AgentTool(agent=error_test_sequence)
+error_test_tool = AgentTool(agent=error_test_sequence)
 
-# # Define the root agent to run the sequence
-# root_agent = Agent(
-#     name="RootAgent",
-#     model="gemini-2.0-flash",
-#     description="The root agent that initiates and oversees the PoC 6 sequence.",
-#     instruction=prompt.ROOT_AGENT_INSTR,
-#     tools=[error_test_tool] # Use sequence as a tool
-# )
-
-# --------------- SEQUENCE AS SUB AGENT ----------------
-
+# Define the root agent to run the sequence
 root_agent = Agent(
     name="RootAgent",
     model="gemini-2.0-flash",
     description="The root agent that initiates and oversees the PoC 6 sequence.",
-    instruction=prompt.ROOT_AGENT_INSTR_SUBAGENT,
-    sub_agents=[error_test_sequence]
+    instruction=prompt.ROOT_AGENT_INSTR,
+    tools=[error_test_tool] # Use sequence as a tool
 )
+
+# --------------- SEQUENCE AS SUB AGENT ----------------
+
+# root_agent = Agent(
+#     name="RootAgent",
+#     model="gemini-2.0-flash",
+#     description="The root agent that initiates and oversees the PoC 6 sequence.",
+#     instruction=prompt.ROOT_AGENT_INSTR_SUBAGENT,
+#     sub_agents=[error_test_sequence]
+# )
