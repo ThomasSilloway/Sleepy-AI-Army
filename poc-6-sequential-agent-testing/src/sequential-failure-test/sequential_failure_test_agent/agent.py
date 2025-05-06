@@ -4,7 +4,7 @@
 # Consider moving to a dedicated agent.py if preferred later.
 
 from google.adk.agents import Agent, SequentialAgent
-from google.adk.tools.agent_tool import AgentTool # Import AgentTool
+from google.adk.tools.agent_tool import AgentTool  # Import AgentTool
 
 # Import root prompt
 from . import prompt
@@ -23,7 +23,7 @@ error_test_sequence = SequentialAgent(
         agent_b,
         agent_c,
         agent_d,
-    ]
+    ],
 )
 
 # ---------------- SEQUENCE AS AGENTTOOL ----------------
@@ -36,7 +36,7 @@ root_agent = Agent(
     model="gemini-2.0-flash",
     description="The root agent that initiates and oversees the PoC 6 sequence.",
     instruction=prompt.ROOT_AGENT_INSTR,
-    tools=[error_test_tool] # Use sequence as a tool
+    tools=[error_test_tool],  # Use sequence as a tool
 )
 
 # --------------- SEQUENCE AS SUB AGENT ----------------

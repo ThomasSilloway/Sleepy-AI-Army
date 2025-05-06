@@ -1,6 +1,6 @@
 # poc6_sequential_failure/sub_agents/agent_a/tools.py
 from google.adk.tools import FunctionTool
-import json # Using json import for potential future use, though not strictly needed for dict
+
 
 def _failing_tool_impl() -> dict:
     """
@@ -12,6 +12,5 @@ def _failing_tool_impl() -> dict:
     # This simulates a tool executing successfully.
     # return {"status": "success", "message": "Simulated tool success"}
 
-failing_tool = FunctionTool(
-    func=_failing_tool_impl
-)
+
+failing_tool = FunctionTool(func=_failing_tool_impl)
