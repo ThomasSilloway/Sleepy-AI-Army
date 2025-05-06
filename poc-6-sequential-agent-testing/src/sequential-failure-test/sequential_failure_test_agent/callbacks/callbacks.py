@@ -5,7 +5,7 @@ from google.adk.agents.callback_context import CallbackContext
 from google.genai import types
 from typing import Tuple, Optional, Dict, Any
 
-
+# TODO: Consider refactoring this into having each agent's callback being a separate function that calls a shared function in this file
 def _get_agent_context(current_agent_name: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """Determines the state keys and name for the previous agent based on the current one."""
     if current_agent_name == "AgentB":
@@ -52,7 +52,7 @@ def _parse_outcome_json(outcome_json: Optional[str], state_key: str) -> Optional
             return None # Indicate persistent parsing failure
 
 
-def _handle_skip(callback_context: CallbackContext, current_agent_output_key: Optional[str], previous_agent_name: str, reason_status: str, skip_message_override: Optional[str] = None) -> types.Content:
+def _create_skip_return_value(callback_context: CallbackContext, current_agent_output_key: Optional[str], previous_agent_name: str, reason_status: str, skip_message_override: Optional[str] = None) -> types.Content:
     """Constructs skip outcome, sets state, and returns Content to signal skip."""
     current_agent_name = callback_context.agent_name
     print(f"Callback: Skipping {current_agent_name} due to {previous_agent_name} status '{reason_status}'.")
@@ -103,7 +103,7 @@ def check_outcome_and_skip_callback(callback_context: CallbackContext) -> types.
             # Warning already logged by _get_agent_context if agent is unexpected
             return None # Allow execution for unexpected agents
 
-        print(f"Callback: Running for {current_agent_name}. Checking outcome of {previous_agent_name} (state key: {previous_agent_state_key}).")
+        print(f"check_outcome_and_skip_callback: Running for {current_agent_name}. Checking outcome of {previous_agent_name} (state key: {previous_agent_state_key}).")
 
         # 2. Read previous outcome from state
         previous_outcome_json = callback_context.state.get(previous_agent_state_key)
@@ -120,7 +120,7 @@ def check_outcome_and_skip_callback(callback_context: CallbackContext) -> types.
             # Parsing failed completely, even after stripping attempts. Skip current agent.
             # Error logged by _parse_outcome_json
             skip_msg = f"Skipped due to error parsing {previous_agent_name} state (stripping failed)."
-            return _handle_skip(callback_context, current_agent_output_key, previous_agent_name, "parse_error", skip_message_override=skip_msg)
+            return _create_skip_return_value(callback_context, current_agent_output_key, previous_agent_name, "parse_error", skip_message_override=skip_msg)
 
         # 4. Check the status from the parsed outcome
         previous_status = previous_outcome.get("status")
@@ -129,7 +129,7 @@ def check_outcome_and_skip_callback(callback_context: CallbackContext) -> types.
         # 5. Decide whether to skip based on status
         if previous_status in ["failure", "skipped"]:
             # Previous step failed or was skipped, so skip this one too
-            return _handle_skip(callback_context, current_agent_output_key, previous_agent_name, previous_status)
+            return _create_skip_return_value(callback_context, current_agent_output_key, previous_agent_name, previous_status)
         else:
             # Previous step succeeded (or had an unexpected status), allow current agent to run
             print(f"Callback: {previous_agent_name} status is '{previous_status}'. Allowing {current_agent_name} execution.")
@@ -143,4 +143,4 @@ def check_outcome_and_skip_callback(callback_context: CallbackContext) -> types.
         _, current_agent_output_key, previous_agent_name = _get_agent_context(current_agent_name)
         previous_agent_name = previous_agent_name or "previous agent" # Fallback name
         skip_msg = f"Skipped due to unexpected error in callback while checking {previous_agent_name} state."
-        return _handle_skip(callback_context, current_agent_output_key, previous_agent_name, "callback_error", skip_message_override=skip_msg)
+        return _create_skip_return_value(callback_context, current_agent_output_key, previous_agent_name, "callback_error", skip_message_override=skip_msg)
