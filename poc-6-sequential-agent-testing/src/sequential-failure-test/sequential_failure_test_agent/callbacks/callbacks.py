@@ -1,7 +1,7 @@
 # sequential_failure_test_agent/callbacks/callbacks.py
 import json
 import re
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional, dict
 
 from google.adk.agents.callback_context import CallbackContext
 from google.genai import types
@@ -21,15 +21,11 @@ def _get_agent_context(
         return "agent_b_outcome", "agent_c_outcome", "Agent B"
     else:
         # This callback shouldn't be configured for other agents in this PoC
-        print(
-            f"Callback Warning: _get_agent_context called for unexpected agent {current_agent_name}."
-        )
+        print(f"Callback Warning: _get_agent_context called for unexpected agent {current_agent_name}.")
         return None, None, None
 
 
-def _parse_outcome_json(
-    outcome_json: Optional[str], state_key: str
-) -> Optional[Dict[str, Any]]:
+def _parse_outcome_json(outcome_json: Optional[str], state_key: str) -> Optional[dict[str, Any]]:
     """Parses the JSON outcome string, attempting to strip markdown fences if necessary."""
     if not outcome_json:
         return None
@@ -43,32 +39,22 @@ def _parse_outcome_json(
         )
         # Attempt to strip markdown fences (```json ... ``` or ``` ... ```)
         stripped_json = outcome_json
-        match = re.search(
-            r"```(?:json)?\s*([\s\S]*?)\s*```", outcome_json, re.IGNORECASE
-        )
+        match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", outcome_json, re.IGNORECASE)
         if match:
             stripped_json = match.group(1).strip()
-            print(
-                f"Callback Info: Stripped markdown fences. Trying to parse: '{stripped_json}'"
-            )
+            print(f"Callback Info: Stripped markdown fences. Trying to parse: '{stripped_json}'")
         else:
             # Also try stripping potential leading/trailing quotes if no fences found
             stripped_json = outcome_json.strip().strip('"')
             if stripped_json != outcome_json:
-                print(
-                    f"Callback Info: Stripped quotes. Trying to parse: '{stripped_json}'"
-                )
+                print(f"Callback Info: Stripped quotes. Trying to parse: '{stripped_json}'")
             else:
-                print(
-                    "Callback Info: No markdown fences or extra quotes found to strip."
-                )
+                print("Callback Info: No markdown fences or extra quotes found to strip.")
 
         try:
             # Try parsing again with the stripped content
             parsed_outcome = json.loads(stripped_json)
-            print(
-                f"Callback: Successfully parsed state key '{state_key}' after stripping."
-            )
+            print(f"Callback: Successfully parsed state key '{state_key}' after stripping.")
             return parsed_outcome
         except json.JSONDecodeError:
             print(
@@ -86,29 +72,21 @@ def _create_skip_return_value(
 ) -> types.Content:
     """Constructs skip outcome, sets state, and returns Content to signal skip."""
     current_agent_name = callback_context.agent_name
-    print(
-        f"Callback: Skipping {current_agent_name} due to {previous_agent_name} status '{reason_status}'."
-    )
+    print(f"Callback: Skipping {current_agent_name} due to {previous_agent_name} status '{reason_status}'.")
 
     if skip_message_override:
         skip_message = skip_message_override
     else:
-        skip_message = (
-            f"Skipped due to {previous_agent_name} outcome ('{reason_status}')."
-        )
+        skip_message = f"Skipped due to {previous_agent_name} outcome ('{reason_status}')."
 
     skipped_outcome = {"status": "skipped", "message": skip_message}
     skipped_outcome_json = json.dumps(skipped_outcome)
 
     if current_agent_output_key:
         callback_context.state[current_agent_output_key] = skipped_outcome_json
-        print(
-            f"Callback: Set state '{current_agent_output_key}' to: {skipped_outcome_json}"
-        )
+        print(f"Callback: Set state '{current_agent_output_key}' to: {skipped_outcome_json}")
     else:
-        print(
-            f"Callback Warning: Cannot set skipped state for {current_agent_name} as its output key is unknown."
-        )
+        print(f"Callback Warning: Cannot set skipped state for {current_agent_name} as its output key is unknown.")
 
     # Return Content to signal ADK to skip this agent's execution
     return types.Content(parts=[types.Part(text=f"Skipping {current_agent_name}.")])
@@ -135,9 +113,7 @@ def check_outcome_and_skip_callback(
 
     try:
         # 1. Determine context (previous agent keys/name)
-        previous_agent_state_key, current_agent_output_key, previous_agent_name = (
-            _get_agent_context(current_agent_name)
-        )
+        previous_agent_state_key, current_agent_output_key, previous_agent_name = _get_agent_context(current_agent_name)
 
         if not previous_agent_state_key or not previous_agent_name:
             # Warning already logged by _get_agent_context if agent is unexpected
@@ -158,9 +134,7 @@ def check_outcome_and_skip_callback(
             return None
 
         # 3. Parse the outcome JSON (handles stripping)
-        previous_outcome = _parse_outcome_json(
-            previous_outcome_json, previous_agent_state_key
-        )
+        previous_outcome = _parse_outcome_json(previous_outcome_json, previous_agent_state_key)
 
         if previous_outcome is None:
             # Parsing failed completely, even after stripping attempts. Skip current agent.
@@ -176,9 +150,7 @@ def check_outcome_and_skip_callback(
 
         # 4. Check the status from the parsed outcome
         previous_status = previous_outcome.get("status")
-        print(
-            f"Callback: Parsed {previous_agent_name} outcome: status='{previous_status}'"
-        )
+        print(f"Callback: Parsed {previous_agent_name} outcome: status='{previous_status}'")
 
         # 5. Decide whether to skip based on status
         if previous_status in ["failure", "skipped"]:
@@ -191,21 +163,15 @@ def check_outcome_and_skip_callback(
             )
         else:
             # Previous step succeeded (or had an unexpected status), allow current agent to run
-            print(
-                f"Callback: {previous_agent_name} status is '{previous_status}'. Allowing {current_agent_name} execution."
-            )
+            print(f"Callback: {previous_agent_name} status is '{previous_status}'. Allowing {current_agent_name} execution.")
             return None
 
     except Exception as e:
         # Catch any unexpected errors during callback execution
-        print(
-            f"Callback Error: An unexpected error occurred in check_outcome_and_skip_callback for {current_agent_name}: {e}"
-        )
+        print(f"Callback Error: An unexpected error occurred in check_outcome_and_skip_callback for {current_agent_name}: {e}")
         # Fallback: Skip the current agent for safety
         # Try to determine keys again for setting state, might fail if error was early
-        _, current_agent_output_key, previous_agent_name = _get_agent_context(
-            current_agent_name
-        )
+        _, current_agent_output_key, previous_agent_name = _get_agent_context(current_agent_name)
         previous_agent_name = previous_agent_name or "previous agent"  # Fallback name
         skip_msg = f"Skipped due to unexpected error in callback while checking {previous_agent_name} state."
         return _create_skip_return_value(

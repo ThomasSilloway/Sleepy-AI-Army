@@ -1,30 +1,29 @@
-[tool.ruff]
-line-length = 144
+[tool.ruff] # Global settings can remain, or be moved to specific sections
+line-length = 144 # This is often also respected by the formatter
 
-# Choose a comprehensive set. This is a good starting point:
+[tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings (includes W292)
-    "F",  # Pyflakes (undefined names, unused imports/variables)
-    "I",  # isort (import sorting)
-    "UP", # pyupgrade (modernize Python syntax)
-    # "N",  # pep8-naming (naming conventions)
-    # "B",  # flake8-bugbear (potential bugs/design problems)
-    # "SIM",# flake8-simplify (simpler code patterns)
-    # "C90",# McCabe complexity
-    # "RUF", # Consider adding some or all Ruff-specific rules
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
 ]
 
-# Example of configuring a specific rule from a category
-[tool.ruff.mccabe]
-max-complexity = 10 # Default is 10, adjust as needed
+# Add or modify the 'ignore' list to include "W291"
+ignore = [
+    "W291", # This will disable the trailing whitespace check
+    # Add any other rules you wish to ignore here, e.g., "N803"
+]
 
-# If you want to ignore specific rules from the selected categories:
-# ignore = ["N803"] # Example: ignore a specific pep8-naming rule if it's problematic for your project
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
-# You can discover all rules by running:
-# ruff rule --all
-# Or browse them on the Ruff documentation website.
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
 
-[tool.ruff.per-file-ignores]
-"**/__init__.py" = ["F401"] # Ignores F401 for all __init__.py files
+# It's also good practice to have an explicit formatter section,
+# even if you're using defaults, to make its presence clear.
+# [tool.ruff.format]
+# # You can specify options like 'quote-style', 'indent-style', etc.
+# # If this section is absent, ruff format uses its defaults.
