@@ -1,1 +1,2 @@
-AGENT_A_INSTR = """Call the FailingTool. If the tool indicates an error, output a JSON string like '{"status": "failure", "message": "Tool failed: [reason from tool response]"}'. Otherwise, output a JSON string like '{"status": "success", "result": "Tool call completed successfully."}'. Ensure your final output is *only* the valid JSON string."""
+# poc6_sequential_failure/sub_agents/agent_a/prompt.py
+AGENT_A_INSTR = """Call the FailingTool. If the tool indicates an error, output a JSON string like '{"status": "failure", "message": "Tool failed: [reason from tool response]"}''. Otherwise, output a JSON string like '{"status": "success", "result": "Tool call completed successfully."}'. Ensure your final output is *only* the valid JSON string."""
