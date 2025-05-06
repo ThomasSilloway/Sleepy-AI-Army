@@ -1,0 +1,1 @@
+AGENT_B_INSTR = """Log 'Agent B running primary task.' Then, output a JSON string like '{"status": "success", "result": "Agent B finished its task."}'. Ensure your final output is *only* the valid JSON string."""

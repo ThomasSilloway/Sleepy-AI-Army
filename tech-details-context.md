@@ -141,3 +141,388 @@ Given Roo Code's large context window, provide detailed information to minimize 
     * **Properties:** `artifact_delta`: dict[str, int], `escalate`: Optional[bool], `requested_auth_configs`: dict[str, AuthConfig], `skip_summarization`: Optional[bool], `state_delta`: dict[str, object], `transfer_to_agent`: Optional[str].
 
 This detailed document should provide substantial context and specific guidance for the AI coding agent tasked with implementing the Sleepy Dev Team project using Google ADK.
+
+
+# Summary of ADK Concepts for Architecture Brainstorming
+
+This summary captures key points about the Google Agent Development Kit (ADK) discussed during the brainstorming session, intended as input for architecting a new ADK project.
+
+## 1. Referenced ADK Documentation & Key Learnings
+
+* **Multi-Agent Systems:** Documentation on different approaches for multi-agent hierarchies was referenced and considered important to follow.
+    * **URL:** `https://google.github.io/adk-docs/agents/multi-agents/`
+* **LLM Agents & State/Artifacts:** Documentation explaining how to use session state and artifacts within prompts using `{}` syntax was noted. It also covered methods for storing data in the state (directly from model output, via tools, or callbacks).
+    * **URL:** `https://google.github.io/adk-docs/agents/llm-agents/#guiding-the-agent-instructions-instruction`
+* **Simplification:** Re-reading the docs led to the realization that ADK might allow for much simpler implementations than initially thought, particularly questioning the complexity of a previously built loop (poc1).
+
+## 2. ADK Session Mechanics & State Management
+
+* **Prompt Integration:** Session state and artifacts can be directly referenced in prompts using `{}`.
+* **State Updates:** State can be updated through:
+    * Direct output from an LLM agent.
+    * Modifications made within a tool.
+    * Changes implemented in callbacks.
+* **Information Flow:** Data needed by later agents (e.g., file content for a Q&A agent) can be pre-loaded into the state by earlier agents (potentially using parallel agents for efficiency).
+
+## 3. ADK Agent Architectures & Patterns Discussed
+
+* **Adherence to Patterns:** Strong intention to stick to the multi-agent hierarchy patterns described in the ADK documentation. A summary of these patterns was deemed necessary for the technical architecture process.
+* **Specific Agent Types Mentioned/Implied:**
+    * `LoopAgent`: For iterative processing (e.g., handling backlog items, the root agent in the PRD).
+    * `SequentialAgent`: For executing steps in order (e.g., Read Backlog -> Orchestrate Task).
+    * `ParallelAgent`: For concurrent operations (e.g., multiple agents reading different files simultaneously).
+    * `LlmAgent`: The core agent type for leveraging language models for tasks like planning or Q&A.
+* **Hierarchical Examples:**
+    * A sequential agent delegating to a parallel agent (for info gathering), which then passes control back for the next sequential step.
+    * A loop agent containing sub-agents like "get next task" and a delegator agent that routes based on the task type.
+    * The `SingleTaskOrchestrator` concept, which acts as a router/delegator based on the inferred next step for a task.
+* **Project-Specific Instructions:** The idea that agent prompts and potentially architecture might need tailoring based on the specific project type (e.g., ADK builder vs. Godot game project).
+
+## 4. Related ADK Examples & Tools
+
+* **Demo Projects:**
+    * `AashiDutt/Google-Agent-Development-Kit-Demo`: Noted for clean Streamlit integration.
+    * `abhishekkumar35/google-adk-nocode`: Mentioned as a potentially useful visual/no-code interface for ADK, possibly helpful for visualization.
+* **Articles/Tutorials:**
+    * Bibek Poudel's Medium article: Highlighted for a good Streamlit+ADK example.
+
+This information should provide a solid foundation for an AI brainstorming agent to understand the context, tools, and patterns considered important for building your ADK project.
+
+## 3\. Common Multi-Agent Patterns using ADK Primitives [¶](https://google.github.io/adk-docs/agents/multi-agents/\#3-common-multi-agent-patterns-using-adk-primitives "Permanent link")
+
+By combining ADK's composition primitives, you can implement various established patterns for multi-agent collaboration.
+
+### Coordinator/Dispatcher Pattern [¶](https://google.github.io/adk-docs/agents/multi-agents/\#coordinatordispatcher-pattern "Permanent link")
+
+- **Structure:** A central [`LlmAgent`](https://google.github.io/adk-docs/agents/llm-agents/) (Coordinator) manages several specialized `sub_agents`.
+- **Goal:** Route incoming requests to the appropriate specialist agent.
+- **ADK Primitives Used:**
+  - **Hierarchy:** Coordinator has specialists listed in `sub_agents`.
+  - **Interaction:** Primarily uses **LLM-Driven Delegation** (requires clear `description` s on sub-agents and appropriate `instruction` on Coordinator) or **Explicit Invocation ( `AgentTool`)** (Coordinator includes `AgentTool`-wrapped specialists in its `tools`).
+
+```md-code__content
+# Conceptual Code: Coordinator using LLM Transfer
+from google.adk.agents import LlmAgent
+
+billing_agent = LlmAgent(name="Billing", description="Handles billing inquiries.")
+support_agent = LlmAgent(name="Support", description="Handles technical support requests.")
+
+coordinator = LlmAgent(
+    name="HelpDeskCoordinator",
+    model="gemini-2.0-flash",
+    instruction="Route user requests: Use Billing agent for payment issues, Support agent for technical problems.",
+    description="Main help desk router.",
+    # allow_transfer=True is often implicit with sub_agents in AutoFlow
+    sub_agents=[billing_agent, support_agent]
+)
+# User asks "My payment failed" -> Coordinator's LLM should call transfer_to_agent(agent_name='Billing')
+# User asks "I can't log in" -> Coordinator's LLM should call transfer_to_agent(agent_name='Support')
+
+```
+
+### Sequential Pipeline Pattern [¶](https://google.github.io/adk-docs/agents/multi-agents/\#sequential-pipeline-pattern "Permanent link")
+
+- **Structure:** A [`SequentialAgent`](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/) contains `sub_agents` executed in a fixed order.
+- **Goal:** Implement a multi-step process where the output of one step feeds into the next.
+- **ADK Primitives Used:**
+  - **Workflow:** `SequentialAgent` defines the order.
+  - **Communication:** Primarily uses **Shared Session State**. Earlier agents write results (often via `output_key`), later agents read those results from `context.state`.
+
+```md-code__content
+# Conceptual Code: Sequential Data Pipeline
+from google.adk.agents import SequentialAgent, LlmAgent
+
+validator = LlmAgent(name="ValidateInput", instruction="Validate the input.", output_key="validation_status")
+processor = LlmAgent(name="ProcessData", instruction="Process data if state key 'validation_status' is 'valid'.", output_key="result")
+reporter = LlmAgent(name="ReportResult", instruction="Report the result from state key 'result'.")
+
+data_pipeline = SequentialAgent(
+    name="DataPipeline",
+    sub_agents=[validator, processor, reporter]
+)
+# validator runs -> saves to state['validation_status']
+# processor runs -> reads state['validation_status'], saves to state['result']
+# reporter runs -> reads state['result']
+
+```
+
+### Parallel Fan-Out/Gather Pattern [¶](https://google.github.io/adk-docs/agents/multi-agents/\#parallel-fan-outgather-pattern "Permanent link")
+
+- **Structure:** A [`ParallelAgent`](https://google.github.io/adk-docs/agents/workflow-agents/parallel-agents/) runs multiple `sub_agents` concurrently, often followed by a later agent (in a `SequentialAgent`) that aggregates results.
+- **Goal:** Execute independent tasks simultaneously to reduce latency, then combine their outputs.
+- **ADK Primitives Used:**
+  - **Workflow:** `ParallelAgent` for concurrent execution (Fan-Out). Often nested within a `SequentialAgent` to handle the subsequent aggregation step (Gather).
+  - **Communication:** Sub-agents write results to distinct keys in **Shared Session State**. The subsequent "Gather" agent reads multiple state keys.
+
+```md-code__content
+# Conceptual Code: Parallel Information Gathering
+from google.adk.agents import SequentialAgent, ParallelAgent, LlmAgent
+
+fetch_api1 = LlmAgent(name="API1Fetcher", instruction="Fetch data from API 1.", output_key="api1_data")
+fetch_api2 = LlmAgent(name="API2Fetcher", instruction="Fetch data from API 2.", output_key="api2_data")
+
+gather_concurrently = ParallelAgent(
+    name="ConcurrentFetch",
+    sub_agents=[fetch_api1, fetch_api2]
+)
+
+synthesizer = LlmAgent(
+    name="Synthesizer",
+    instruction="Combine results from state keys 'api1_data' and 'api2_data'."
+)
+
+overall_workflow = SequentialAgent(
+    name="FetchAndSynthesize",
+    sub_agents=[gather_concurrently, synthesizer] # Run parallel fetch, then synthesize
+)
+# fetch_api1 and fetch_api2 run concurrently, saving to state.
+# synthesizer runs afterwards, reading state['api1_data'] and state['api2_data'].
+
+```
+
+### Hierarchical Task Decomposition [¶](https://google.github.io/adk-docs/agents/multi-agents/\#hierarchical-task-decomposition "Permanent link")
+
+- **Structure:** A multi-level tree of agents where higher-level agents break down complex goals and delegate sub-tasks to lower-level agents.
+- **Goal:** Solve complex problems by recursively breaking them down into simpler, executable steps.
+- **ADK Primitives Used:**
+  - **Hierarchy:** Multi-level `parent_agent`/ `sub_agents` structure.
+  - **Interaction:** Primarily **LLM-Driven Delegation** or **Explicit Invocation ( `AgentTool`)** used by parent agents to assign tasks to children. Results are returned up the hierarchy (via tool responses or state).
+
+```md-code__content
+# Conceptual Code: Hierarchical Research Task
+from google.adk.agents import LlmAgent
+from google.adk.tools import agent_tool
+
+# Low-level tool-like agents
+web_searcher = LlmAgent(name="WebSearch", description="Performs web searches for facts.")
+summarizer = LlmAgent(name="Summarizer", description="Summarizes text.")
+
+# Mid-level agent combining tools
+research_assistant = LlmAgent(
+    name="ResearchAssistant",
+    model="gemini-2.0-flash",
+    description="Finds and summarizes information on a topic.",
+    tools=[agent_tool.AgentTool(agent=web_searcher), agent_tool.AgentTool(agent=summarizer)]
+)
+
+# High-level agent delegating research
+report_writer = LlmAgent(
+    name="ReportWriter",
+    model="gemini-2.0-flash",
+    instruction="Write a report on topic X. Use the ResearchAssistant to gather information.",
+    tools=[agent_tool.AgentTool(agent=research_assistant)]
+    # Alternatively, could use LLM Transfer if research_assistant is a sub_agent
+)
+# User interacts with ReportWriter.
+# ReportWriter calls ResearchAssistant tool.
+# ResearchAssistant calls WebSearch and Summarizer tools.
+# Results flow back up.
+
+```
+
+### Review/Critique Pattern (Generator-Critic) [¶](https://google.github.io/adk-docs/agents/multi-agents/\#reviewcritique-pattern-generator-critic "Permanent link")
+
+- **Structure:** Typically involves two agents within a [`SequentialAgent`](https://google.github.io/adk-docs/agents/workflow-agents/sequential-agents/): a Generator and a Critic/Reviewer.
+- **Goal:** Improve the quality or validity of generated output by having a dedicated agent review it.
+- **ADK Primitives Used:**
+  - **Workflow:** `SequentialAgent` ensures generation happens before review.
+  - **Communication:** **Shared Session State** (Generator uses `output_key` to save output; Reviewer reads that state key). The Reviewer might save its feedback to another state key for subsequent steps.
+
+```md-code__content
+# Conceptual Code: Generator-Critic
+from google.adk.agents import SequentialAgent, LlmAgent
+
+generator = LlmAgent(
+    name="DraftWriter",
+    instruction="Write a short paragraph about subject X.",
+    output_key="draft_text"
+)
+
+reviewer = LlmAgent(
+    name="FactChecker",
+    instruction="Review the text in state key 'draft_text' for factual accuracy. Output 'valid' or 'invalid' with reasons.",
+    output_key="review_status"
+)
+
+# Optional: Further steps based on review_status
+
+review_pipeline = SequentialAgent(
+    name="WriteAndReview",
+    sub_agents=[generator, reviewer]
+)
+# generator runs -> saves draft to state['draft_text']
+# reviewer runs -> reads state['draft_text'], saves status to state['review_status']
+
+```
+
+### Iterative Refinement Pattern [¶](https://google.github.io/adk-docs/agents/multi-agents/\#iterative-refinement-pattern "Permanent link")
+
+- **Structure:** Uses a [`LoopAgent`](https://google.github.io/adk-docs/agents/workflow-agents/loop-agents/) containing one or more agents that work on a task over multiple iterations.
+- **Goal:** Progressively improve a result (e.g., code, text, plan) stored in the session state until a quality threshold is met or a maximum number of iterations is reached.
+- **ADK Primitives Used:**
+  - **Workflow:** `LoopAgent` manages the repetition.
+  - **Communication:** **Shared Session State** is essential for agents to read the previous iteration's output and save the refined version.
+  - **Termination:** The loop typically ends based on `max_iterations` or a dedicated checking agent setting `actions.escalate=True` when the result is satisfactory.
+
+```md-code__content
+# Conceptual Code: Iterative Code Refinement
+from google.adk.agents import LoopAgent, LlmAgent, BaseAgent
+from google.adk.events import Event, EventActions
+from google.adk.agents.invocation_context import InvocationContext
+from typing import AsyncGenerator
+
+# Agent to generate/refine code based on state['current_code'] and state['requirements']
+code_refiner = LlmAgent(
+    name="CodeRefiner",
+    instruction="Read state['current_code'] (if exists) and state['requirements']. Generate/refine Python code to meet requirements. Save to state['current_code'].",
+    output_key="current_code" # Overwrites previous code in state
+)
+
+# Agent to check if the code meets quality standards
+quality_checker = LlmAgent(
+    name="QualityChecker",
+    instruction="Evaluate the code in state['current_code'] against state['requirements']. Output 'pass' or 'fail'.",
+    output_key="quality_status"
+)
+
+# Custom agent to check the status and escalate if 'pass'
+class CheckStatusAndEscalate(BaseAgent):
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
+        status = ctx.session.state.get("quality_status", "fail")
+        should_stop = (status == "pass")
+        yield Event(author=self.name, actions=EventActions(escalate=should_stop))
+
+refinement_loop = LoopAgent(
+    name="CodeRefinementLoop",
+    max_iterations=5,
+    sub_agents=[code_refiner, quality_checker, CheckStatusAndEscalate(name="StopChecker")]
+)
+# Loop runs: Refiner -> Checker -> StopChecker
+# State['current_code'] is updated each iteration.
+# Loop stops if QualityChecker outputs 'pass' (leading to StopChecker escalating) or after 5 iterations.
+
+```
+
+### Human-in-the-Loop Pattern [¶](https://google.github.io/adk-docs/agents/multi-agents/\#human-in-the-loop-pattern "Permanent link")
+
+- **Structure:** Integrates human intervention points within an agent workflow.
+- **Goal:** Allow for human oversight, approval, correction, or tasks that AI cannot perform.
+- **ADK Primitives Used (Conceptual):**
+  - **Interaction:** Can be implemented using a custom **Tool** that pauses execution and sends a request to an external system (e.g., a UI, ticketing system) waiting for human input. The tool then returns the human's response to the agent.
+  - **Workflow:** Could use **LLM-Driven Delegation** ( `transfer_to_agent`) targeting a conceptual "Human Agent" that triggers the external workflow, or use the custom tool within an `LlmAgent`.
+  - **State/Callbacks:** State can hold task details for the human; callbacks can manage the interaction flow.
+  - **Note:** ADK doesn't have a built-in "Human Agent" type, so this requires custom integration.
+
+```md-code__content
+# Conceptual Code: Using a Tool for Human Approval
+from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.tools import FunctionTool
+
+# --- Assume external_approval_tool exists ---
+# This tool would:
+# 1. Take details (e.g., request_id, amount, reason).
+# 2. Send these details to a human review system (e.g., via API).
+# 3. Poll or wait for the human response (approved/rejected).
+# 4. Return the human's decision.
+# async def external_approval_tool(amount: float, reason: str) -> str: ...
+approval_tool = FunctionTool(func=external_approval_tool)
+
+# Agent that prepares the request
+prepare_request = LlmAgent(
+    name="PrepareApproval",
+    instruction="Prepare the approval request details based on user input. Store amount and reason in state.",
+    # ... likely sets state['approval_amount'] and state['approval_reason'] ...
+)
+
+# Agent that calls the human approval tool
+request_approval = LlmAgent(
+    name="RequestHumanApproval",
+    instruction="Use the external_approval_tool with amount from state['approval_amount'] and reason from state['approval_reason'].",
+    tools=[approval_tool],
+    output_key="human_decision"
+)
+
+# Agent that proceeds based on human decision
+process_decision = LlmAgent(
+    name="ProcessDecision",
+    instruction="Check state key 'human_decision'. If 'approved', proceed. If 'rejected', inform user."
+)
+
+approval_workflow = SequentialAgent(
+    name="HumanApprovalWorkflow",
+    sub_agents=[prepare_request, request_approval, process_decision]
+)
+
+```
+
+These patterns provide starting points for structuring your multi-agent systems. You can mix and match them as needed to create the most effective architecture for your specific application.
+
+## Guiding the Agent: Instructions ( `instruction`) [¶](https://google.github.io/adk-docs/agents/llm-agents/\#guiding-the-agent-instructions-instruction "Permanent link")
+
+The `instruction` parameter is arguably the most critical for shaping an `LlmAgent`'s behavior. It's a string (or a function returning a string) that tells the agent:
+
+- Its core task or goal.
+- Its personality or persona (e.g., "You are a helpful assistant," "You are a witty pirate").
+- Constraints on its behavior (e.g., "Only answer questions about X," "Never reveal Y").
+- How and when to use its `tools`. You should explain the purpose of each tool and the circumstances under which it should be called, supplementing any descriptions within the tool itself.
+- The desired format for its output (e.g., "Respond in JSON," "Provide a bulleted list").
+
+**Tips for Effective Instructions:**
+
+- **Be Clear and Specific:** Avoid ambiguity. Clearly state the desired actions and outcomes.
+- **Use Markdown:** Improve readability for complex instructions using headings, lists, etc.
+- **Provide Examples (Few-Shot):** For complex tasks or specific output formats, include examples directly in the instruction.
+- **Guide Tool Use:** Don't just list tools; explain _when_ and _why_ the agent should use them.
+
+```md-code__content
+# Example: Adding instructions
+capital_agent = LlmAgent(
+    model="gemini-2.0-flash",
+    name="capital_agent",
+    description="Answers user questions about the capital city of a given country.",
+    instruction="""You are an agent that provides the capital city of a country.
+When a user asks for the capital of a country:
+1. Identify the country name from the user's query.
+2. Use the `get_capital_city` tool to find the capital.
+3. Respond clearly to the user, stating the capital city.
+Example Query: "What's the capital of France?"
+Example Response: "The capital of France is Paris."
+""",
+    # tools will be added next
+)
+
+```
+
+_(Note: For instructions that apply to_ all _agents in a system, consider using `global_instruction` on the root agent, detailed further in the [Multi-Agents](https://google.github.io/adk-docs/agents/multi-agents/) section.)_
+
+## Equipping the Agent: Tools ( `tools`) [¶](https://google.github.io/adk-docs/agents/llm-agents/\#equipping-the-agent-tools-tools "Permanent link")
+
+Tools give your `LlmAgent` capabilities beyond the LLM's built-in knowledge or reasoning. They allow the agent to interact with the outside world, perform calculations, fetch real-time data, or execute specific actions.
+
+- **`tools` (Optional):** Provide a list of tools the agent can use. Each item in the list can be:
+  - A Python function (automatically wrapped as a `FunctionTool`).
+  - An instance of a class inheriting from `BaseTool`.
+  - An instance of another agent ( `AgentTool`, enabling agent-to-agent delegation - see [Multi-Agents](https://google.github.io/adk-docs/agents/multi-agents/)).
+
+The LLM uses the function/tool names, descriptions (from docstrings or the `description` field), and parameter schemas to decide which tool to call based on the conversation and its instructions.
+
+```md-code__content
+# Define a tool function
+def get_capital_city(country: str) -> str:
+  """Retrieves the capital city for a given country."""
+  # Replace with actual logic (e.g., API call, database lookup)
+  capitals = {"france": "Paris", "japan": "Tokyo", "canada": "Ottawa"}
+  return capitals.get(country.lower(), f"Sorry, I don't know the capital of {country}.")
+
+# Add the tool to the agent
+capital_agent = LlmAgent(
+    model="gemini-2.0-flash",
+    name="capital_agent",
+    description="Answers user questions about the capital city of a given country.",
+    instruction="""You are an agent that provides the capital city of a country... (previous instruction text)""",
+    tools=[get_capital_city] # Provide the function directly
+)
+
+```
+
+Learn more about Tools in the [Tools](https://google.github.io/adk-docs/tools/) section.
