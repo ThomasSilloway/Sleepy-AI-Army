@@ -96,7 +96,7 @@ It includes:
 
 ### Tools
 
-* **FileTool**: `shared_tools/file_tool.py` — read/write/find/append
+* **FileTool**: `shared_tools/file_system.py` — read/write/find/append
 * **GitTool**: `sub_agents/git_setup/tools.py` — git operations
 * **AiderTool**: `sub_agents/aider_execution/tools.py` — run aider
 
@@ -296,7 +296,7 @@ YYYY-MM-DD HH:MM:SS
         │   └── callbacks.py     # _core_check_and_skip_logic
         ├── shared_tools/
         │   ├── __init__.py
-        │   └── file_tool.py
+        │   └── file_system.py
         └── sub_agents/
             ├── task_parsing/
             │   ├── __init__.py
