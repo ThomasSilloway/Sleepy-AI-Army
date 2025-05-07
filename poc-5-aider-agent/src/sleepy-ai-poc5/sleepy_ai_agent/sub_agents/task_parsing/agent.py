@@ -10,8 +10,7 @@ from ...shared_tools.file_system import read_file # Import the specific function
 # Create a FunctionTool from the read_file function
 # This tool will be used by the TaskParsingAgent to read the task_description.md file.
 read_file_tool = FunctionTool(
-    fn=read_file,
-    description="Reads the content of a file at the specified absolute path. Input must be a dictionary {'path': 'full_path_to_file'}.",
+    func=read_file
 )
 
 task_parsing_agent = Agent(

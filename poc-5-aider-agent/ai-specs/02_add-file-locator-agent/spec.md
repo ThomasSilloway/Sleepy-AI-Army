@@ -88,7 +88,7 @@
 
     ```python
     find_file_tool = FunctionTool(
-        fn=find_file_in_workspace_tool_wrapper,
+        func=find_file_in_workspace_tool_wrapper,
         description="Finds a specific file within the pre-configured project workspace. Input must be a dictionary {'filename': 'name_of_file_to_find'}."
     )
     ```

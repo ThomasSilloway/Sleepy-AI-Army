@@ -25,9 +25,7 @@ small_tweak_sequence = SequentialAgent(
 
 # Wrap the sequence in an AgentTool so the RootAgent can call it.
 small_tweak_sequence_tool = AgentTool(
-    agent=small_tweak_sequence,
-    name="SmallTweakSequenceTool", # Name RootAgent will use to call it
-    description="Executes the full sequence of operations for a small code tweak."
+    agent=small_tweak_sequence
 )
 
 # Uncomment for final version that uses the sequence as an agent tool

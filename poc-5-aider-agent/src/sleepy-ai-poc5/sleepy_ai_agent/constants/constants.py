@@ -9,9 +9,9 @@ CHANGELOG_FILE = "changelog.md"
 # Pre-configured Paths
 
 # For local testing, ensure these paths correctly point to your test project and goal folder.
-DEFAULT_WORKSPACE_PATH = "workspace" # Example: "C:/Users/user/projects/target_project"
+DEFAULT_WORKSPACE_PATH = "C:\GithubRepos\Project-Elder\projects\isometric_2d_prototype"
 # IMPORTANT: This path is relative DEFAULT_WORKSPACE_PATH
-DEFAULT_GOAL_FOLDER_NAME = "SmallTweak_001_ExampleGoal" # Example: "ai-goals/SmallTweak_001_FixTypo"
+DEFAULT_GOAL_FOLDER_NAME = "ai-goals\SmallTweak_001_Document_Function_01"
 
 # Agent Friendly Names
 ROOT_AGENT_NAME = "RootAgent"
