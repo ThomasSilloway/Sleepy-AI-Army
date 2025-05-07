@@ -4,6 +4,8 @@
 
 ## Objectives
 
+### TODO FOR NEXT TIME: Tell it to leave in commented out aspects from specific files if we want them
+
 - Add initial constants.py 
 
 - Add initial implementation of the first 3 agents
