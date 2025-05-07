@@ -1,0 +1,11 @@
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\file_locator\agent.py
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\file_locator\prompt.py
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\file_locator\__init__.py
+
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\agent.py # To update SmallTweakSequence
+
+/read-only poc-5-aider-agent\ai-docs\03-prd.md
+/read-only poc-5-aider-agent\ai-docs\06_tech-architecture.md
+
+/read-only poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\constants\constants.py
+/read-only poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\shared_tools\file_system.py

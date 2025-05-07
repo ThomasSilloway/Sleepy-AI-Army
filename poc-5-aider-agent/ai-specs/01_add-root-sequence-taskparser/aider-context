@@ -1,0 +1,8 @@
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\agent.py
+
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\constants\__init__.py
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\constants\constants.py
+
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\task_parsing\agent.py
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\task_parsing\prompt.py
+/add poc-5-aider-agent\src\sleepy-ai-poc5\sleepy_ai_agent\sub_agents\task_parsing\__init__.py
