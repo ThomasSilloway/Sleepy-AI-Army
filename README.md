@@ -94,3 +94,7 @@ The workflow operates in cycles, prioritizing safety and human control:
 * **Single Step Execution & Human Review Required:** The AI performs only *one defined step per goal per run cycle* and then waits for batch review. It won't complete complex features end-to-end autonomously.
     * *Example:* The AI might write code for a feature based on a plan. It stops. You review it later with all other updates from that run. Only after your review can it proceed to the *next* step (like writing tests) in a *future* run cycle. Your review gates progress for *all* tasks.
 
+## POC Status
+
+- PoC 3, 4, and 5 are incomplete projects see their readme for more info
+- PoC 1, 2, 6 Are fully implemented and intended to be run with `adk web`
