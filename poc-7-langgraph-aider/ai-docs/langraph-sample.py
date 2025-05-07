@@ -1,10 +1,12 @@
-from typing import TypedDict, List
-from langgraph.graph import StateGraph, END
+from typing import TypedDict
+
+from langgraph.graph import END, StateGraph
+
 
 # 1. Define the state
 # This TypedDict will hold the data that flows through our graph. [cite: 47, 48, 51]
 class MyWorkflowState(TypedDict):
-    messages: List[str]
+    messages: list[str]
     current_sender: str
     final_message: str # To store the combined message
 
@@ -17,7 +19,7 @@ def node_one_hello(state: MyWorkflowState) -> MyWorkflowState:
     current_messages = state.get("messages", [])
     new_message = f"{sender}: Hello from Node One!"
     current_messages.append(new_message)
-    
+
     # Update the state
     updated_state: MyWorkflowState = {
         **state, # type: ignore (Preserve existing state fields)
@@ -42,7 +44,6 @@ def node_two_world(state: MyWorkflowState) -> MyWorkflowState:
     combined = ""
     if len(current_messages) >=2: # Simple combination
         combined = f"Combined: [{current_messages[-2].split(': ')[1]}] and [{current_messages[-1].split(': ')[1]}]"
-
 
     # Update the state
     updated_state: MyWorkflowState = {
@@ -92,8 +93,10 @@ for event in app.stream(initial_state):
             print(f"  Final Combined Message in State: {value['final_message']}")
         print("---")
 
-print("\n--- Final State after Workflow ---")
-final_run_state = app.invoke(initial_state) # .invoke() runs to completion and returns final state
-print(f"Messages in final state: {final_run_state.get('messages')}")
-print(f"Last sender in final state: {final_run_state.get('current_sender')}")
-print(f"Final combined message in final state: {final_run_state.get('final_message')}")
+# Alternative to run the graph to completion and get the final state
+# .invoke() runs to completion and returns final state 
+# final_run_state = app.invoke(initial_state) 
+# print("\n--- Final State after Workflow ---")
+# print(f"Messages in final state: {final_run_state.get('messages')}")
+# print(f"Last sender in final state: {final_run_state.get('current_sender')}")
+# print(f"Final combined message in final state: {final_run_state.get('final_message')}")
