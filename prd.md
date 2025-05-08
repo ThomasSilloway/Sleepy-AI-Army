@@ -12,9 +12,7 @@ This document outlines the requirements for the Minimum Viable Product (MVP) of 
 * **Goal:** Automate the incremental advancement of development tasks defined in a simple backlog file.
 * **Goal:** Leverage AI to perform various development sub-tasks (Q&A generation, documentation, planning, coding via `aider`, analysis) autonomously based on task state.
 * **Goal:** Provide a mechanism for user review and control over the automated process via a proposal system.
-* **Goal:** Create a modular and extensible multi-agent system using the Google Agent Development Kit (`ADK`).
-* **Objective:** Develop a core `ADK` application implementing the multi-agent architecture defined below.
-* **Objective:** Implement agents capable of performing MVP tasks: Q&A, Brainstorming, PRD writing, Planning, Root Cause Analysis, Fix Planning, Polish Planning, Code Execution (via `aider`), Formatting, and Learnings Documentation.
+* **Objective:** Implement systems capable of performing MVP tasks: Q&A, Brainstorming, PRD writing, Planning, Root Cause Analysis, Fix Planning, Polish Planning, Code Execution (via `aider`), Formatting, and Learnings Documentation.
 * **Objective:** Integrate with `aider` for code generation/modification tasks, using `gemini-2.5` as the backend LLM.
 * **Objective:** Implement a Discord bot interface for manual triggering.
 * **Objective:** Ensure the system runs reliably in a local Docker environment.
