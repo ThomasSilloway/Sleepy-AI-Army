@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Format File to Markdown",
+      "type": "shell",
+      "command": "uv run --no-project ../AI-Dev-Helpers/file_to_markdown/main.py",
+      "problemMatcher": []
+    }
+  ]
+}
