@@ -1,0 +1,15 @@
+# Application configuration for PoC7 Orchestrator
+workspace_root_path: "./workspace_examples" # Adjust to your actual workspace path
+goal_root_path: "./goal_examples/poc7_initial_setup_goal" # Adjust to your actual goal path
+
+# Filenames (relative to paths above or defaults in AppConfig model)
+task_description_filename: "task-description.md"
+manifest_template_filename: "templates/goal-manifest-template.md" # Relative to workspace_root_path
+manifest_output_filename: "goal-manifest.md" # Relative to goal_root_path
+changelog_template_filename: "templates/changelog-template.md" # Relative to workspace_root_path
+changelog_output_filename: "changelog.md" # Relative to goal_root_path
+
+# Logging configuration (filenames relative to goal_root_path/log_subdirectory_name)
+log_subdirectory_name: "logs"
+overview_log_filename: "overview.log"
+detailed_log_filename: "detailed.log"
