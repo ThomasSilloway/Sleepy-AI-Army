@@ -21,6 +21,7 @@ Proof-of-Concept for LangGraph Orchestration (PoC7).
 
 To execute the main application script:
 ```bash
-uv run src/poc7_orchestrator/main.py
+cd poc-7-langgraph-aider
+uv run .\src\main.py
 ```
 This command tells `uv` to run the specified Python script within the managed environment, ensuring all dependencies from `pyproject.toml` (and `uv.lock` if present) are available.
