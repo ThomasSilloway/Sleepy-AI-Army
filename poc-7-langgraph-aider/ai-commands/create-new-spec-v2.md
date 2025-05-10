@@ -30,14 +30,27 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\src\nodes\initialization.py
 /read-only poc-7-langgraph-aider\src\main.py
+/read-only poc-7-langgraph-aider\src\graph_builder.py
+/read-only poc-7-langgraph-aider\src\state.py
+
+/read-only poc-7-langgraph-aider\ai-specs\03-services-graph-setup\spec.md
 ```  
+
+## Important Best Practices to follow
+```
+/read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
+/read-only poc-7-langgraph-aider\ai-docs\langraph-sample.py
+```
 
 ## Files that the spec should update
 
-- main.py
+- main.py, graph_builder.py, state.py
+
+Use your best judgement if anything else should get modified.
 
 ## Tasks to extrapolate: 
- - the work for the TODOs on line 72 and 73 of main.py 
-
-## Notes: 
- - Only the initialization node is implemented so far, so only include that in the graph for now
+ The following TODOs in main.py
+ ```
+    TODO: Prepare initial WorkflowState and RunnableConfig
+    TODO: Invoke graph execution
+```
