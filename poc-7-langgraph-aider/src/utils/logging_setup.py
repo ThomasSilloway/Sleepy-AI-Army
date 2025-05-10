@@ -9,7 +9,6 @@ def setup_logging(log_level=logging.INFO):
     # to get log file paths, levels, etc.
     logging.basicConfig(
         level=log_level,
-        # TODO CHange this to just hours:minutes:seconds.milliseconds
         format="[%(asctime)s.%(msecs)03d] [%(levelname)-8s] [%(name)-12s] - %(message)s",
         datefmt="%H:%M:%S",
         handlers=[
