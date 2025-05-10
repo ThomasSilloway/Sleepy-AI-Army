@@ -1,13 +1,10 @@
-Okay, I will provide the final version of the spec.
-
 # Features: Initial TODO Resolution and Minor Updates
 
 > Given the Objective, implement every detail of every task.
 
 ## Objectives
 
-- Resolve outstanding TODOs in key project files that are actionable at this stage.
-- Update file paths in `config.py` to reflect the project structure.
+- Resolve some outstanding TODOs in key project files that are actionable at this stage.
 - Update the logging timestamp format in `src/utils/logging_setup.py`.
 - Update the `README.md` to reflect current `uv` usage.
 
@@ -16,13 +13,13 @@ Okay, I will provide the final version of the spec.
 /read-only poc-7-langgraph-aider\src\config.py
 /add poc-7-langgraph-aider\src\utils\logging_setup.py
 /add poc-7-langgraph-aider\README.md
-/read-only poc-7-langgraph-aider\src\nodes\finalization_nodes.py # For context on TODOs
-/read-only poc-7-langgraph-aider\src\main.py # For context on TODOs
+/read-only poc-7-langgraph-aider\src\nodes\finalization_nodes.py
+/read-only poc-7-langgraph-aider\src\main.py 
 
 
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_1_tech_architecture_overview.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_2-tech_architecture-flow.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_3-tech_architecture-file-structure.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_1_tech_architecture_overview.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_2-tech_architecture-flow.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\ai-docs\uv_project_setup.md
 /read-only poc-7-langgraph-aider\config.yml
 
