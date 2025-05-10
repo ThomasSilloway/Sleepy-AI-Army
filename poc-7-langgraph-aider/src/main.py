@@ -4,11 +4,12 @@ from omegaconf import OmegaConf, MissingMandatoryValue
 from pydantic import ValidationError
 
 from src.config import AppConfig
+from src.utils.logging_setup import setup_logging
 
-# TODO: Use logging setup from src.utils.logging_setup instead of making a separate logger
+import traceback
 
-# Configure basic logging for the script itself before full setup
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Configure logging using the utility function
+setup_logging()
 logger = logging.getLogger(__name__)
 
 def load_app_config(config_path: str = "config.yml") -> AppConfig:
@@ -63,6 +64,7 @@ def main():
         logger.info(f"Goal root: {app_config.goal_root_path}")
     except Exception as e:
         logger.critical(f"Failed to initialize application due to configuration error: {e}")
+        logger.critical(f"Callstack:\n{traceback.format_exc()}")
         return  # Exit if configuration fails
 
     # NOTE: Everything below here should be in separate functions

@@ -10,7 +10,7 @@ def setup_logging(log_level=logging.INFO):
     
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s.%(msecs)03d - %(message)s",
+        format="%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s",
         datefmt="%H:%M:%S",
         handlers=[
             logging.StreamHandler(sys.stdout) # Basic console logging
