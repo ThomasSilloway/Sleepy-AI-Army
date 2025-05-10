@@ -10,7 +10,8 @@ The proposed project structure is designed for clarity, modularity, and adherenc
 poc-7-langgraph_aider/              # Project Root
 ├── src/                            # Main Python package for the PoC application
 │       ├── __init__.py
-│       ├── main.py                 # Application entry point, LangGraph definition & invocation
+│       ├── main.py                 # Application entry point, LangGraph invocation
+│       ├── graph_builder.py        # LangGraph graph definition
 │       ├── config.py               # AppConfig Pydantic model definition
 │       ├── state.py                # WorkflowState TypedDict definition
 │       ├── constants.py            # Project-wide internal constants (e.g., LOG_SUBDIRECTORY_NAME)
@@ -37,7 +38,8 @@ poc-7-langgraph_aider/              # Project Root
 
 * **Project Root (`poc-7-langgraph_aider/`):** This is the top-level directory containing all project-related files and directories.
 * **`src/`**: The primary Python source package for the application. Using a `src` layout is a common practice that helps separate installable package code from other project files.
-    * **`main.py`**: Serves as the main entry point for the PoC application, responsible for initializing components, defining the LangGraph graph, and starting the workflow.
+    * **`main.py`**: Serves as the main entry point for the PoC application, responsible for initializing components and starting the workflow.
+    * **`graph_builder.py`**: Contains the logic for defining the LangGraph graph structure, including nodes and edges.
     * **`config.py` & `state.py`**: Define the core Pydantic model (`AppConfig`) for static configuration and the `TypedDict` (`WorkflowState`) for dynamic graph state, respectively.
     * **`constants.py`**: Intended for truly fixed, internal constants used across the application, such as `LOG_SUBDIRECTORY_NAME = "logs"`. Configurable parameters are managed via `AppConfig` and `config.yml`.
     * **`nodes/`**: This package organizes the logic for each distinct LangGraph node into separate Python modules. The `finalization_nodes.py` module, for example, contains logic for nodes like `success_node` and `error_handler_node` which manage the graph's terminal states and log final outcomes.

@@ -2,9 +2,15 @@
 import logging
 from omegaconf import OmegaConf, MissingMandatoryValue
 from pydantic import ValidationError
+from langgraph.graph import StateGraph, END
 
 from src.config import AppConfig
+from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
+from src.services import AiderService, ChangelogService
+from src.nodes import initialize_workflow_node, error_path_node, success_path_node
+from src.graph_builder import build_graph
+
 
 import traceback
 
@@ -62,18 +68,30 @@ def main():
         # You can now use app_config throughout your application
         logger.info(f"Workspace root: {app_config.workspace_root_path}")
         logger.info(f"Goal root: {app_config.goal_root_path}")
+
+        # Instantiate Services
+        aider_service = AiderService(app_config=app_config)
+        changelog_service = ChangelogService(app_config=app_config)
+        logger.info("Services instantiated.")
+
     except Exception as e:
         logger.critical(f"Failed to initialize application due to configuration error: {e}")
         logger.critical(f"Callstack:\n{traceback.format_exc()}")
         return  # Exit if configuration fails
 
     # NOTE: Everything below here should be in separate functions
-    # TODO: Instantiate Services (AiderService, ChangelogService)
-    # TODO: Define LangGraph graph and nodes
-    # TODO: Compile graph
+
+    # Define LangGraph graph
+    graph_builder = build_graph()
+    logger.info("Graph builder created.")
+    
+    # Compile graph
+    app_graph = graph_builder.compile()
+    logger.info("Graph compiled.")
+
     # TODO: Prepare initial WorkflowState and RunnableConfig
     # TODO: Invoke graph execution
-    logger.info("PoC7 LangGraph Orchestrator Finished (placeholder).")
+    logger.info("PoC7 LangGraph Orchestrator Finished (placeholder for graph execution).")
 
 if __name__ == "__main__":
     main()
