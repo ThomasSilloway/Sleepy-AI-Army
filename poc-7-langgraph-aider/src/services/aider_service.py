@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 class AiderService:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
-        logger.info(f"{self.__class__.__name__} initialized.")
 
     def execute(self, command_args: list[str], files_to_add: list[str] = None) -> int:
         """

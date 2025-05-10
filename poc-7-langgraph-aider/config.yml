@@ -1,5 +1,5 @@
 # Application configuration for PoC7 Orchestrator
-workspace_root_path: "C:\\GithubRepos\\Sleepy-Dev-Team\\poc-7-langgraph-aider\\ai-docs\\format-templates" 
+workspace_root_path: "C:\\GithubRepos\\Sleepy-Dev-Team\\poc-7-langgraph-aider" 
 goal_root_path: "C:\\GithubRepos\\Project-Elder\\projects\\isometric_2d_prototype\\ai-goals\\SmallTweak_001_Document_Function_01" 
 
 # Filenames (relative to paths above or defaults in AppConfig model)
@@ -7,11 +7,11 @@ task_description_filename: "task-description.md"
 manifest_output_filename: "goal-manifest.md" 
 changelog_output_filename: "changelog.md" 
 
-# Template names
-manifest_template_filename: "format-goal-manifest.md" 
-changelog_template_filename: "format-changelog.md" 
-
 # Logging configuration (filenames relative to goal_root_path/log_subdirectory_name)
 log_subdirectory_name: "logs"
 overview_log_filename: "overview.log"
 detailed_log_filename: "detailed.log"
+
+# Template names
+manifest_template_filename: "ai-docs\\format-templates\\format-goal-manifest.md" 
+changelog_template_filename: "ai-docs\\format-templates\\format-changelog.md" 

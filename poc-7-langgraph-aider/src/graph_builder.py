@@ -24,9 +24,9 @@ def build_graph() -> StateGraph:
     # Define conditional routing after initialization
     def route_after_initialization(state: WorkflowState):
         if state.get("error_message"):
-            logger.info("Routing to error_path due to error_message in state.")
+            logger.error("Routing to error_path due to error_message in state.")
             return "error_path"
-        logger.info("Routing to success_path after successful initialization.")
+        logger.debug("[Workflow] Routing to success_path after successful initialization.")
         return "success_path"
 
     graph_builder.add_conditional_edges(
@@ -42,5 +42,4 @@ def build_graph() -> StateGraph:
     graph_builder.add_edge("error_path", END)
     graph_builder.add_edge("success_path", END) # For now, success_path also ends. This will change.
     
-    logger.info("Graph structure defined in build_graph.")
     return graph_builder

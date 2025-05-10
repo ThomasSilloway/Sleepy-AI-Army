@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 class ChangelogService:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
-        logger.info(f"{self.__class__.__name__} initialized.")
 
     def record_event_in_changelog(self, current_workflow_state: WorkflowState, preceding_event_summary: str) -> bool:
         """

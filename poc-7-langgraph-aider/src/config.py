@@ -39,12 +39,12 @@ class AppConfig(BaseModel):
             ValueError: For other configuration-related errors.
         """
         try:
-            logger.info(f"Attempting to load configuration from: {config_path}")
+            logger.debug(f"Attempting to load configuration from: {config_path}")
             raw_config = OmegaConf.load(config_path)
 
             config_dict = OmegaConf.to_container(raw_config, resolve=True)
             app_config = cls(**config_dict)
-            logger.info("Application configuration loaded successfully.")
+            logger.debug("Application configuration loaded successfully.")
             return app_config
         except FileNotFoundError:
             logger.error(f"Configuration file not found at: {config_path}")
