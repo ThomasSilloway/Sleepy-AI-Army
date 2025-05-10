@@ -6,24 +6,22 @@
 
 - Integrate `AppConfig` loading into the main application entry point (`src/main.py`) using `omegaconf`, and update project dependencies.
 - Implement the primary responsibilities of the `initialize_workflow_node` as defined in the technical architecture (`ai-docs/planning/06_2-tech_architecture-flow.md`, Flow 1, Step 2), focusing on `AppConfig` retrieval, path setup/validation, and initial logging.
-- Implement the primary responsibilities of the `validate_inputs_node` as defined in the technical architecture (`ai-docs/planning/06_2-tech_architecture-flow.md`, Flow 1, Step 3), focusing on input file verification and loading the task description.
 
 ## Context
-
+```
 /add poc-7-langgraph-aider\src\main.py
 /add poc-7-langgraph-aider\src\nodes\initialization.py
-/add poc-7-langgraph-aider\src\nodes\validation.py
 /add poc-7-langgraph-aider\pyproject.toml
 
 /read-only poc-7-langgraph-aider\src\config.py
 /read-only poc-7-langgraph-aider\src\state.py
 /read-only poc-7-langgraph-aider\config.yml
 /read-only poc-7-langgraph-aider\src\utils\logging_setup.py
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_1_tech_architecture_overview.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_2-tech_architecture-flow.md # Key document for node logic
-/read-only poc-7-langgraph-aider\ai-docs\planning\06_3-tech_architecture-file-structure.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_1_tech_architecture_overview.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_2-tech_architecture-flow.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
-
+```
 ## Low-Level Tasks
 > Ordered from start to finish. Implement the described functionality, using standard Python features, error handling, and logging as appropriate.
 
@@ -47,7 +45,7 @@
 - UPDATE `poc-7-langgraph-aider\src\nodes\initialization.py`:
     - Implement the `initialize_workflow_node` function to align with its documented role in "Flow 1: Successful Document Generation & Changelog Update", Step 2, of `ai-docs/planning/06_2-tech_architecture-flow.md`.
     - **Key functional requirements for the node:**
-        - Retrieve the `AppConfig` instance from the input `WorkflowState` (expected at `state['app_config']`). Implement a check for the presence and correct type of `app_config`; if invalid, set `state['error_message']`, log a critical error, and return the state.
+        - AppConfig should be supplied via dependency injection 
         - Set the `current_step_name` in `WorkflowState`.
         - Invoke `setup_logging()` (from `src.utils.logging_setup`) for initial logger configuration.
         - Log the commencement of the workflow initialization.
@@ -56,19 +54,5 @@
         - Ensure the designated log output subdirectory exists, creating it if it doesn't. Store the resolved absolute paths for `overview.log` and `detailed.log` in `WorkflowState` (e.g., `state['overview_log_file_path']`) for potential use by an enhanced `setup_logging` mechanism later.
         - Update `state['last_event_summary']` upon successful completion.
         - Log the overall success or failure of this initialization step.
-    - Replace the existing placeholder comment `# TODO: Implement node logic` and the basic `print` statement with the new logic and appropriate Python `logging` calls.
-```
-
-### Task 3: Implement Core Logic for `validate_inputs_node`
-```
-- UPDATE `poc-7-langgraph-aider\src\nodes\validation.py`:
-    - Implement the `validate_inputs_node` function to align with its documented role in "Flow 1: Successful Document Generation & Changelog Update", Step 3, of `ai-docs/planning/06_2-tech_architecture-flow.md`.
-    - **Key functional requirements for the node:**
-        - Set the `current_step_name` in `WorkflowState`.
-        - Retrieve the paths for the task description file and essential template files from `WorkflowState`.
-        - Verify that each of these files exists at the specified path and is a file. If any check fails, set `state['error_message']`, log the specific file error, and return the state.
-        - Upon successful validation of all file paths, read the content of the task description file into `state['task_description_content']`. Include error handling for file reading issues.
-        - Update `state['last_event_summary']` upon successful completion.
-        - Log the overall success or failure of this input validation step.
     - Replace the existing placeholder comment `# TODO: Implement node logic` and the basic `print` statement with the new logic and appropriate Python `logging` calls.
 ```
