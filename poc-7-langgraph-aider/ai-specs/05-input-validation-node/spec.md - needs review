@@ -1,0 +1,71 @@
+# Features: Implement Input Validation Node and Integrate into Workflow
+
+> Given the Objective, implement every detail of every task, using the referenced architectural documents as the primary guide for implementation specifics.
+
+## Objectives
+
+- Create the `validate_inputs_node` to verify the existence of necessary input files (`task_description.md`, template files) and read the content of `task_description.md` into `WorkflowState`.
+- Integrate `validate_inputs_node` into the LangGraph `StateGraph` in `src/graph_builder.py`, connecting it after successful initialization and before subsequent processing steps.
+- Update `src/nodes/__init__.py` to expose the new node.
+
+## Context
+```
+/add poc-7-langgraph-aider\src\nodes\validation.py
+/add poc-7-langgraph-aider\src\nodes\__init__.py
+/add poc-7-langgraph-aider\src\graph_builder.py
+
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_1_tech_architecture_overview.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_2-tech_architecture_flow.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_3-tech_architecture-file-structure.md
+/read-only poc-7-langgraph-aider\src\config.py
+/read-only poc-7-langgraph-aider\src\state.py
+/read-only poc-7-langgraph-aider\src\nodes\initialization.py
+/read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
+/read-only poc-7-langgraph-aider\ai-specs\03-services-graph-setup\spec.md
+```
+
+## Low-Level Tasks
+> Ordered from start to finish. Implement the described functionality, using standard Python features, error handling, and logging as appropriate.
+
+### Task 1: Create `validate_inputs_node` in `validation.py`
+```
+- CREATE `poc-7-langgraph-aider\src\nodes\validation.py`:
+    - Define `validate_inputs_node(state: WorkflowState, config) -> WorkflowState` function.
+        - Set `state['current_step_name']` to "validate_inputs_node".
+        - Retrieve `app_config: AppConfig` from the `config` argument.
+        - Log the start of the node execution.
+        - Verify the existence of the file at `state['task_description_path']`. If not found, set `state['error_message']`, update `state['last_event_summary']` with the error, log the error, and return `state`.
+        - Verify the existence of the file at `state['manifest_template_path']`. If not found, set `state['error_message']`, update `state['last_event_summary']` with the error, log the error, and return `state`.
+        - Verify the existence of the file at `state['changelog_template_path']`. If not found, set `state['error_message']`, update `state['last_event_summary']` with the error, log the error, and return `state`.
+        - If all files exist, read the content of `state['task_description_path']` into `state['task_description_content']`. Handle potential file read errors by setting `state['error_message']`, updating `state['last_event_summary']`, logging the error, and returning `state`.
+        - If successful, update `state['last_event_summary']` to "Input files validated successfully."
+        - Log successful validation.
+        - Ensure `state['error_message']` is `None` on success.
+        - Return the updated `state`.
+    - Include necessary imports (e.g., `logging`, `Path` from `pathlib`, `AppConfig`, `WorkflowState`).
+    - Use `initialization.py` as a reference for node structure, logging, and error handling patterns.
+```
+
+### Task 2: Expose `validate_inputs_node`
+```
+- UPDATE `poc-7-langgraph-aider\src\nodes\__init__.py`:
+    - Add `from .validation import validate_inputs_node` to expose the new node.
+```
+
+### Task 3: Integrate `validate_inputs_node` into the Graph
+```
+- UPDATE `poc-7-langgraph-aider\src\graph_builder.py`:
+    - Import `validate_inputs_node` from `src.nodes`.
+    - Add `validate_inputs_node` to the graph: `graph_builder.add_node("validate_inputs", validate_inputs_node)`.
+    - Modify the `route_after_initialization` function:
+        - Change the success route from `"success_path"` to `"validate_inputs"`.
+        - Update log messages to reflect this change.
+    - Define a new conditional routing function `route_after_validation(state: WorkflowState)`:
+        - If `state.get("error_message")`, log an error and return `"error_path"`.
+        - Else, log success and return `"generate_manifest_placeholder"`.
+    - Add a new placeholder node for the next step after successful validation:
+        - `graph_builder.add_node("generate_manifest_placeholder", success_path_node)` (reusing `success_path_node` which is a generic placeholder).
+    - Add conditional edges from `validate_inputs` node using `route_after_validation`:
+        `graph_builder.add_conditional_edges("validate_inputs", route_after_validation, {"error_path": "error_path", "generate_manifest_placeholder": "generate_manifest_placeholder"})`
+    - Add an edge from `"generate_manifest_placeholder"` to `END`: `graph_builder.add_edge("generate_manifest_placeholder", END)`.
+```

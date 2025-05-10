@@ -33,6 +33,7 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\src\graph_builder.py
 /read-only poc-7-langgraph-aider\src\state.py
 
+/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-v2.md
 /read-only poc-7-langgraph-aider\ai-specs\03-services-graph-setup\spec.md
 ```  
 
@@ -44,13 +45,12 @@ The `Context` block within the `spec.md` you generate should include:
 
 ## Files that the spec should update
 
-- main.py, graph_builder.py, state.py
+Use your best judgement
 
-Use your best judgement if anything else should get modified.
+## Tasks to extrapolate in the new spec.md: 
 
-## Tasks to extrapolate: 
- The following TODOs in main.py
- ```
-    TODO: Prepare initial WorkflowState and RunnableConfig
-    TODO: Invoke graph execution
-```
+Implement this workflow step from the technical architecture flow:
+
+Input Validation (validate_inputs_node): Sets current_step_name. Verifies task_description.md and templates. Reads task content into WorkflowState.task_description_content. Updates WorkflowState.last_event_summary to "Input files validated successfully." Logs success or signals error.
+
+Note: Use initialization.py node as a template for how to structure nodes, logs within nodes, comments, etc

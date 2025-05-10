@@ -36,8 +36,6 @@ def main():
         logger.critical(f"Callstack:\n{traceback.format_exc()}")
         return  # Exit if configuration fails
 
-    # NOTE: All TODOs below here should be in separate functions
-
     # Define LangGraph graph
     graph_builder = build_graph()
     logger.debug("Graph builder created.")
