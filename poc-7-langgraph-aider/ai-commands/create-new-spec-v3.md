@@ -34,8 +34,9 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\src\main.py
 /read-only poc-7-langgraph-aider\src\graph_builder.py
 /read-only poc-7-langgraph-aider\src\state.py
+/read-only poc-7-langgraph-aider\src\services\aider_service.py
 
-/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-v2.md
+/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-v3.md
 /read-only poc-7-langgraph-aider\ai-specs\03-services-graph-setup\spec.md
 ```  
 
@@ -43,6 +44,8 @@ The `Context` block within the `spec.md` you generate should include:
 ```
 /read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
 /read-only poc-7-langgraph-aider\ai-docs\langraph-sample.py
+
+/read-only poc-7-langgraph-aider\ai-docs\aider-cli-usage.md
 ```
 
 ## Files that the spec should update
@@ -53,6 +56,14 @@ Use your best judgement
 
 Implement this workflow step from the technical architecture flow:
 
-Input Validation (validate_inputs_node): Sets current_step_name. Verifies task_description.md and templates. Reads task content into WorkflowState.task_description_content. Updates WorkflowState.last_event_summary to "Input files validated successfully." Logs success or signals error.
-
-Note: Use initialization.py node as a template for how to structure nodes, logs within nodes, comments, etc
+**2.3. `AiderService` (Tool Interaction Service)**
+* **Description:** A dedicated Python class abstracting CLI interactions with the `aider` tool, primarily for generating files like `goal-manifest.md` based on explicit instructions and template guidance.
+* **Responsibilities:**
+    * Construct `aider` commands for file generation/modification based on detailed prompts and context.
+    * Execute `aider` as a subprocess.
+    * Handle real-time streaming of `aider`'s `stdout`/`stderr` to console and logs.
+    * Capture `aider`'s exit status.
+* **Key Interactions:**
+    * Instantiated by the `Main Execution Script`.
+    * Injected via `RunnableConfig` and invoked by `LangGraph Orchestrator` nodes (e.g., `generate_manifest_node`).
+    * Uses the `Logging System`.
