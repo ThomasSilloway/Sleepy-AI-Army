@@ -4,8 +4,8 @@ import os
 from datetime import datetime
 
 from src.config import AppConfig
+from src.services.aider_service import AiderService  # Corrected import path
 from src.state import WorkflowState
-from src.services.aider_service import AiderService # Corrected import path
 
 logger = logging.getLogger(__name__)
 
@@ -43,45 +43,34 @@ class ChangelogService:
             logger.debug(f"Target changelog file path: {changelog_file_path}")
 
             # 3. Construct sophisticated prompt for aider
-            # Details from workflow state for context
-            manifest_generated_info = "N/A"
-            if "is_manifest_generated" in current_workflow_state and "manifest_output_path" in current_workflow_state:
-                if current_workflow_state['is_manifest_generated'] and current_workflow_state['manifest_output_path']:
-                    manifest_generated_info = f"Yes, at '{current_workflow_state['manifest_output_path']}'"
-                elif current_workflow_state['is_manifest_generated']:
-                    manifest_generated_info = "Yes, path not specified."
-                else:
-                    manifest_generated_info = "No."
-            
+            # Details from workflow state for context            
             last_event_summary_state = current_workflow_state.get('last_event_summary', 'N/A')
+            changelog_template_file_path = os.path.join(
+                self.app_config.workspace_root_path,
+                self.app_config.changelog_template_filename
+            )
 
-            aider_prompt = f"""Please update the file '{changelog_file_path}' by appending a new changelog entry.
-The event to log is: "{preceding_event_summary}".
+            aider_prompt = f"""UPDATE the file '{changelog_file_path}' by appending a new changelog entry.
 
-Contextual Information:
+GENERATE the new changelog entry strictly following the format in `{changelog_template_file_path}` using the data below:
+
+- Timestamp: {timestamp}
+- Preceeding Event Summary: {preceding_event_summary}
 - Workflow state's last recorded event: "{last_event_summary_state}"
-- Was a manifest file generated in a preceding step? {manifest_generated_info}
-
-Generate the new changelog entry strictly following this format:
-# [Generated Change Title Based on the Event: "{preceding_event_summary}"]
-[{timestamp}]
-
-- [Generated bullet point 1 concisely summarizing the primary event: "{preceding_event_summary}"]
-- [If applicable, add a second bullet point with key details derived from the contextual information provided above. Keep it concise.]
 
 Ensure this new entry is appended to the end of the file.
 If the file '{changelog_file_path}' is empty or does not exist, create it and add this as the first entry.
 The title and bullet points should be concise and accurately reflect the event.
 Do not add any other commentary before or after the changelog entry itself.
 """
-            logger.debug(f"Constructed aider prompt:\n{aider_prompt}")
+            logger.debug(f"Constructed aider prompt:\n\n{aider_prompt}\n\n")
 
             # 4. Execute aider command
             # Files to add (aider will edit this file)
             files_to_edit = [changelog_file_path]
             # Aider command arguments
-            command_args = ["--no-auto-commits", "-m", aider_prompt]
-            
+            command_args = ["-m", aider_prompt, "--read", changelog_template_file_path]
+
             logger.info(f"Executing AiderService to update changelog: {changelog_file_path}")
             exit_code = self.aider_service.execute(command_args=command_args, files_to_add=files_to_edit)
 

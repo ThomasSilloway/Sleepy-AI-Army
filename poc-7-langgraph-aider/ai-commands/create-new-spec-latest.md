@@ -1,7 +1,8 @@
 # AI Command: Generate New Specification File (`spec.md`)
 
 ## 1. Task Overview
-Your primary task is to generate a new `spec.md` file. This file will outline the next set of development tasks for the project
+Your primary task is to generate a new `spec.md` file. This file will outline the next set of development tasks for the project.  
+- IMPORTANT: Generate only the new `spec.md` do not move into implementation unless specifically asked.
 
 ## 2. Output File Details
 - **Location**: The new `spec.md` should be placed in a sibiling directory to the example `spec.md`
