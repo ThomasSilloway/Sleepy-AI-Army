@@ -53,10 +53,10 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
 
     # Resolve and store critical absolute paths in WorkflowState
     try:
-        state['task_description_path'] = str(workspace_root_path / app_config.task_description_filename)
         state['manifest_template_path'] = str(workspace_root_path / app_config.manifest_template_filename)
         state['changelog_template_path'] = str(workspace_root_path / app_config.changelog_template_filename)
         
+        state['task_description_path'] = str(goal_root_path / app_config.task_description_filename)
         state['manifest_output_path'] = str(goal_root_path / app_config.manifest_output_filename)
         state['changelog_output_path'] = str(goal_root_path / app_config.changelog_output_filename)
 
