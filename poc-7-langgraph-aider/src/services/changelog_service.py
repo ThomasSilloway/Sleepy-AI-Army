@@ -69,7 +69,11 @@ Do not add any other commentary before or after the changelog entry itself.
             # Files to add (aider will edit this file)
             files_to_edit = [changelog_file_path]
             # Aider command arguments
-            command_args = ["-m", aider_prompt, "--read", changelog_template_file_path]
+            command_args = [
+                "-m", aider_prompt, 
+                "--read", changelog_template_file_path,
+                "--model", self.app_config.changelog_aider_model,
+            ]
 
             logger.info(f"Executing AiderService to update changelog: {changelog_file_path}")
             exit_code = self.aider_service.execute(command_args=command_args, files_to_add=files_to_edit)

@@ -41,7 +41,7 @@ def run_changelog_update_test(app_config: AppConfig, changelog_service: Changelo
     logger.debug(f"Mock WorkflowState prepared: {mock_workflow_state}")
 
     # 2. Define a preceding_event_summary for the new changelog entry
-    event_summary_text = f"Automated test changelog entry: {uuid.uuid4()}"
+    event_summary_text = "Updated fake file `fake.txt` to have more babies in it"
     logger.info(f"Event summary for changelog: '{event_summary_text}'")
 
     # 3. Execute the changelog service

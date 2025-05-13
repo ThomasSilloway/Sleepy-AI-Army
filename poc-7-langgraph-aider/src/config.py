@@ -20,6 +20,8 @@ class AppConfig(BaseModel):
     manifest_template_filename: str
     changelog_template_filename: str
 
+    changelog_aider_model: str
+
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml") -> "AppConfig":
         """
