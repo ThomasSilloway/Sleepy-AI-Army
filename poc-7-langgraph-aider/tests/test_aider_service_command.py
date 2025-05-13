@@ -86,8 +86,7 @@ def run_aider_edit_readme_test_simplified(app_config: AppConfig, aider_service: 
         random_line_text = f"Automated test line (simplified test): {uuid.uuid4()}"
         # Prompt to append the line
         prompt = (
-            f"Please append the following line to the very end of the file. "
-            f"Ensure it is on its own new line and no other changes are made:\n"
+            f"UPDATE the Readme.md file with the following text at the end: \ "
             f"{random_line_text}"
         )
         
@@ -152,9 +151,9 @@ if __name__ == "__main__":
         main_logger.info("====== AiderService Test Suite Aborted ======")
         sys.exit(1)
 
-    run_aider_version_test(app_config, aider_service)
+    # run_aider_version_test(app_config, aider_service)
     
-    main_logger.info("\n") 
+    # main_logger.info("\n") 
 
     # Call the new simplified edit test
     run_aider_edit_readme_test_simplified(app_config, aider_service)

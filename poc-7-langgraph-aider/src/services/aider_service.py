@@ -43,7 +43,7 @@ class AiderService:
         # Base command is 'aider'
         # Files to add come next
         # Specific command arguments follow
-        full_command = ["aider"] + files_to_add + command_args
+        full_command = ["aider"] + files_to_add + command_args + ["--yes-always"]
         
         logger.info(f"Executing aider command: {' '.join(full_command)}")
         # Consider adding: cwd=self.workspace_path if needed
