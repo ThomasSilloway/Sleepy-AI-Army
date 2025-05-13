@@ -26,21 +26,21 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
     # to use paths from WorkflowState once they are resolved.
     setup_logging() # TODO: Enhance setup_logging to use resolved log file paths from state
     
-    logger.info("[Workflow] Initializer Node")
+    logger.info("[Initializer] Initializer Node")
 
     # Validate goal_root_path and workspace_root_path
     goal_root_path = Path(app_config.goal_root_path).resolve()
     workspace_root_path = Path(app_config.workspace_root_path).resolve()
 
     if not goal_root_path.is_dir():
-        error_msg = f"Goal root path does not exist or is not a directory: {goal_root_path}"
+        error_msg = f"[Initializer] Goal root path does not exist or is not a directory: {goal_root_path}"
         logger.error(error_msg)
         state['error_message'] = error_msg
         state['last_event_summary'] = f"Error: {error_msg}"
         return state
 
     if not workspace_root_path.is_dir():
-        error_msg = f"Workspace root path does not exist or is not a directory: {workspace_root_path}"
+        error_msg = f"[Initializer] Workspace root path does not exist or is not a directory: {workspace_root_path}"
         logger.error(error_msg)
         state['error_message'] = error_msg
         state['last_event_summary'] = f"Error: {error_msg}"
@@ -71,7 +71,7 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
         state['overview_log_file_path'] = str(log_subdirectory / app_config.overview_log_filename)
         state['detailed_log_file_path'] = str(log_subdirectory / app_config.detailed_log_filename)
 
-        # logger.info(f"Task description path: {state['task_description_path']}")
+        # logger.info(f" - Task description path: {state['task_description_path']}")
         # logger.info(f"Manifest template path: {state['manifest_template_path']}")
         # logger.info(f"Changelog template path: {state['changelog_template_path']}")
         # logger.info(f"Manifest output path: {state['manifest_output_path']}")
@@ -80,7 +80,7 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
         # logger.info(f"Detailed log file path: {state['detailed_log_file_path']}")
 
     except Exception as e:
-        error_msg = f"Error resolving paths or creating log directory: {e}"
+        error_msg = f"[Initializer] Error resolving paths or creating log directory: {e}"
         logger.error(error_msg)
         state['error_message'] = error_msg
         state['last_event_summary'] = f"Error: {error_msg}"

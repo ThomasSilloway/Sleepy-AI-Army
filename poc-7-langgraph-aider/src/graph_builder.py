@@ -25,9 +25,9 @@ def build_graph() -> StateGraph:
     # Define conditional routing after initialization
     def route_after_initialization(state: WorkflowState):
         if state.get("error_message"):
-            logger.error("[Workflow] Routing to error_path due to error_message after initialization.")
+            logger.error("[Graph] Routing to error_path due to error_message after initialization.")
             return "error_path"
-        logger.info("[Workflow] Initialization successful. Routing to validate_inputs.")
+        logger.info("[Graph] Initialization successful. Routing to validate_inputs.")
         return "validate_inputs" # Route key for success
 
     graph_builder.add_conditional_edges(
@@ -42,9 +42,9 @@ def build_graph() -> StateGraph:
     # Define conditional routing after validation
     def route_after_validation(state: WorkflowState):
         if state.get("error_message"):
-            logger.error("[Workflow] Routing to error_path due to error_message after validation.")
+            logger.error("[Graph] Routing to error_path due to error_message after validation.")
             return "error_path"
-        logger.info("[Workflow] Input validation successful. Routing to success_path.")
+        logger.info("[Graph] Input validation successful. Routing to success_path.")
         return "validation_succeeded" # Route key for success
 
     graph_builder.add_conditional_edges(
