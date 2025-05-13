@@ -35,8 +35,8 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\src\graph_builder.py
 /read-only poc-7-langgraph-aider\src\state.py
 
-/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-v2.md
-/read-only poc-7-langgraph-aider\ai-specs\03-services-graph-setup\spec.md
+/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
+/read-only poc-7-langgraph-aider\ai-specs\06-implement-aider-service\spec.md
 ```  
 
 ## Important Best Practices to follow
