@@ -12,25 +12,6 @@ def validate_inputs_node(state: WorkflowState, config) -> WorkflowState:
     task description content into the WorkflowState.
     """
     state['current_step_name'] = "validate_inputs_node"
-    
-    # Retrieve AppConfig from the config argument
-    # Assuming config is structured as passed by LangGraph: config["configurable"]
-    if not isinstance(config, dict) or "configurable" not in config:
-        error_msg = "Config object is not structured as expected (missing 'configurable' key)."
-        logger.error(error_msg)
-        state['error_message'] = error_msg
-        state['last_event_summary'] = f"Validation Setup Error: {error_msg}"
-        return state
-
-    app_config_dict = config["configurable"]
-    if not isinstance(app_config_dict, dict) or "app_config" not in app_config_dict:
-        error_msg = "Config object is not structured as expected (missing 'app_config' key within 'configurable')."
-        logger.error(error_msg)
-        state['error_message'] = error_msg
-        state['last_event_summary'] = f"Validation Setup Error: {error_msg}"
-        return state
-        
-    app_config: AppConfig = app_config_dict["app_config"]
 
     logger.info(f"[Input Validation] Starting input validation.")
 
