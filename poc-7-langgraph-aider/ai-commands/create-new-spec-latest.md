@@ -32,8 +32,10 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_2-tech_architecture-flow.md
 /read-only poc-7-langgraph-aider\ai-docs\planning\01_manifest-and-changelist\05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\src\main.py
-/read-only poc-7-langgraph-aider\src\graph_builder.py
 /read-only poc-7-langgraph-aider\src\state.py
+/read-only poc-7-langgraph-aider\src\services\aider_service.py
+/read-only poc-7-langgraph-aider\src\services\changelog_service.py
+/read-only poc-7-langgraph-aider\tests\test_aider_service_command.py
 
 /read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
 /read-only poc-7-langgraph-aider\ai-specs\06-implement-aider-service\spec.md
@@ -43,6 +45,9 @@ The `Context` block within the `spec.md` you generate should include:
 ```
 /read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
 /read-only poc-7-langgraph-aider\ai-docs\langraph-sample.py
+/read-only poc-7-langgraph-aider\ai-docs\aider-cli-usage.md
+
+/read-only ai-docs/CONVENTIONS.md
 ```
 
 ## Files that the spec should update
@@ -53,6 +58,21 @@ Use your best judgement
 
 Implement this workflow step from the technical architecture flow:
 
-Input Validation (validate_inputs_node): Sets current_step_name. Verifies task_description.md and templates. Reads task content into WorkflowState.task_description_content. Updates WorkflowState.last_event_summary to "Input files validated successfully." Logs success or signals error.
-
-Note: Use initialization.py node as a template for how to structure nodes, logs within nodes, comments, etc
+```
+#### **2.4. `ChangelogService` (Changelog Management Service) `changelog_service.py`**
+* **Description:** A dedicated Python class responsible for orchestrating updates to the `changelog.md` file. It employs `aider` via the AiderService class to interpret contextual information derived from the current `WorkflowState` and a summary of the preceding event, thereby generating the specific content for the changelog entry. This approach leverages `aider`'s inferential capabilities but introduces a significant dependency on its consistent interpretation of broad context and the quality of internal prompt engineering.
+* **Responsibilities:**
+    * Provide a method to request a changelog update, e.g., `record_event_in_changelog(current_workflow_state: WorkflowState)`.
+    * Internally, construct a highly sophisticated prompt for `aider` via AiderService. This prompt must effectively guide `aider` to:
+        * Analyze relevant information from `current_workflow_state` (e.g., paths of recently created files like `generated_manifest_filepath`, status flags like `is_manifest_generated`, and the `last_event_summary`).
+        * Interpret the `preceding_event_summary` to understand the nature and outcome of the event that needs to be logged.
+        * Synthesize this information to generate an appropriate changelog entry title and descriptive bullet points that accurately reflect the event.
+        * Adhere to the structural guidelines of `format-changelog.md`, including the generation or incorporation of a current timestamp (the service will manage timestamp generation and ensure its inclusion in the prompt or `aider`'s instruction).
+    * Execute the AiderService's `execute` command to update `changelog.md` based off of the prompt provided.
+    * Handle AiderService's output and exit status. The success and correctness of the generated changelog entry heavily rely on the quality and robustness of the internal prompt engineering used to guide `aider`, which is a key challenge for this service.
+* **Key Interactions:**
+    * Instantiated by the `Main Execution Script`.
+    * Injected via `RunnableConfig` and invoked by `LangGraph Orchestrator` nodes (e.g., by `generate_manifest_node` after successful manifest creation, passing the current `WorkflowState` and an `event_summary`).
+    * Uses the `Logging System`.
+    * Interacts with `changelog.md` located at the path derived from `AppConfig.goal_root_path` and `AppConfig.changelog_output_filename`.
+```

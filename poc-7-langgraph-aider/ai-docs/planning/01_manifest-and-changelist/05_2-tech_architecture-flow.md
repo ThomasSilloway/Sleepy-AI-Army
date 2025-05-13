@@ -36,16 +36,16 @@ The system comprises the following major components, interacting to achieve the 
     * Uses the `Logging System`.
 
 #### **2.4. `ChangelogService` (Changelog Management Service)**
-* **Description:** A dedicated Python class responsible for orchestrating updates to the `changelog.md` file. It employs `aider` to interpret contextual information derived from the current `WorkflowState` and a summary of the preceding event, thereby generating the specific content for the changelog entry. This approach leverages `aider`'s inferential capabilities but introduces a significant dependency on its consistent interpretation of broad context and the quality of internal prompt engineering.
+* **Description:** A dedicated Python class responsible for orchestrating updates to the `changelog.md` file. It employs `aider` via the AiderService class to interpret contextual information derived from the current `WorkflowState` and a summary of the preceding event, thereby generating the specific content for the changelog entry. This approach leverages `aider`'s inferential capabilities but introduces a significant dependency on its consistent interpretation of broad context and the quality of internal prompt engineering.
 * **Responsibilities:**
-    * Provide a method to request a changelog update, e.g., `record_event_in_changelog(current_workflow_state: WorkflowState, preceding_event_summary: str)`.
-    * Internally, construct a highly sophisticated prompt for `aider`. This prompt must effectively guide `aider` to:
+    * Provide a method to request a changelog update, e.g., `record_event_in_changelog(current_workflow_state: WorkflowState)`.
+    * Internally, construct a highly sophisticated prompt for `aider` via AiderService. This prompt must effectively guide `aider` to:
         * Analyze relevant information from `current_workflow_state` (e.g., paths of recently created files like `generated_manifest_filepath`, status flags like `is_manifest_generated`, and the `last_event_summary`).
         * Interpret the `preceding_event_summary` to understand the nature and outcome of the event that needs to be logged.
         * Synthesize this information to generate an appropriate changelog entry title and descriptive bullet points that accurately reflect the event.
         * Adhere to the structural guidelines of `format-changelog.md`, including the generation or incorporation of a current timestamp (the service will manage timestamp generation and ensure its inclusion in the prompt or `aider`'s instruction).
-    * Execute the `aider` command to append the `aider`-generated entry to `changelog.md`.
-    * Handle `aider`'s output and exit status. The success and correctness of the generated changelog entry heavily rely on the quality and robustness of the internal prompt engineering used to guide `aider`, which is a key challenge for this service.
+    * Execute the AiderService's `execute` command to update `changelog.md` based off of the prompt provided.
+    * Handle AiderService's output and exit status. The success and correctness of the generated changelog entry heavily rely on the quality and robustness of the internal prompt engineering used to guide `aider`, which is a key challenge for this service.
 * **Key Interactions:**
     * Instantiated by the `Main Execution Script`.
     * Injected via `RunnableConfig` and invoked by `LangGraph Orchestrator` nodes (e.g., by `generate_manifest_node` after successful manifest creation, passing the current `WorkflowState` and an `event_summary`).
