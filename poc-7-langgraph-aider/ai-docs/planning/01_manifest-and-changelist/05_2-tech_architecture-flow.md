@@ -62,11 +62,11 @@ The system comprises the following major components, interacting to achieve the 
     * Read from and updated by `LangGraph Orchestrator` nodes.
 
 #### **2.6. `Logging System`**
-* **Description:** A utility system for generating application logs. Its setup logic resides in `src.poc7_orchestrator.utils.logging_setup.py` and is invoked by `initialize_workflow_node`.
+* **Description:** A utility system for generating application logs. Its setup logic resides in `src.poc7_orchestrator.utils.logging_setup.py` and is invoked by `main.py`.
 * **Responsibilities:**
     * Provide timestamped (`[HH:MM:SS.mmm]` format) logging to console, `overview.log`, and `detailed.log`.
 * **Key Interactions:**
-    * Configured and initialized by `initialize_workflow_node` using `AppConfig`.
+    * Configured and initialized by `main.py` using `AppConfig`.
     * Used by all major components.
 
 #### **2.7. `Main Execution Script` (`poc7_orchestrator.main.py`)**

@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import uuid  # For generating random text for the changelog entry
+from dotenv import load_dotenv
 
 from src.config import AppConfig
 from src.services.aider_service import AiderService
@@ -11,6 +12,9 @@ from src.utils.logging_setup import setup_logging
 
 # Get a logger for this test script
 logger = logging.getLogger(__name__)
+
+# Load the .env file
+load_dotenv()
 
 def run_changelog_update_test(app_config: AppConfig, changelog_service: ChangelogService):
     """

@@ -28,7 +28,7 @@ def main():
 
         # Instantiate Services
         aider_service = AiderService(app_config=app_config)
-        changelog_service = ChangelogService(app_config=app_config)
+        changelog_service = ChangelogService(app_config=app_config, aider_service=aider_service)
         logger.debug("Services instantiated.")
 
     except Exception as e:

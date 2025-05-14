@@ -16,6 +16,7 @@ dependencies = [
     "langgraph",
     "pydantic",
     "omegaconf",
+    "python-dotenv",
 ]
 
 [build-system]

@@ -40,12 +40,12 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         # Construct the aider prompt
         # Using state['manifest_template_path'] as it's resolved in initialize_workflow_node
         # Using state['manifest_output_path'] as it's resolved in initialize_workflow_node
-        aider_prompt = f"""Please generate the goal manifest content for the file '{manifest_output_path_str}'.
+        aider_prompt = f"""CREATE the goal manifest content for the file '{manifest_output_path_str}'.
+EXACTLY follow the structure and guidance provided in the manifest template file '{manifest_template_path_str}'.
 Base the manifest on the following task description:
 ---
 {task_description_content}
 ---
-Use the structure and guidance provided in the manifest template file '{manifest_template_path_str}'.
 Ensure the output is written to '{manifest_output_path_str}'.
 If the file '{manifest_output_path_str}' already exists, overwrite it with the new content.
 Do not add any other commentary before or after the manifest content itself.
@@ -59,7 +59,7 @@ Do not add any other commentary before or after the manifest content itself.
         command_args = [
             "-m", aider_prompt,
             "--read", manifest_template_path_str,
-            # No --model specified here as per spec interpretation; aider will use its default or env config.
+            "--model", app_config.goal_manifest_aider_model,
         ]
 
         logger.info(f"Invoking AiderService to generate manifest: {manifest_output_path_str}")

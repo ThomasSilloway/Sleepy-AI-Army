@@ -3,6 +3,7 @@ import logging
 import subprocess
 import sys
 import threading
+import os
 from typing import List, Optional # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
 
 from src.config import AppConfig
@@ -22,8 +23,6 @@ def stream_output(pipe, log_func):
 class AiderService:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
-        # Consider adding workspace_root_path if aider needs to be run from there
-        # self.workspace_path = app_config.workspace_root_path
 
     def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> int:
         """
@@ -43,7 +42,9 @@ class AiderService:
         # Base command is 'aider'
         # Files to add come next
         # Specific command arguments follow
-        full_command = ["aider"] + files_to_add + command_args + ["--yes-always"]
+        full_command = ["aider"] + files_to_add + command_args + [
+            "--yes-always",
+        ]
         
         logger.info(f"Executing aider command: {' '.join(full_command)}")
         # Consider adding: cwd=self.workspace_path if needed

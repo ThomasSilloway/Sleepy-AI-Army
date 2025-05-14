@@ -21,6 +21,7 @@ class AppConfig(BaseModel):
     changelog_template_filename: str
 
     changelog_aider_model: str
+    goal_manifest_aider_model: str
 
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml") -> "AppConfig":
