@@ -37,6 +37,7 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider\src\services\aider_service.py
 /read-only poc-7-langgraph-aider\src\services\changelog_service.py
 /read-only poc-7-langgraph-aider\tests\test_aider_service_command.py
+/read-only poc-7-langgraph-aider\src\config.py
 
 /read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
 /read-only poc-7-langgraph-aider\ai-specs\06-implement-aider-service\spec.md
@@ -60,20 +61,16 @@ Use your best judgement
 Implement this workflow step from the technical architecture flow:
 
 ```
-#### **2.4. `ChangelogService` (Changelog Management Service) `changelog_service.py`**
-* **Description:** A dedicated Python class responsible for orchestrating updates to the `changelog.md` file. It employs `aider` via the AiderService class to interpret contextual information derived from the current `WorkflowState` and a summary of the preceding event, thereby generating the specific content for the changelog entry. This approach leverages `aider`'s inferential capabilities but introduces a significant dependency on its consistent interpretation of broad context and the quality of internal prompt engineering.
-* **Responsibilities:**
-    * Provide a method to request a changelog update, e.g., `record_event_in_changelog(current_workflow_state: WorkflowState)`.
-    * Internally, construct a highly sophisticated prompt for `aider` via AiderService. This prompt must effectively guide `aider` to:
-        * Analyze relevant information from `current_workflow_state` (e.g., paths of recently created files like `generated_manifest_filepath`, status flags like `is_manifest_generated`, and the `last_event_summary`).
-        * Interpret the `preceding_event_summary` to understand the nature and outcome of the event that needs to be logged.
-        * Synthesize this information to generate an appropriate changelog entry title and descriptive bullet points that accurately reflect the event.
-        * Adhere to the structural guidelines of `format-changelog.md`, including the generation or incorporation of a current timestamp (the service will manage timestamp generation and ensure its inclusion in the prompt or `aider`'s instruction).
-    * Execute the AiderService's `execute` command to update `changelog.md` based off of the prompt provided.
-    * Handle AiderService's output and exit status. The success and correctness of the generated changelog entry heavily rely on the quality and robustness of the internal prompt engineering used to guide `aider`, which is a key challenge for this service.
-* **Key Interactions:**
-    * Instantiated by the `Main Execution Script`.
-    * Injected via `RunnableConfig` and invoked by `LangGraph Orchestrator` nodes (e.g., by `generate_manifest_node` after successful manifest creation, passing the current `WorkflowState` and an `event_summary`).
-    * Uses the `Logging System`.
-    * Interacts with `changelog.md` located at the path derived from `AppConfig.goal_root_path` and `AppConfig.changelog_output_filename`.
+4.  **Goal Manifest Generation (`generate_manifest_node`):** Sets `current_step_name`.
+    * Constructs detailed `aider` prompt for manifest generation (using `task_description_content`, manifest template path, output path from `WorkflowState`).
+    * Invokes `AiderService.execute(...)`.
+    * Updates `WorkflowState.aider_last_exit_code`.
+    * If successful (exit code 0, file exists):
+        * Sets `WorkflowState.is_manifest_generated = True`, `WorkflowState.generated_manifest_filepath`.
+        * Sets `WorkflowState.last_event_summary = f"Goal Manifest generated: {WorkflowState.generated_manifest_filepath}"`.
+        * Invokes `ChangelogService.record_event_in_changelog()`. 
+        * If `ChangelogService` indicates failure (e.g., returns `False`) `WorkflowState.is_changelog_entry_added` is set to `False`. For this PoC, this specific failure does not halt the primary success path of manifest generation.
+        * If `ChangelogService` succeeds, `WorkflowState.is_changelog_entry_added` is set to `True`.
+        * Logs successful manifest generation and the outcome of the changelog update attempt.
+    * If manifest generation fails, signals error (updates `WorkflowState.error_message` and `WorkflowState.last_event_summary` to reflect the manifest generation failure, then returns for error handling).
 ```
