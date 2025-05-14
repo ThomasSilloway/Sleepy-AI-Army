@@ -1,27 +1,27 @@
 """Main application entry point for the PoC7 Orchestrator."""
 import logging
-# Removed OmegaConf and ValidationError as they are now handled in AppConfig
-from langgraph.graph import StateGraph, END
 
 from src.config import AppConfig
 from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
 from src.services import AiderService, ChangelogService
-from src.nodes import initialize_workflow_node, error_path_node, success_path_node
 from src.graph_builder import build_graph
 
 import traceback
+from dotenv import load_dotenv
 
-# Configure logging using the utility function
-setup_logging()
-logger = logging.getLogger(__name__)
+# Load the .env file
+load_dotenv()
 
 def main():
-    logger.info("PoC7 LangGraph Orchestrator Starting...")
+    print("PoC7 LangGraph Orchestrator Starting...")
 
     try:
         # Load configuration using the AppConfig class method
         app_config = AppConfig.load_from_yaml()
+
+        setup_logging(app_config=app_config)
+        logger = logging.getLogger(__name__)
         # You can now use app_config throughout your application
         logger.info(f"Workspace root: {app_config.workspace_root_path}")
         logger.info(f"Goal root: {app_config.goal_root_path}")

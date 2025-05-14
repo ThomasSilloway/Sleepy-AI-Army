@@ -20,11 +20,6 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
 
     config = config["configurable"]
     app_config: AppConfig = config["app_config"]
-
-    # Invoke setup_logging() for initial logger configuration.
-    # As per spec, this is basic for now. It might be enhanced later
-    # to use paths from WorkflowState once they are resolved.
-    setup_logging() # TODO: Enhance setup_logging to use resolved log file paths from state
     
     logger.info("[Initializer] Initializer Node")
 
@@ -60,24 +55,13 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
         state['manifest_output_path'] = str(goal_root_path / app_config.manifest_output_filename)
         state['changelog_output_path'] = str(goal_root_path / app_config.changelog_output_filename)
 
-        log_subdirectory = goal_root_path / app_config.log_subdirectory_name
-        # Ensure the log output subdirectory exists
-        os.makedirs(log_subdirectory, exist_ok=True)
-        # logger.info(f"Ensured log subdirectory exists: {log_subdirectory}")
-
-        # Store resolved absolute paths for log files in WorkflowState
-        # These keys 'overview_log_file_path' and 'detailed_log_file_path' are added
-        # as per spec, assuming WorkflowState can accommodate them or will be updated.
-        state['overview_log_file_path'] = str(log_subdirectory / app_config.overview_log_filename)
-        state['detailed_log_file_path'] = str(log_subdirectory / app_config.detailed_log_filename)
+        
 
         # logger.info(f" - Task description path: {state['task_description_path']}")
         # logger.info(f"Manifest template path: {state['manifest_template_path']}")
         # logger.info(f"Changelog template path: {state['changelog_template_path']}")
         # logger.info(f"Manifest output path: {state['manifest_output_path']}")
         # logger.info(f"Changelog output path: {state['changelog_output_path']}")
-        # logger.info(f"Overview log file path: {state['overview_log_file_path']}")
-        # logger.info(f"Detailed log file path: {state['detailed_log_file_path']}")
 
     except Exception as e:
         error_msg = f"[Initializer] Error resolving paths or creating log directory: {e}"
