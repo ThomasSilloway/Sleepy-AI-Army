@@ -34,7 +34,7 @@ def build_graph() -> StateGraph:
         if state.get("error_message"):
             logger.error("[Graph] Routing to error_path due to error_message after initialization.")
             return "error_path"
-        logger.info("[Graph] Initialization successful. Routing to validate_inputs.")
+        logger.overview("[Graph] Initialization successful. Routing to validate_inputs.")
         return "validate_inputs" 
 
     graph_builder.add_conditional_edges(
@@ -51,7 +51,7 @@ def build_graph() -> StateGraph:
         if state.get("error_message"):
             logger.error("[Graph] Routing to error_path due to error_message after validation.")
             return "error_path"
-        logger.info("[Graph] Input validation successful. Routing to generate_manifest_node.")
+        logger.overview("[Graph] Input validation successful. Routing to generate_manifest_node.")
         return "validation_succeeded" 
 
     graph_builder.add_conditional_edges(
@@ -68,7 +68,7 @@ def build_graph() -> StateGraph:
         if state.get("error_message"):
             logger.error("[Graph] Routing to error_path due to error_message after manifest generation.")
             return "error_path"
-        logger.info("[Graph] Manifest generation successful. Routing to success_path.")
+        logger.overview("[Graph] Manifest generation successful. Routing to success_path.")
         return "manifest_generation_succeeded"
 
     graph_builder.add_conditional_edges(

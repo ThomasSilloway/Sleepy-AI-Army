@@ -23,8 +23,8 @@ def main():
         setup_logging(app_config=app_config)
         logger = logging.getLogger(__name__)
         # You can now use app_config throughout your application
-        logger.info(f"Workspace root: {app_config.workspace_root_path}")
-        logger.info(f"Goal root: {app_config.goal_root_path}")
+        logger.overview(f"Workspace root: {app_config.workspace_root_path}")
+        logger.overview(f"Goal root: {app_config.goal_root_path}")
 
         # Instantiate Services
         aider_service = AiderService(app_config=app_config)
@@ -77,17 +77,17 @@ def main():
     logger.debug("RunnableConfig prepared.")
 
     # Invoke graph execution
-    logger.info("Invoking graph execution...")
+    logger.overview("Invoking graph execution...")
     final_state = app_graph.invoke(initial_state, config=runnable_config)
     
     # logger.info(f"Final workflow state: {final_state}")
     # Output only the current_step_name, last_event_summary, error_message, is_manifest_generated, and is_changelog_entry_added each on separate lines with helpful indentation and labels
-    logger.debug(f"PoC7 LangGraph Orchestrator finished.")
-    logger.debug(f"  - Current Step Name: {final_state.get('current_step_name', 'N/A')}")
-    logger.debug(f"  - Last Event Summary: {final_state.get('last_event_summary', 'N/A')}")
-    logger.debug(f"  - Error Message: {final_state.get('error_message', 'N/A')}")
-    logger.debug(f"  - Is Manifest Generated: {final_state.get('is_manifest_generated', 'N/A')}")
-    logger.debug(f"  - Is Changelog Entry Added: {final_state.get('is_changelog_entry_added', 'N/A')}")
+    logger.overview(f"PoC7 LangGraph Orchestrator finished.")
+    logger.overview(f"  - Current Step Name: {final_state.get('current_step_name', 'N/A')}")
+    logger.overview(f"  - Last Event Summary: {final_state.get('last_event_summary', 'N/A')}")
+    logger.overview(f"  - Error Message: {final_state.get('error_message', 'N/A')}")
+    logger.overview(f"  - Is Manifest Generated: {final_state.get('is_manifest_generated', 'N/A')}")
+    logger.overview(f"  - Is Changelog Entry Added: {final_state.get('is_changelog_entry_added', 'N/A')}")
 
 if __name__ == "__main__":
     main()

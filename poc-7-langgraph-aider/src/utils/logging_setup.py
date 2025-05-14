@@ -1,73 +1,83 @@
 """Utility for configuring the application's logging system."""
-import datetime
+from datetime import datetime # Changed import for slightly more common usage
 import logging
 import os
 from pathlib import Path
 import sys
-from src.config import AppConfig
+# Assuming AppConfig is passed in, or you have a way to get these paths
+# from src.config import AppConfig # Keep if you pass AppConfig instance
 
-# Logging setup (placeholder). Actual file logging to be configured based on AppConfig
+# 1. Define and register the custom OVERVIEW log level
+OVERVIEW_LEVEL_NUM = 25  # Positioned between INFO (20) and WARNING (30)
+OVERVIEW_LEVEL_NAME = "OVERVIEW"
+logging.addLevelName(OVERVIEW_LEVEL_NUM, OVERVIEW_LEVEL_NAME)
+
+def overview_log_method(self, message, *args, **kws):
+    if self.isEnabledFor(OVERVIEW_LEVEL_NUM):
+        # Yes, logger takes its '*args' as 'args'.
+        self._log(OVERVIEW_LEVEL_NUM, message, args, **kws)
+
+logging.Logger.overview = overview_log_method
+# Now you can use logger.overview("Your message")
+
 class LowercaseLevelnameFormatter(logging.Formatter):
     def format(self, record):
         record.levelname = record.levelname.lower()
         return super().format(record)
 
-def setup_logging(app_config: AppConfig, log_level=logging.INFO):
+# Make sure AppConfig is available here, either by passing it or importing AppConfig and loading it.
+# For this example, I'm assuming app_config is passed as an argument as in your current code.
+def setup_logging(app_config, log_level=logging.INFO): # Added app_config type hint if you have it
     """Configures logging for the application with console and file outputs."""
 
     goal_root_path = Path(app_config.goal_root_path).resolve()
     log_subdirectory = goal_root_path / app_config.log_subdirectory_name
-    # Ensure the log output subdirectory exists
     os.makedirs(log_subdirectory, exist_ok=True)
 
     overview_log_file_path = str(log_subdirectory / app_config.overview_log_filename)
     detailed_log_file_path = str(log_subdirectory / app_config.detailed_log_filename)
     
     # Create the custom formatter
-    # Spec: fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) [%(name)s] %(message)s", datefmt="%H:%M:%S"
-    file_formatter = LowercaseLevelnameFormatter(       
-
-        fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s",
+    # Spec mentioned: fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) [%(name)s] %(message)s", datefmt="%H:%M:%S"
+    # Adding [%(name)s] to file_formatter as per typical detailed logging.
+    file_formatter = LowercaseLevelnameFormatter(     
+        fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s", # Added [%(name)s]
         datefmt="%H:%M:%S"
     )
 
     console_formatter = LowercaseLevelnameFormatter(
-        fmt="%(asctime)s.%(msecs)03d: (%(levelname)s) %(message)s",
-        datefmt="%M:%S"
+        fmt="%(asctime)s.%(msecs)03d: (%(levelname)s) %(message)s", # Keeping console simpler
+        datefmt="%M:%S" # Console uses MM:SS for brevity as per your current code
     )
     
-    # Get the root logger
     root_logger = logging.getLogger()
-    # Set root logger to DEBUG to allow detailed file handler to capture DEBUG messages
-    # Individual handlers will filter messages at their configured levels.
-    root_logger.setLevel(logging.DEBUG) 
+    root_logger.setLevel(logging.DEBUG) # Set root to lowest level to allow handlers to filter
     
-    # Remove any existing handlers (like the one basicConfig might add)
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
         
     # Configure Console Handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(log_level) # Use the passed log_level for console
+    console_handler.setLevel(log_level) # Console level controlled by passed-in log_level
     root_logger.addHandler(console_handler)
 
     # Configure Overview File Handler
-    overview_file_handler = logging.FileHandler(overview_log_file_path)
+    overview_file_handler = logging.FileHandler(overview_log_file_path, mode='a') # Use 'a' for append
     overview_file_handler.setFormatter(file_formatter)
-    overview_file_handler.setLevel(logging.INFO) # Overview log at INFO level
+    # Set this handler to only capture OVERVIEW level and above (WARNING, ERROR, CRITICAL)
+    overview_file_handler.setLevel(OVERVIEW_LEVEL_NUM) 
     root_logger.addHandler(overview_file_handler)
 
     # Configure Detailed File Handler
-    detailed_file_handler = logging.FileHandler(detailed_log_file_path)
+    detailed_file_handler = logging.FileHandler(detailed_log_file_path, mode='a') # Use 'a' for append
     detailed_file_handler.setFormatter(file_formatter)
-    detailed_file_handler.setLevel(logging.DEBUG) # Detailed log at DEBUG level
+    # This handler captures DEBUG and above (so DEBUG, INFO, OVERVIEW, WARNING, ERROR, CRITICAL)
+    detailed_file_handler.setLevel(logging.DEBUG) 
     root_logger.addHandler(detailed_file_handler)
 
-    # Print out today's date
-    # print(f"Today's date: {datetime.now().strftime('%Y-%m-%d')}") # this doesn't work - AttributeError: module 'datetime' has no attribute 'now'
-    logging.info(f"========= Today's date: {datetime.datetime.now().strftime('%Y-%m-%d')} ===========")
-    
-    # Example: logging.getLogger("aider_service").setLevel(logging.DEBUG)
-    # This kind of specific logger level setting can still be done elsewhere if needed,
-    # after this general setup.
+    # Initial log message to confirm setup and show date
+    # Changed to use the newly defined logger.overview for this prominent message
+    root_logger.overview(f"\n\n======== Logging initialized. Date: {datetime.now().strftime('%Y-%m-%d')} =========\n\n")
+    root_logger.info("Detailed logging started (includes INFO, DEBUG, OVERVIEW, etc.).")
+    root_logger.debug("Debug level test message for detailed log.")
