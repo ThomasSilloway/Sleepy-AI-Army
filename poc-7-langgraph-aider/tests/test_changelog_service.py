@@ -77,17 +77,18 @@ def run_changelog_update_test(app_config: AppConfig, changelog_service: Changelo
     logger.info("*** Please MANUALLY VERIFY its content. ***")
 
 if __name__ == "__main__":
-    # Setup logging with a default level (e.g., INFO)
-    # The actual log level can be further configured in AppConfig if needed
-    setup_logging(log_level=logging.INFO) 
     
-    main_logger = logging.getLogger(__name__) # Logger for the main script execution
-    main_logger.info("====== Starting ChangelogService Test Suite ======")
 
     # Load AppConfig
     app_config = None
     try:
         app_config = AppConfig.load_from_yaml()
+        # Setup logging with a default level (e.g., INFO)
+        # The actual log level can be further configured in AppConfig if needed
+        setup_logging(app_config=app_config) 
+        
+        main_logger = logging.getLogger(__name__) # Logger for the main script execution
+        main_logger.info("====== Starting ChangelogService Test Suite ======")
         main_logger.info("AppConfig loaded successfully")
     except Exception as e:
         main_logger.error("Failed to load AppConfig", exc_info=True)
