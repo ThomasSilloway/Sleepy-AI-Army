@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 class AppConfig(BaseModel):
     workspace_root_path: str
     goal_root_path: str
+    goal_git_path: str # Path to the root of the Git repo that contains the goal_root_path
     task_description_filename: str
     manifest_output_filename: str
     changelog_output_filename: str
