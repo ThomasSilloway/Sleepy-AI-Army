@@ -40,15 +40,45 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         # Construct the aider prompt
         # Using state['manifest_template_path'] as it's resolved in initialize_workflow_node
         # Using state['manifest_output_path'] as it's resolved in initialize_workflow_node
-        aider_prompt = f"""CREATE the goal manifest content for the file '{manifest_output_path_str}'.
-EXACTLY follow the structure and guidance provided in the manifest template file '{manifest_template_path_str}'.
-Base the manifest on the following task description:
+        aider_prompt = f"""
+        
+# Goal Manifest Generation
+
+> Given the Objective, implement every detail of every task. Do not perform any other tasks aside from the ones outlined below.
+
+## Objectives
+
+ - Create the goal manifest file at '{manifest_output_path_str}'.
+
+## Context
+
+ - Base the manifest on the following task description:
 ---
 {task_description_content}
 ---
-Ensure the output is written to '{manifest_output_path_str}'.
-If the file '{manifest_output_path_str}' already exists, overwrite it with the new content.
-Do not add any other commentary before or after the manifest content itself.
+
+## Low-Level Tasks
+> Ordered from start to finish.
+
+### Task 1: Analyze the changes
+```        
+ - CREATE the goal manifest content for the file '{manifest_output_path_str}' using the task description in the Context section above.
+ - EXACTLY follow the structure and guidance provided in the manifest template file '{manifest_template_path_str}'.
+ - IMPORTANT: 
+    - If the file '{manifest_output_path_str}' already exists, overwrite it with the new content.
+    - Do not add any other commentary before or after the manifest content itself.
+```
+
+### Task 2: Verify the changes
+```
+  - VERIFY the output is written to '{manifest_output_path_str}'.
+```
+
+### Task 3: STOP - DO NOT MAKE ANY OTHER CHANGES
+```
+  - STOP EXECUTION - DO NOT TRY TO IMPLEMENT THE TASK in the Goal Manifest. Your job is complete after writing the manifest.
+```
+
 """
         logger.debug(f"Constructed aider prompt for manifest generation:\n\n{aider_prompt}\n\n")
 
