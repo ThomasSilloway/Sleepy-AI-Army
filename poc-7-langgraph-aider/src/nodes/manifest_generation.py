@@ -36,49 +36,37 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
             state['last_event_summary'] = "Error: Missing critical info for manifest generation."
             state['is_manifest_generated'] = False
             return state
+        
+        spec_file_abs_path = r"C:\GithubRepos\Sleepy-AI-Army\poc-7-langgraph-aider\src\ai-specs\goal-manifest-creation-spec.md"
 
         # Construct the aider prompt
         # Using state['manifest_template_path'] as it's resolved in initialize_workflow_node
         # Using state['manifest_output_path'] as it's resolved in initialize_workflow_node
-        aider_prompt = f"""
+
         
-# Goal Manifest Generation
+        aider_prompt = f"""
+You are being tasked with generating a goal manifest file.
 
-> Given the Objective, implement every detail of every task. Do not perform any other tasks aside from the ones outlined below.
+Primary Instructions File:
+You MUST follow the detailed instructions located in the file named `{spec_file_abs_path}`. This file has been provided to you for reading.
 
-## Objectives
+Key File Paths for Your Task:
+1.  **Output Manifest File:** The file you are to create or update is located at `{manifest_output_path_str}` (relative to the Git project root). This is your SOLE target for writing.
+2.  **Manifest Template File:** You MUST use the structure and guidance from the file named `{manifest_template_path_str}`. This file has also been provided to you for reading.
 
- - Create the goal manifest file at '{manifest_output_path_str}'.
-
-## Context
-
- - Base the manifest on the following task description:
----
+Task Description Context:
+The content for the manifest should be based on the following task description:
+=========================
 {task_description_content}
----
+=========================
 
-## Low-Level Tasks
-> Ordered from start to finish.
+CRITICAL DIRECTIVES:
+-   Your ONLY objective is to generate and write to the specified Output Manifest File (`{manifest_output_path_str}`).
+-   You MUST NOT, under any circumstances, modify, analyze, or even suggest adding any other files.
+-   You MUST NOT attempt to execute or implement any coding tasks mentioned in the Task Description Context. Your role is strictly limited to generating the manifest document.
+-   After successfully generating and writing the manifest, you MUST stop all further actions.
 
-### Task 1: Analyze the changes
-```        
- - CREATE the goal manifest content for the file '{manifest_output_path_str}' using the task description in the Context section above.
- - EXACTLY follow the structure and guidance provided in the manifest template file '{manifest_template_path_str}'.
- - IMPORTANT: 
-    - If the file '{manifest_output_path_str}' already exists, overwrite it with the new content.
-    - Do not add any other commentary before or after the manifest content itself.
-```
-
-### Task 2: Verify the changes
-```
-  - VERIFY the output is written to '{manifest_output_path_str}'.
-```
-
-### Task 3: STOP - DO NOT MAKE ANY OTHER CHANGES
-```
-  - STOP EXECUTION - DO NOT TRY TO IMPLEMENT THE TASK in the Goal Manifest. Your job is complete after writing the manifest.
-```
-
+Proceed by strictly adhering to the instructions in `{spec_file_abs_path}` using the information defined above.
 """
         logger.debug(f"Constructed aider prompt for manifest generation:\n\n{aider_prompt}\n\n")
 
@@ -89,6 +77,7 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         command_args = [
             "-m", aider_prompt,
             "--read", manifest_template_path_str,
+            "--read", spec_file_abs_path,
             "--model", app_config.goal_manifest_aider_model,
         ]
 
