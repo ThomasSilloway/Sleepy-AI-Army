@@ -3,11 +3,11 @@ import logging
 import os
 from pathlib import Path
 
-from src.state import WorkflowState
 from src.config import AppConfig
 from src.services.aider_service import AiderService
-from src.services.git_service import GitService
 from src.services.changelog_service import ChangelogService
+from src.services.git_service import GitService
+from src.state import WorkflowState
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             state['last_event_summary'] = "Error: Missing task_description_path for Small Tweak."
             state['is_code_change_committed'] = False
             return state
-        
+
         if not os.path.exists(task_description_path_str):
             error_msg = f"[SmallTweakExecution] Task description file not found at: {task_description_path_str}"
             logger.error(error_msg)
@@ -46,11 +46,53 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             return state
 
         task_desc_filename = Path(task_description_path_str).name
-        aider_prompt = f"""Please apply the changes described in the file '{task_desc_filename}'.
-This file has been provided to you as read-only context.
-Please ensure to commit the changes with a descriptive message if successful.
-The changes should be applied to the files in the current Git repository.
-"""
+        aider_prompt = f"""
+
+# File Update Task
+
+> Given the Objective, implement every detail of every task.
+
+## Objectives
+
+ - Implement the changes described in the file '{task_desc_filename}'.
+
+## Low-Level Tasks
+> Ordered from start to finish. Implement the described functionality, using standard features in the given language, error handling, and logging as appropriate.
+
+### Task 1: Analyze the changes
+```
+ - ANALYZE the changes requested as described in the file '{task_desc_filename}'.
+```
+
+### Task 2: Brainstorm how to apply changes
+```
+ - PRINT out in the chat 2-3 possible ways to apply the changes with pros and cons for each
+```
+
+### Task 3: Choose the best approach
+```
+ - CHOOSE the best approach from the options you printed out in Task 2.
+ - FORMULATE a plan using this approach and integrating any ideas from the other plans that will maximize their pros and minimize their cons
+```
+
+### Task 4: Apply the changes
+```
+ - EXECUTE the plan formulated in the previous task to implement the changes specified in the file '{task_desc_filename}'.
+```
+
+### Task 5: Critique the changes
+```
+ - CRITIQUE the changes you made in Task 4 listing the pros and cons of the approach
+```
+
+### Task 6: Improve the changes
+```
+    - IMPROVE the changes you made in Task 4 based on the critique you made in Task 5.
+    - If you think the changes are already perfect, print out `No changes needed`
+```
+
+"""  # noqa: E501
+
         logger.debug(f"Constructed aider prompt for small tweak:\n\n{aider_prompt}\n\n")
 
         # Aider will determine files to edit from the instructions in task_description_path_str
@@ -75,19 +117,18 @@ The changes should be applied to the files in the current Git repository.
         if exit_code == 0:
             logger.info("Aider successfully executed the small tweak.")
             state['is_code_change_committed'] = True
-            
+
             commit_hash = git_service.get_last_commit_hash()
             commit_summary_raw = git_service.get_last_commit_summary()
             file_stats_raw = git_service.get_last_commit_file_stats()
 
             state['last_change_commit_hash'] = commit_hash
-            state['tweak_file_change_stats'] = file_stats_raw
 
             combined_summary = commit_summary_raw or "N/A"
             if file_stats_raw:
                 combined_summary += f"\n\nFile Stats:\n{file_stats_raw}"
             state['last_change_commit_summary'] = combined_summary
-            
+
             event_summary = f"Small Tweak applied. Commit: {commit_hash or 'N/A'} - {commit_summary_raw or 'N/A'}"
             state['last_event_summary'] = event_summary
             state['error_message'] = None
@@ -112,7 +153,6 @@ The changes should be applied to the files in the current Git repository.
             # Clear git info fields on failure
             state['last_change_commit_hash'] = None
             state['last_change_commit_summary'] = None
-            state['tweak_file_change_stats'] = None
 
     except Exception as e:
         error_msg = f"[SmallTweakExecution] Unexpected error during small tweak execution: {e}"
@@ -124,6 +164,5 @@ The changes should be applied to the files in the current Git repository.
             state['aider_last_exit_code'] = -1 
         state['last_change_commit_hash'] = None
         state['last_change_commit_summary'] = None
-        state['tweak_file_change_stats'] = None
-            
+
     return state
