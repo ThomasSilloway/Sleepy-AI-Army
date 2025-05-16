@@ -1,14 +1,14 @@
 """Main application entry point for the PoC7 Orchestrator."""
 import logging
+import traceback
+
+from dotenv import load_dotenv
 
 from src.config import AppConfig
+from src.graph_builder import build_graph
+from src.services import AiderService, ChangelogService, GitService
 from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
-from src.services import AiderService, ChangelogService
-from src.graph_builder import build_graph
-
-import traceback
-from dotenv import load_dotenv
 
 # Load the .env file
 load_dotenv()
@@ -29,6 +29,8 @@ def main():
         # Instantiate Services
         aider_service = AiderService(app_config=app_config)
         changelog_service = ChangelogService(app_config=app_config, aider_service=aider_service)
+        repo_path = app_config.goal_git_path        
+        git_service = GitService(repo_path=repo_path)
         logger.debug("Services instantiated.")
 
     except Exception as e:
@@ -72,6 +74,7 @@ def main():
             "app_config": app_config,
             "aider_service": aider_service,
             "changelog_service": changelog_service,
+            "git_service": git_service,
         }
     }
     logger.debug("RunnableConfig prepared.")
