@@ -1,1 +1,1 @@
-git ls-files ai-docs poc-7-langgraph-aider
+git ls-files ai-docs poc-7-langgraph-aider | clip

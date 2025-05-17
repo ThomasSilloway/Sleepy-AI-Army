@@ -29,12 +29,22 @@ The `Context` block within the `spec.md` you generate should include:
 ## Project Context
 
 ```
-/read-only poc-7-langgraph-aider\ai-docs\planning\02_small-tweak-code-change\05_3-tech_architecture-file-structure.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\02_small-tweak-code-change\05_2-tech_architecture-flow.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\02_small-tweak-code-change\05_1_tech_architecture_overview.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\01_vision-statement.md
+/read-only ai-docs/CONVENTIONS.md
+/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-goal-manifest.md
+/read-only poc-7-langgraph-aider/ai-docs/jinja-best-practices.md
+/read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
+/read-only poc-7-langgraph-aider/ai-docs/langgraph-best-practices.md
 
-/read-only poc-7-langgraph-aider\src\services\git_service.py
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/02_feature-list.md
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/03_prd.md
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/04_brainstorming-gemini-web.md
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_1_tech_architecture_overview.md
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_2-tech_architecture-flow.md
+/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_3-tech_architecture-file-structure.md
+/read-only poc-7-langgraph-aider\ai-docs\planning\01_vision-statement.md
+/read-only poc-7-langgraph-aider/ai-docs/pydantic-ai-best-practices.md
+/read-only poc-7-langgraph-aider/ai-docs/pydantic-ai-sample.py
+
 /read-only poc-7-langgraph-aider/config.yml
 /read-only poc-7-langgraph-aider/src/__init__.py
 /read-only poc-7-langgraph-aider/src/config.py
@@ -43,22 +53,15 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider/src/nodes/__init__.py
 /read-only poc-7-langgraph-aider/src/nodes/manifest_generation.py
 /read-only poc-7-langgraph-aider/src/services/__init__.py
-/read-only poc-7-langgraph-aider/src/services/aider_service.py
 /read-only poc-7-langgraph-aider/src/services/changelog_service.py
-/read-only poc-7-langgraph-aider/src/services/git_service.py
 /read-only poc-7-langgraph-aider/src/state.py
+/read-only poc-7-langgraph-aider/src/utils/__init__.py
+/read-only poc-7-langgraph-aider/src/utils/logging_setup.py
+
 
 /read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
 /read-only poc-7-langgraph-aider\ai-specs\06-implement-aider-service\spec.md
 ```  
-
-## Important Best Practices to follow
-```
-/read-only poc-7-langgraph-aider\ai-docs\langgraph-best-practices.md
-/read-only poc-7-langgraph-aider\ai-docs\aider-cli-usage.md
-
-/read-only ai-docs/CONVENTIONS.md
-```
 
 ## Files that the spec should update
 
@@ -66,18 +69,9 @@ Use your best judgement
 
 ## Tasks to extrapolate in the new spec.md: 
 
-Implement this section from the tech architecture workflow doc below. We may need to update the workflow state with some new variables for this. Use `manifest_generation.py` as a template for how to make the node and how to get the appconfig, how to call the git service, aider service, etc
+Implement these sections from the tech architecture workflow doc below. 
 
 ```
-* **`execute_small_tweak_node`**:
-    * **Responsibilities:**
-        1.  Retrieves the `task_description_filepath` from `WorkflowState`.
-        2.  Constructs a prompt string (e.g., "Apply the changes described in `[task_description_filepath]`.") and invokes `AiderService` to execute the "Small Tweak". `AiderService` is configured such that `aider` will add `task_description_filepath` to its context and automatically commit successful changes.
-        3.  Upon successful execution by `AiderService` (indicated by exit code):
-            * Invokes `GitService` to retrieve the `tweak_commit_hash`, `tweak_commit_summary`, and `tweak_file_change_stats`.
-            * Updates `WorkflowState` with these Git details and sets `is_tweak_executed` to `True`.
-            * Prepares an `event_summary` for the changelog.
-            * Invokes `ChangelogService` to record the successful tweak execution.
-        4.  If `AiderService` execution fails, updates `WorkflowState` with error information and routes to the error handler.
-    * **Key Interactions:** `WorkflowState` (read/write), `AiderService` (invoke), `GitService` (invoke), `ChangelogService` (invoke).
+* **`ManifestConfigLLM` (New Pydantic Model):**
+* **`LlmPromptService` (New Service):**
 ```

@@ -1,7 +1,7 @@
 """Pydantic model for application configuration."""
 import logging
 from pydantic import BaseModel, ValidationError
-from typing import List, Optional
+from typing import List, Optional # List will be replaced by list if used
 from omegaconf import OmegaConf, MissingMandatoryValue
 
 logger = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ class AppConfig(BaseModel):
 
     changelog_aider_model: str
     goal_manifest_aider_model: str
+    gemini_text_model_name: str # New field for LlmPromptService Gemini model
 
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml") -> "AppConfig":
@@ -55,6 +56,8 @@ class AppConfig(BaseModel):
             raise
         except MissingMandatoryValue as e:
             logger.error(f"Missing mandatory value in configuration: {e}")
+            # Ensure this error message clearly indicates which key is missing.
+            # OmegaConf's MissingMandatoryValue exception __str__ usually includes the key.
             raise ValueError(f"Missing mandatory value in configuration: {e}") from e
         except OmegaConf.errors.OmegaConfBaseException as e: # Catches various OmegaConf errors
             logger.error(f"Error loading or parsing configuration file ({config_path}): {e}")
