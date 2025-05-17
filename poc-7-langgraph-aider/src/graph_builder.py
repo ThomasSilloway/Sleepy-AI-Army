@@ -24,7 +24,8 @@ def build_graph() -> StateGraph:
     graph_builder.add_node("initialize_workflow", initialize_workflow_node)
     graph_builder.add_node("validate_inputs", validate_inputs_node)
     graph_builder.add_node("generate_manifest_node", generate_manifest_node)
-    graph_builder.add_node("execute_small_tweak", execute_small_tweak_node) # Add new node
+    # TODO: Uncomment this line after manifest generation is working
+    # graph_builder.add_node("execute_small_tweak", execute_small_tweak_node) 
     graph_builder.add_node("error_path", error_path_node)
     graph_builder.add_node("success_path", success_path_node)
 
@@ -79,7 +80,8 @@ def build_graph() -> StateGraph:
         route_after_manifest_generation,
         {
             "error_path": "error_path",
-            "manifest_generation_succeeded": "execute_small_tweak" # Route to tweak execution
+            # "manifest_generation_succeeded": "execute_small_tweak" # Route to tweak execution
+            "manifest_generation_succeeded": "success_path" # TODO: Toggle me back after manifest generation working again
         }
     )
 
