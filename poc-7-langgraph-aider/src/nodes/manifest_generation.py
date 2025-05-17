@@ -24,12 +24,12 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         app_config: AppConfig = services_config["app_config"]
         changelog_service: ChangelogService = services_config["changelog_service"]
 
-        task_description_path_str = state.get('task_description_path')
+        task_description_content = state.get('task_description_content')
         manifest_template_path_str = state.get('manifest_template_path')
         manifest_output_path_str = state.get('manifest_output_path')
 
-        if not all([task_description_path_str, manifest_template_path_str, manifest_output_path_str]):
-            error_msg = "[ManifestGeneration] Critical information missing in state for manifest generation (task_description_path_str, manifest_template_path, or manifest_output_path)."
+        if not all([task_description_content, manifest_template_path_str, manifest_output_path_str]):
+            error_msg = "[ManifestGeneration] Critical information missing in state for manifest generation (task_description_content, manifest_template_path, or manifest_output_path)."
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: Missing critical info for manifest generation."
