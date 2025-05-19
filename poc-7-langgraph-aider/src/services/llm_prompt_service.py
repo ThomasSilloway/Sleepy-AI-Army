@@ -1,10 +1,12 @@
 import logging
 import os
+import re
 from typing import Any, Optional, TypeVar
 
 from pydantic import BaseModel
 from pydantic_ai.direct import model_request
 from pydantic_ai.messages import (
+    ModelRequest,
     ModelRequestPart,  # Union of request part types
     ModelResponse,
     SystemPromptPart,
@@ -35,6 +37,19 @@ class LlmPromptService:
         """
         self.app_config = app_config
         self.gemini_model_prefix = "google-gla:" # Standard prefix for pydantic-ai with Gemini
+
+    def _strip_json_fencing(self, text_content: str) -> str:
+        """
+        Strips Markdown JSON fencing (```json ... ```) from a string.
+        """
+        match = re.search(r"```json\s*(.*?)\s*```", text_content, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+        # Fallback for cases where only ``` might be present or if there's no explicit "json"
+        match_generic = re.search(r"```\s*(.*?)\s*```", text_content, re.DOTALL)
+        if match_generic:
+            return match_generic.group(1).strip()
+        return text_content # Return original if no fencing is found
 
     async def get_structured_output(
         self,
@@ -78,7 +93,7 @@ class LlmPromptService:
             if not content:
                 logger.warning(f"Message with role '{role}' has no content. Skipping.")
                 continue
-            
+
             if role == "user":
                 request_parts.append(UserPromptPart(content=content))
             elif role == "system":
@@ -104,43 +119,49 @@ class LlmPromptService:
                 logger.debug(f"Using model parameters: {model_parameters}")
             except Exception as e:
                 logger.warning(f"Could not instantiate ModelRequestParameters from {model_parameters}: {e}. Proceeding without them.")
-        
+
         try:
             logger.debug(f"Sending request to LLM with {len(request_parts)} parts. Expecting {output_pydantic_model_type.__name__}.")
             for i, part in enumerate(request_parts):
                 logger.debug(f"  Part {i+1}: Type={part.part_kind}, Content='{str(part.content)[:100]}...'")
 
-            response = await model_request(
+            # Consolidate parts into a single ModelRequest
+            # Instructions can also be added here if they are dynamic per request
+            # For now, assuming instructions are handled by SystemPromptParts or globally
+            model_req_object = ModelRequest(parts=request_parts, instructions=None)
+
+            response: ModelResponse = await model_request(
                 model=prefixed_model_name,
-                messages=request_parts,
-                output_type=output_pydantic_model_type,
+                messages=[model_req_object], # Pass a list containing one ModelRequest
                 model_request_parameters=mrp_instance
             )
 
-            extracted_data: Optional[T] = response.data # type: ignore
-            if extracted_data:
-                logger.info(f"Successfully extracted structured data of type {output_pydantic_model_type.__name__}.")
-                # logger.debug(f"Extracted data (raw Pydantic model): {extracted_data}")
-                # The following line might fail if extracted_data is not a Pydantic model itself but a simple type
-                if hasattr(extracted_data, 'model_dump_json'):
-                     logger.debug(f"Extracted data (JSON): {extracted_data.model_dump_json(indent=2)}") # type: ignore
-                else:
-                     logger.debug(f"Extracted data: {extracted_data}")
+            # Extract the data from ModelResponse and parse it into the Pydantic model
+            if response and response.parts:
+                # Assuming the first part is the relevant one for parsing
+                first_part = response.parts[0]
+                if isinstance(first_part, TextPart):
+                    logger.debug(f"Received response from LLM: {first_part.content}")
+                    # Strip any json fencing characters if needed
+                    stripped_content = self._strip_json_fencing(first_part.content)
+                    logger.debug(f"Received response from LLM (stripped): {stripped_content}")
 
-                logger.debug(f"Full reponse: {response}")
-                return extracted_data
+                    # Attempt to parse the content into the specified Pydantic model
+                    try:
+                        parsed_result = output_pydantic_model_type.model_validate_json(stripped_content)
+                        logger.debug(f"Parsed result: {parsed_result}")
+                        return parsed_result
+                    except Exception as e:
+                        logger.error(f"Failed to parse LLM response into {output_pydantic_model_type.__name__}: {e}")
+                        return None
+                else:
+                    logger.warning("First part of the response is not a TextPart. Cannot parse.")
+                    return None
             else:
-                logger.error(f"Could not extract data for {output_pydantic_model_type.__name__}. Response was empty or parsing failed.")
-                if response.error:
-                    logger.error(f"  Error details: {response.error}")
-                if response.raw:
-                    raw_output = str(response.raw)
-                    logger.error(f"  Raw response (first 300 chars): {raw_output[:300]}...")
+                logger.warning("No valid parts in LLM response. Cannot parse.")
                 return None
 
         except Exception as e:
             logger.error(f"An error occurred during LLM request or processing: {e}", exc_info=True)
             print(f"\nAn error occurred with the LLM service: {e}")
-            print("Please ensure your GEMINI_API_KEY is correctly set, valid, and the model name is correct.")
-            print("You might also need to enable the 'Generative Language API' (or Vertex AI API for 'gemini-pro' etc.) in your Google Cloud project.")
             return None
