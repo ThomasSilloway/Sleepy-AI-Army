@@ -104,9 +104,7 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         command_args = [
             "-m", aider_prompt,
             "--read", task_description_path_str,
-            # Using goal_manifest_aider_model as a general purpose model for now.
-            # Ideally, a specific model for tweaks could be configured in AppConfig.
-            "--model", app_config.goal_manifest_aider_model,
+            "--model", app_config.aider_code_model,
         ]
 
         logger.info("Invoking AiderService to execute small tweak.")

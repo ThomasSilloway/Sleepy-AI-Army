@@ -1,14 +1,14 @@
 import asyncio
 import logging
 import os
-from typing import Any, Optional, Type, TypeVar, List as PyList # Use PyList to avoid conflict if list is used as var name
+from typing import Any, Optional, TypeVar  # Use list to avoid conflict if list is used as var name
 
 from pydantic import BaseModel
-from pydantic_ai.models import GeminiModel
 from pydantic_ai.direct import model_request
-from pydantic_ai.messages import UserMessage, SystemMessage, AIMessage, BaseMessage
+from pydantic_ai.messages import AIMessage, BaseMessage, SystemMessage, UserMessage
+from pydantic_ai.models import GeminiModel
 
-from src.config import AppConfig # Assuming AppConfig is in src.config
+from src.config import AppConfig  # Assuming AppConfig is in src.config
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,8 @@ class LlmPromptService:
 
     async def get_structured_output(
         self,
-        messages: PyList[dict[str, str]],
-        output_model_type: Type[T],
+        messages: list[dict[str, str]],
+        output_pydantic_model_type: type[T],
         llm_model_name: Optional[str] = None,
         model_parameters: Optional[dict[str, Any]] = None
     ) -> Optional[T]:
@@ -42,7 +42,7 @@ class LlmPromptService:
         Args:
             messages: A list of message dictionaries, each with "role" and "content".
                       Supported roles: "user", "system", "ai"/"assistant".
-            output_model_type: The Pydantic model class to parse the LLM output into.
+            output_pydantic_model_type: The Pydantic model class to parse the LLM output into.
             llm_model_name: Optional. Specific Gemini model name to use.
                             If None, uses `app_config.gemini_text_model_name`.
             model_parameters: Optional. Dictionary of parameters to pass to the GeminiModel constructor
@@ -57,14 +57,14 @@ class LlmPromptService:
             print("GEMINI_API_KEY environment variable not set. Please set it to use the LLM service.")
             return None
 
-        actual_model_name = llm_model_name or self.app_config.gemini_text_model_name
+        actual_model_name = llm_model_name
         if not actual_model_name:
             logger.error("LLM model name not configured or provided.")
             return None
         
         logger.debug(f"Using LLM model: {actual_model_name}")
 
-        converted_messages: PyList[BaseMessage] = []
+        converted_messages: list[BaseMessage] = []
         for msg_dict in messages:
             role = msg_dict.get("role", "").lower()
             content = msg_dict.get("content")
@@ -92,19 +92,21 @@ class LlmPromptService:
                 **(model_parameters or {})
             )
             
-            logger.debug(f"Sending request to LLM with {len(converted_messages)} messages. Expecting {output_model_type.__name__}.")
+            logger.debug(f"Sending request to LLM with {len(converted_messages)} messages. Expecting {output_pydantic_model_type.__name__}.")
             response = await model_request(
                 model=gemini_llm,
                 messages=converted_messages,
-                output_type=output_model_type,
+                output_type=output_pydantic_model_type,
             )
 
             extracted_data: Optional[T] = response.data
             if extracted_data:
-                logger.info(f"Successfully extracted structured data of type {output_model_type.__name__}.")
+                logger.info(f"Successfully extracted structured data of type {output_pydantic_model_type.__name__}.")
+
+                logger.debug(f"Extracted data: {response.json(indent=2)}")
                 return extracted_data
             else:
-                logger.error(f"Could not extract data for {output_model_type.__name__}. Response was empty or parsing failed.")
+                logger.error(f"Could not extract data for {output_pydantic_model_type.__name__}. Response was empty or parsing failed.")
                 if response.error:
                     logger.error(f"  Error details: {response.error}")
                 if response.raw:

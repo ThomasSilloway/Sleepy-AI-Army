@@ -17,6 +17,7 @@ dependencies = [
     "pydantic",
     "omegaconf",
     "python-dotenv",
+    "pydantic_ai"
 ]
 
 [build-system]
