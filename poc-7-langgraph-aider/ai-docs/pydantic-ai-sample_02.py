@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from typing_extensions import Literal
-
 from pydantic_ai.direct import model_request
 from pydantic_ai.messages import ModelRequest
 from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.tools import ToolDefinition
+from typing_extensions import Literal
 
 
 class Divide(BaseModel):

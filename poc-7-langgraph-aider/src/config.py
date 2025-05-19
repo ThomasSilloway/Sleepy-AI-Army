@@ -59,9 +59,11 @@ class AppConfig(BaseModel):
             # Ensure this error message clearly indicates which key is missing.
             # OmegaConf's MissingMandatoryValue exception __str__ usually includes the key.
             raise ValueError(f"Missing mandatory value in configuration: {e}") from e
-        except OmegaConf.errors.OmegaConfBaseException as e: # Catches various OmegaConf errors
-            logger.error(f"Error loading or parsing configuration file ({config_path}): {e}")
-            raise
+        
+        # TODO: Fix me - AttributeError: type object 'OmegaConf' has no attribute 'errors'
+        # except OmegaConf.errors.OmegaConfBaseException as e: # Catches various OmegaConf errors
+        #     logger.error(f"Error loading or parsing configuration file ({config_path}): {e}")
+        #     raise
         except ValidationError as e:
             logger.error(f"Configuration validation error: {e}")
             raise
