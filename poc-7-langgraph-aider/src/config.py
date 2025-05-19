@@ -23,6 +23,7 @@ class AppConfig(BaseModel):
 
     changelog_aider_model: str
     aider_code_model: str
+    gemini_weak_model_name: str
 
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml") -> "AppConfig":
