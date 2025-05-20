@@ -10,7 +10,8 @@ from src.services import (
     AiderService,
     ChangelogService,
     GitService,
-    WriteFileFromTemplateService # Added import
+    WriteFileFromTemplateService,
+    LlmPromptService # Added import
 )
 from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
@@ -20,13 +21,13 @@ load_dotenv()
 
 def main():
     print("PoC7 LangGraph Orchestrator Starting...")
+    logger = logging.getLogger(__name__) # Define logger early for initialization errors
 
     try:
         # Load configuration using the AppConfig class method
         app_config = AppConfig.load_from_yaml()
 
         setup_logging(app_config=app_config)
-        logger = logging.getLogger(__name__)
         # You can now use app_config throughout your application
         logger.overview(f"Workspace root: {app_config.workspace_root_path}")
         logger.overview(f"Goal root: {app_config.goal_root_path}")
@@ -36,12 +37,18 @@ def main():
         changelog_service = ChangelogService(app_config=app_config, aider_service=aider_service)
         repo_path = app_config.goal_git_path        
         git_service = GitService(repo_path=repo_path)
-        write_file_service = WriteFileFromTemplateService() # Instantiate new service
+        write_file_service = WriteFileFromTemplateService()
+        llm_prompt_service = LlmPromptService(app_config=app_config) # Instantiate LlmPromptService
         logger.debug("Services instantiated.")
 
     except Exception as e:
-        logger.critical(f"Failed to initialize application due to configuration error: {e}")
-        logger.critical(f"Callstack:\n{traceback.format_exc()}")
+        # Use the logger if setup_logging has been called, otherwise print
+        if logger.handlers:
+            logger.critical(f"Failed to initialize application due to configuration error: {e}")
+            logger.critical(f"Callstack:\n{traceback.format_exc()}")
+        else:
+            print(f"CRITICAL: Failed to initialize application due to configuration error: {e}")
+            print(f"Callstack:\n{traceback.format_exc()}")
         return  # Exit if configuration fails
 
     # Define LangGraph graph
@@ -70,8 +77,9 @@ def main():
         "error_message": None,
         "is_manifest_generated": False,
         "is_changelog_entry_added": False,
-        # Ensure all Optional fields from WorkflowState are initialized to None or a default
-        # if not explicitly set here. The TypedDict definition will guide this.
+        "is_code_change_committed": False, # Ensure all fields are initialized
+        "last_change_commit_hash": None,
+        "last_change_commit_summary": None,
     }
 
     # Prepare RunnableConfig
@@ -81,7 +89,8 @@ def main():
             "aider_service": aider_service,
             "changelog_service": changelog_service,
             "git_service": git_service,
-            "write_file_service": write_file_service, # Add new service to config
+            "write_file_service": write_file_service,
+            "llm_prompt_service": llm_prompt_service, # Add LlmPromptService to config
         }
     }
     logger.debug("RunnableConfig prepared.")

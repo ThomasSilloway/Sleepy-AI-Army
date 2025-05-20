@@ -30,15 +30,12 @@ The `Context` block within the `spec.md` you generate should include:
 
 ```
 /read-only ai-docs/CONVENTIONS.md
-/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-goal-manifest.md
-/read-only poc-7-langgraph-aider/ai-docs/jinja-best-practices.md
-/read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
-/read-only poc-7-langgraph-aider/ai-docs/langgraph-best-practices.md
+
+/read-only poc-7-langgraph-aider\templates\goal-manifest.j2
 
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/03_prd.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_1_tech_architecture_overview.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_2-tech_architecture-flow.md
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\ai-docs\planning\01_vision-statement.md
 
 /read-only poc-7-langgraph-aider/config.yml
@@ -54,9 +51,11 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider/src/utils/__init__.py
 /read-only poc-7-langgraph-aider/src/utils/logging_setup.py
 
+/read-only poc-7-langgraph-aider\src\services\write_file_from_template_service.py
+/read-only poc-7-langgraph-aider\src\services\llm_prompt_service.py
+
 /read-only poc-7-langgraph-aider/ai-docs/jinja-best-practices.md
 /read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
-/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-changelog.md
 /read-only poc-7-langgraph-aider/ai-docs/format-templates/format-goal-manifest.md
 /read-only poc-7-langgraph-aider/pyproject.toml
 
@@ -74,6 +73,5 @@ Use your best judgement
 Implement these sections from the tech architecture workflow doc below. 
 
 ```
-Implement - WriteFileFromTemplateService (New Service)  - Use `changelog_service.py` as an example service
-Update main.py to create an instance of the `WriteFileFromTemplateService`
+Update `manifest_generation.py` using the two new service classes to fulfill the architecture plan that will generate manifest files from the task-description file. This should replace the TODOs in that file
 ```

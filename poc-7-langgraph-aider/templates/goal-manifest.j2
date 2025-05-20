@@ -1,0 +1,33 @@
+# {{ goal_title | default("[Goal Title Placeholder]") }}
+{{ task_description_for_manifest | default("[Task description placeholder]") }}
+
+Last Updated: {{ last_updated_timestamp | default("[Timestamp placeholder]") }}
+
+## Overall Status
+{{ overall_status | default("[Status placeholder, e.g., New]") }}
+
+## Current Focus
+{{ current_focus | default("[Current focus placeholder, e.g., file path or artifact ID]") }}
+
+## Artifacts
+{#
+  This section's content is expected to be a string, potentially multi-line,
+  provided via the 'artifacts_section_content' context variable.
+  It could be a formatted list of artifacts or a placeholder message like:
+  * [approved] AI-Docs/01-vision_statement.md
+  * [drafting] AI-Docs/03-prd.md
+  * [No artifacts defined yet]
+#}
+{{ artifacts_section_content | default("* [Artifacts list placeholder]") }}
+
+## AI Questions for User
+{% if ai_questions_list and ai_questions_list|length > 0 %}
+{% for question in ai_questions_list %}
+* {{ question }}
+{% endfor %}
+{% else %}
+* {{ default_ai_questions_placeholder | default("[Empty by default]") }}
+{% endif %}
+
+## Human Responses
+{{ human_responses_content | default("NONE") }}
