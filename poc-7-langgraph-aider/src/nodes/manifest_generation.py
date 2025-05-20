@@ -151,11 +151,10 @@ From the user's task description, extract:
             changelog_summary = f"Goal Manifest Created: {manifest_config_llm.goal_title}"
 
             try:
-                # success_changelog = changelog_service.record_event_in_changelog(
-                #     current_workflow_state=state,
-                #     preceding_event_summary=changelog_summary
-                # )
-                success_changelog = True  # Placeholder for actual service call
+                success_changelog = changelog_service.record_event_in_changelog(
+                    current_workflow_state=state,
+                    preceding_event_summary=changelog_summary
+                )
             except Exception as e:
                 error_msg = f"[ManifestGeneration] Error during changelog service call: {e}"
                 logger.error(error_msg, exc_info=True)
