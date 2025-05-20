@@ -37,7 +37,7 @@ class WriteFileFromTemplateService:
         Returns:
             True if the file was successfully rendered and written, False otherwise.
         """
-        logger.info(f"Attempting to render template '{template_abs_path_str}' to '{output_abs_path_str}'.")
+        logger.info(f"Attempting to render template '{Path(template_abs_path_str).name}' to '{Path(output_abs_path_str).name}'.")
 
         try:
             template_path = Path(template_abs_path_str)
