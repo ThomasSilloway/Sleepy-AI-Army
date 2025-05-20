@@ -1,8 +1,6 @@
 # {{ goal_title | default("[Goal Title Placeholder]") }}
 {{ task_description_for_manifest | default("[Task description placeholder]") }}
 
-Last Updated: {{ last_updated_timestamp | default("[Timestamp placeholder]") }}
-
 ## Overall Status
 {{ overall_status | default("[Status placeholder, e.g., New]") }}
 
@@ -26,8 +24,10 @@ Last Updated: {{ last_updated_timestamp | default("[Timestamp placeholder]") }}
 * {{ question }}
 {% endfor %}
 {% else %}
-* {{ default_ai_questions_placeholder | default("[Empty by default]") }}
+NONE
 {% endif %}
 
 ## Human Responses
 {{ human_responses_content | default("NONE") }}
+
+Last Update: {{ last_updated_timestamp | default("[Timestamp placeholder]") }}

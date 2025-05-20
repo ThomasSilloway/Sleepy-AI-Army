@@ -93,14 +93,14 @@ def build_graph() -> StateGraph:
         logger.overview("[Graph] Small tweak execution successful. Routing to success_path.")
         return "tweak_execution_succeeded"
 
-    graph_builder.add_conditional_edges(
-        "execute_small_tweak",
-        route_after_small_tweak,
-        {
-            "error_path": "error_path",
-            "tweak_execution_succeeded": "success_path" # Route to success on success
-        }
-    )
+    # graph_builder.add_conditional_edges(
+    #     "execute_small_tweak",
+    #     route_after_small_tweak,
+    #     {
+    #         "error_path": "error_path",
+    #         "tweak_execution_succeeded": "success_path" # Route to success on success
+    #     }
+    # )
 
     # Add edges from terminal nodes to END
     graph_builder.add_edge("error_path", END)
