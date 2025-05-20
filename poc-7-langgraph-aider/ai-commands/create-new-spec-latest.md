@@ -35,15 +35,11 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
 /read-only poc-7-langgraph-aider/ai-docs/langgraph-best-practices.md
 
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/02_feature-list.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/03_prd.md
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/04_brainstorming-gemini-web.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_1_tech_architecture_overview.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_2-tech_architecture-flow.md
 /read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_3-tech_architecture-file-structure.md
 /read-only poc-7-langgraph-aider\ai-docs\planning\01_vision-statement.md
-/read-only poc-7-langgraph-aider/ai-docs/pydantic-ai-best-practices.md
-/read-only poc-7-langgraph-aider/ai-docs/pydantic-ai-sample.py
 
 /read-only poc-7-langgraph-aider/config.yml
 /read-only poc-7-langgraph-aider/src/__init__.py
@@ -57,6 +53,12 @@ The `Context` block within the `spec.md` you generate should include:
 /read-only poc-7-langgraph-aider/src/state.py
 /read-only poc-7-langgraph-aider/src/utils/__init__.py
 /read-only poc-7-langgraph-aider/src/utils/logging_setup.py
+
+/read-only poc-7-langgraph-aider/ai-docs/jinja-best-practices.md
+/read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
+/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-changelog.md
+/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-goal-manifest.md
+/read-only poc-7-langgraph-aider/pyproject.toml
 
 
 /read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
@@ -72,6 +74,6 @@ Use your best judgement
 Implement these sections from the tech architecture workflow doc below. 
 
 ```
-* **`ManifestConfigLLM` (New Pydantic Model):**
-* **`LlmPromptService` (New Service):**
+Implement - WriteFileFromTemplateService (New Service)  - Use `changelog_service.py` as an example service
+Update main.py to create an instance of the `WriteFileFromTemplateService`
 ```

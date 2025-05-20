@@ -6,7 +6,12 @@ from dotenv import load_dotenv
 
 from src.config import AppConfig
 from src.graph_builder import build_graph
-from src.services import AiderService, ChangelogService, GitService
+from src.services import (
+    AiderService,
+    ChangelogService,
+    GitService,
+    WriteFileFromTemplateService # Added import
+)
 from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
 
@@ -31,6 +36,7 @@ def main():
         changelog_service = ChangelogService(app_config=app_config, aider_service=aider_service)
         repo_path = app_config.goal_git_path        
         git_service = GitService(repo_path=repo_path)
+        write_file_service = WriteFileFromTemplateService() # Instantiate new service
         logger.debug("Services instantiated.")
 
     except Exception as e:
@@ -75,6 +81,7 @@ def main():
             "aider_service": aider_service,
             "changelog_service": changelog_service,
             "git_service": git_service,
+            "write_file_service": write_file_service, # Add new service to config
         }
     }
     logger.debug("RunnableConfig prepared.")
