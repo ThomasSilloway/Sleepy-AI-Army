@@ -1,5 +1,6 @@
 """TypedDict definition for the workflow's dynamic state."""
-from typing import TypedDict, Optional, List, Any
+from typing import Optional, TypedDict
+
 
 class WorkflowState(TypedDict):
     current_step_name: Optional[str]

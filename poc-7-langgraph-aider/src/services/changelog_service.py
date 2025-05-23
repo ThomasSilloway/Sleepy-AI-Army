@@ -26,7 +26,7 @@ class ChangelogService:
         logger.info(f"Attempting to record event in changelog: {preceding_event_summary}")
 
         try:
-            timestamp_str = datetime.now().astimezone().strftime('%Y-%m-%d %I:%M %p %Z')
+            timestamp_str = datetime.now().astimezone().strftime('%m-%d-%Y at %I:%M %p')
             logger.debug(f"Generated timestamp for changelog: {timestamp_str}")
 
             changelog_file_path = os.path.join(
@@ -36,18 +36,20 @@ class ChangelogService:
             os.makedirs(os.path.dirname(changelog_file_path), exist_ok=True)
             logger.debug(f"Target changelog file path: {changelog_file_path}")
 
+            change_title = current_workflow_state['current_step_name'] 
+
             # 3. Manually Format Changelog Entry using f-strings
             # preceding_event_summary comes from the method arguments
-            new_entry_content = f"# {preceding_event_summary}\n"
-            new_entry_content += f"[{timestamp_str}]\n\n"  # Double newline for a blank line
-            new_entry_content += f"* {preceding_event_summary}\n"
-            
+            new_entry_content = f"## {change_title}\n"
+            new_entry_content += f"&nbsp;&nbsp; {timestamp_str}\n\n"
+            new_entry_content += f"* {preceding_event_summary}\n\n"
+
             logger.debug(f"Formatted new changelog entry:\n{new_entry_content}")
 
             # 4. Write to file using refined logic
             current_content = ""
             if os.path.exists(changelog_file_path):
-                with open(changelog_file_path, 'r', encoding='utf-8') as f:
+                with open(changelog_file_path, encoding='utf-8') as f:
                     current_content = f.read().strip() # Read and strip trailing newlines
 
             if current_content: # If there's existing content
@@ -58,7 +60,7 @@ class ChangelogService:
 
             with open(changelog_file_path, 'w', encoding='utf-8') as f:
                 f.write(combined_content)
-            
+
             logger.info(f"Changelog entry successfully added to '{changelog_file_path}'.")
             return True
 
