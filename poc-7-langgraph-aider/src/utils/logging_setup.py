@@ -1,13 +1,10 @@
 """Utility for configuring the application's logging system."""
-from datetime import datetime # Changed import for slightly more common usage
+from datetime import datetime
 import logging
 import os
 from pathlib import Path
 import sys
-# Assuming AppConfig is passed in, or you have a way to get these paths
-# from src.config import AppConfig # Keep if you pass AppConfig instance
 
-# 1. Define and register the custom OVERVIEW log level
 OVERVIEW_LEVEL_NUM = 25  # Positioned between INFO (20) and WARNING (30)
 OVERVIEW_LEVEL_NAME = "OVERVIEW"
 logging.addLevelName(OVERVIEW_LEVEL_NUM, OVERVIEW_LEVEL_NAME)
@@ -25,9 +22,7 @@ class LowercaseLevelnameFormatter(logging.Formatter):
         record.levelname = record.levelname.lower()
         return super().format(record)
 
-# Make sure AppConfig is available here, either by passing it or importing AppConfig and loading it.
-# For this example, I'm assuming app_config is passed as an argument as in your current code.
-def setup_logging(app_config, log_level=logging.INFO): # Added app_config type hint if you have it
+def setup_logging(app_config, log_level=logging.INFO):
     """Configures logging for the application with console and file outputs."""
 
     goal_root_path = Path(app_config.goal_root_path).resolve()
@@ -37,11 +32,10 @@ def setup_logging(app_config, log_level=logging.INFO): # Added app_config type h
     overview_log_file_path = str(log_subdirectory / app_config.overview_log_filename)
     detailed_log_file_path = str(log_subdirectory / app_config.detailed_log_filename)
     
-    # Create the custom formatter
     # Spec mentioned: fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) [%(name)s] %(message)s", datefmt="%H:%M:%S"
     # Adding [%(name)s] to file_formatter as per typical detailed logging.
     file_formatter = LowercaseLevelnameFormatter(     
-        fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s", # Added [%(name)s]
+        fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s",
         datefmt="%H:%M:%S"
     )
 

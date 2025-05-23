@@ -19,13 +19,8 @@ class GitService:
             )
             return process.stdout.strip()
         except subprocess.CalledProcessError as e:
-            # Log the error: e.stderr
-            # print(f"Git command failed: {e.cmd}")
-            # print(f"Stderr: {e.stderr}")
             raise # Re-raise the exception or handle it as appropriate
         except FileNotFoundError:
-            # Handle case where git command is not found
-            # print("Git command not found. Ensure Git is installed and in PATH.")
             raise
 
     def get_last_commit_hash(self) -> str | None:
