@@ -34,7 +34,7 @@ def main():
 
         # Instantiate Services
         aider_service = AiderService(app_config=app_config)
-        changelog_service = ChangelogService(app_config=app_config, aider_service=aider_service)
+        changelog_service = ChangelogService(app_config=app_config)
         repo_path = app_config.goal_git_path        
         git_service = GitService(repo_path=repo_path)
         write_file_service = WriteFileFromTemplateService()

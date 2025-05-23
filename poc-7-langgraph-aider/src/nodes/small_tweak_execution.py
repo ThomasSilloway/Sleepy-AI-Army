@@ -17,7 +17,7 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
     task_description_path. Records git information and changelog on success.
     Updates WorkflowState with the outcome.
     """
-    state['current_step_name'] = "execute_small_tweak_node"
+    state['current_step_name'] = "Execute Small Tweak"
     logger.info(f"Executing node: {state['current_step_name']}")
 
     try:
