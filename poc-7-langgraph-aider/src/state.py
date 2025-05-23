@@ -30,3 +30,5 @@ class WorkflowState(TypedDict):
     last_change_commit_hash: Optional[str]
     last_change_commit_summary: Optional[str]
     # Add other state fields as they become necessary
+
+    small_tweak_file_path: Optional[str]  # Path to the file to be tweaked

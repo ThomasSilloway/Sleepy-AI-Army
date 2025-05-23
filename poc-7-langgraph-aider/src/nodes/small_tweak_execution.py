@@ -28,6 +28,7 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         changelog_service: ChangelogService = services_config["changelog_service"]
 
         task_description_path_str = state.get('task_description_path')
+        small_tweak_file_path = state.get('small_tweak_file_path')
 
         if not task_description_path_str:
             error_msg = "[SmallTweakExecution] Critical information missing: task_description_path not found in state."
@@ -45,7 +46,16 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             state['is_code_change_committed'] = False
             return state
 
+        if not small_tweak_file_path:
+            error_msg = "[SmallTweakExecution] Critical information missing: small_tweak_file_path not found in state."
+            logger.error(error_msg)
+            state['error_message'] = error_msg
+            state['last_event_summary'] = "Error: Missing small_tweak_file_path for Small Tweak."
+            state['is_code_change_committed'] = False
+            return state
+
         task_desc_filename = Path(task_description_path_str).name
+
         aider_prompt = f"""
 
 # File Update Task
@@ -95,16 +105,14 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
 
         logger.debug(f"Constructed aider prompt for small tweak:\n\n{aider_prompt}\n\n")
 
-        # Aider will determine files to edit from the instructions in task_description_path_str
-        # The task_description_path_str itself is provided as read-only context.
-        # Aider is expected to run in the context of the app_config.goal_git_path.
-        # AiderService should be configured to use app_config.goal_git_path as cwd.
-        # For now, we assume AiderService is correctly set up or aider CLI can find the repo.
-        files_to_edit_or_add_to_context = [] # No files explicitly added for editing by default
+        files_to_edit_or_add_to_context = [
+            small_tweak_file_path 
+        ] 
+
         command_args = [
             "-m", aider_prompt,
             "--read", task_description_path_str,
-            "--model", app_config.aider_code_model,
+            "--model", app_config.aider_code_model
         ]
 
         logger.info("Invoking AiderService to execute small tweak.")

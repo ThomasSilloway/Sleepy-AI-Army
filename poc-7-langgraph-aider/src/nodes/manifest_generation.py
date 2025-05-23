@@ -95,6 +95,7 @@ From the user's task description, extract:
 
         logger.info(f"LLM successfully extracted data: {manifest_config_llm.goal_title}")
         state['last_event_summary'] = f"LLM extracted manifest data for: {manifest_config_llm.goal_title}"
+        state['small_tweak_file_path'] = manifest_config_llm.small_tweak_file_path
 
         # Task 3: Integrate Template-Based File Writing
         logger.info("Attempting to render and write goal-manifest.md.")
