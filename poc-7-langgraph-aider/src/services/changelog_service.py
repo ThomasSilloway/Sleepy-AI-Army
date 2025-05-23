@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 from src.config import AppConfig
-from src.services.aider_service import AiderService  # Corrected import path
+from src.services.aider_service import AiderService
 from src.state import WorkflowState
 
 logger = logging.getLogger(__name__)
@@ -28,12 +28,10 @@ class ChangelogService:
         logger.info(f"Attempting to record event in changelog: {preceding_event_summary}")
 
         try:
-            # 1. Generate timestamp
-            # Format: [YYYY-MM-DD HH:MM AM/PM TZ] e.g., [2024-07-16 03:45 PM PDT]
             timestamp = datetime.now().astimezone().strftime('%Y-%m-%d %I:%M %p %Z')
+            # Format: [YYYY-MM-DD HH:MM AM/PM TZ] e.g., [2024-07-16 03:45 PM PDT]
             logger.debug(f"Generated timestamp for changelog: {timestamp}")
 
-            # 2. Determine changelog file path
             changelog_file_path = os.path.join(
                 self.app_config.goal_root_path,
                 self.app_config.changelog_output_filename
@@ -42,8 +40,6 @@ class ChangelogService:
             os.makedirs(os.path.dirname(changelog_file_path), exist_ok=True)
             logger.debug(f"Target changelog file path: {changelog_file_path}")
 
-            # 3. Construct sophisticated prompt for aider
-            # Details from workflow state for context            
             last_event_summary_state = current_workflow_state.get('last_event_summary', 'N/A')
             changelog_template_file_path = os.path.join(
                 self.app_config.workspace_root_path,
@@ -65,10 +61,8 @@ Do not add any other commentary before or after the changelog entry itself.
 """
             logger.debug(f"Constructed aider prompt:\n\n{aider_prompt}\n\n")
 
-            # 4. Execute aider command
             # Files to add (aider will edit this file)
             files_to_edit = [changelog_file_path]
-            # Aider command arguments
             command_args = [
                 "-m", aider_prompt, 
                 "--read", changelog_template_file_path,
@@ -78,7 +72,6 @@ Do not add any other commentary before or after the changelog entry itself.
             logger.info(f"Executing AiderService to update changelog: {changelog_file_path}")
             exit_code = self.aider_service.execute(command_args=command_args, files_to_add=files_to_edit)
 
-            # 5. Handle exit status
             if exit_code == 0:
                 logger.info(f"Changelog entry successfully added/updated in '{changelog_file_path}'. Aider exit code: {exit_code}")
                 return True

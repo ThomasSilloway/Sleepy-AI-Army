@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict # Dict will be replaced by dict if used
+from typing import Any, Dict
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape, exceptions
 
@@ -16,8 +16,6 @@ class WriteFileFromTemplateService:
 
     def __init__(self):
         """Initializes the WriteFileFromTemplateService."""
-        # No specific initialization needed for this service as per current design.
-        # A logger is available via `logger = logging.getLogger(__name__)`
         pass
 
     def render_and_write_file(
@@ -50,7 +48,6 @@ class WriteFileFromTemplateService:
             template_dir = template_path.parent
             template_name = template_path.name
 
-            # Initialize Jinja2 environment
             # Using select_autoescape for basic security, though for non-HTML less critical.
             # trim_blocks and lstrip_blocks are good for general template hygiene.
             env = Environment(
@@ -61,7 +58,6 @@ class WriteFileFromTemplateService:
             )
             logger.debug(f"Jinja2 environment initialized for template directory: {template_dir}")
 
-            # Load the template
             try:
                 template = env.get_template(template_name)
                 logger.debug(f"Template '{template_name}' loaded successfully.")
@@ -76,7 +72,6 @@ class WriteFileFromTemplateService:
                 return False
 
 
-            # Render the template
             rendered_content = template.render(context)
             logger.debug(f"Template '{template_name}' rendered successfully.")
 
@@ -84,7 +79,6 @@ class WriteFileFromTemplateService:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Ensured output directory exists: {output_path.parent}")
 
-            # Write the rendered content to the output file
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(rendered_content)
             

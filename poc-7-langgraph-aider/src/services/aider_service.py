@@ -11,7 +11,6 @@ from src.config import AppConfig
 logger = logging.getLogger(__name__)
 
 
-# Helper function to stream output
 def stream_output(pipe, log_func):
     """Reads lines from a pipe and logs them using the provided logging function."""
     try:
@@ -38,10 +37,6 @@ class AiderService:
         if files_to_add is None:
             files_to_add = []
 
-        # Construct the full command
-        # Base command is 'aider'
-        # Files to add come next
-        # Specific command arguments follow
         full_command = ["aider"] + files_to_add + command_args + [
             "--yes-always",
         ]
