@@ -1,10 +1,8 @@
 """Defines the AiderService class."""
 import logging
 import subprocess
-import sys
 import threading
-import os
-from typing import List, Optional # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
+from typing import Optional  # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
 
 from src.config import AppConfig
 
@@ -22,6 +20,7 @@ def stream_output(pipe, log_func):
 class AiderService:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
+        self.workspace_path = app_config.goal_git_path
 
     def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> int:
         """
@@ -40,9 +39,8 @@ class AiderService:
         full_command = ["aider"] + files_to_add + command_args + [
             "--yes-always",
         ]
-        
+
         logger.info(f"Executing aider command: {' '.join(full_command)}")
-        # Consider adding: cwd=self.workspace_path if needed
 
         try:
             # Start the subprocess
@@ -54,8 +52,8 @@ class AiderService:
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1,
-                encoding='utf-8'
-                # cwd=self.workspace_path # Uncomment if aider needs to run in workspace
+                encoding='utf-8',
+                cwd=self.workspace_path,
             )
 
             # Create threads to stream stdout and stderr
