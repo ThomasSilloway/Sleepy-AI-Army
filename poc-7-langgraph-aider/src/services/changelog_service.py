@@ -41,8 +41,8 @@ class ChangelogService:
             # 3. Manually Format Changelog Entry using f-strings
             # preceding_event_summary comes from the method arguments
             new_entry_content = f"## {change_title}\n"
-            new_entry_content += f"&nbsp;&nbsp; {timestamp_str}\n\n"
-            new_entry_content += f"* {preceding_event_summary}\n\n"
+            new_entry_content += f"  {timestamp_str}\n\n"
+            new_entry_content += f"  - {preceding_event_summary}\n\n"
 
             logger.debug(f"Formatted new changelog entry:\n{new_entry_content}")
 

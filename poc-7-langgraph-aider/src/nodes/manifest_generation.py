@@ -21,7 +21,7 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
     and WriteFileFromTemplateService for rendering. Records the event in the
     changelog upon success. Updates WorkflowState with the outcome.
     """
-    state['current_step_name'] = "generate_manifest_node"
+    state['current_step_name'] = "Create Manifest"
     logger.info(f"Executing node: {state['current_step_name']}")
 
     manifest_config_llm: ManifestConfigLLM | None = None
