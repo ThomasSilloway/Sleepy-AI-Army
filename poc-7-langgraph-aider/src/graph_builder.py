@@ -1,16 +1,17 @@
 """Builds the LangGraph StateGraph for the PoC7 orchestrator."""
 import logging
-from langgraph.graph import StateGraph, END
 
-from src.state import WorkflowState
+from langgraph.graph import END, StateGraph
+
 from src.nodes import (
-    initialize_workflow_node, 
-    validate_inputs_node, 
-    error_path_node, 
-    success_path_node,
+    error_path_node,
+    execute_small_tweak_node,
     generate_manifest_node,
-    execute_small_tweak_node # Import the new node
+    initialize_workflow_node,
+    success_path_node,
+    validate_inputs_node,
 )
+from src.state import WorkflowState
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +25,7 @@ def build_graph() -> StateGraph:
     graph_builder.add_node("initialize_workflow", initialize_workflow_node)
     graph_builder.add_node("validate_inputs", validate_inputs_node)
     graph_builder.add_node("generate_manifest_node", generate_manifest_node)
-    # TODO: Uncomment this line after manifest generation is working
-    # graph_builder.add_node("execute_small_tweak", execute_small_tweak_node) 
+    graph_builder.add_node("execute_small_tweak", execute_small_tweak_node) 
     graph_builder.add_node("error_path", error_path_node)
     graph_builder.add_node("success_path", success_path_node)
 
@@ -80,8 +80,8 @@ def build_graph() -> StateGraph:
         route_after_manifest_generation,
         {
             "error_path": "error_path",
-            # "manifest_generation_succeeded": "execute_small_tweak" # Route to tweak execution
-            "manifest_generation_succeeded": "success_path" # TODO: Toggle me back after manifest generation working again
+            "manifest_generation_succeeded": "execute_small_tweak" 
+            # "manifest_generation_succeeded": "success_path" 
         }
     )
 
@@ -93,17 +93,17 @@ def build_graph() -> StateGraph:
         logger.overview("[Graph] Small tweak execution successful. Routing to success_path.")
         return "tweak_execution_succeeded"
 
-    # graph_builder.add_conditional_edges(
-    #     "execute_small_tweak",
-    #     route_after_small_tweak,
-    #     {
-    #         "error_path": "error_path",
-    #         "tweak_execution_succeeded": "success_path" # Route to success on success
-    #     }
-    # )
+    graph_builder.add_conditional_edges(
+        "execute_small_tweak",
+        route_after_small_tweak,
+        {
+            "error_path": "error_path",
+            "tweak_execution_succeeded": "success_path" # Route to success on success
+        }
+    )
 
     # Add edges from terminal nodes to END
     graph_builder.add_edge("error_path", END)
     graph_builder.add_edge("success_path", END)
-    
+
     return graph_builder
