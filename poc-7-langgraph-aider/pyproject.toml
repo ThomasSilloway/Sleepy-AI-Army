@@ -18,7 +18,8 @@ dependencies = [
     "omegaconf",
     "python-dotenv",
     "pydantic_ai",
-    "Jinja2"
+    "Jinja2",
+    "nest_asyncio"
 ]
 
 [build-system]

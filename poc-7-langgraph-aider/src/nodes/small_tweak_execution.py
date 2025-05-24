@@ -37,7 +37,6 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         aider_service: AiderService = services_config["aider_service"]
         # git_service: GitService = services_config["git_service"] # Keep for now, might be needed for fallback or verification
         changelog_service: ChangelogService = services_config["changelog_service"]
-        llm_prompt_service: LlmPromptService = services_config["llm_prompt_service"] # Added LlmPromptService
 
         task_description_path_str = state.get('task_description_path')
         small_tweak_file_path = state.get('small_tweak_file_path')
@@ -146,12 +145,14 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
                 state['last_change_commit_hash'] = aider_run_summary_obj.commit_hash
                 state['last_change_commit_summary'] = aider_run_summary_obj.commit_message or "Commit message not extracted."
 
-                changes_str = "\n - ".join(aider_run_summary_obj.changes_made) if aider_run_summary_obj.changes_made else "No specific changes listed by summary."
-                event_summary = (
-                    f"Small Tweak applied. Commit: {aider_run_summary_obj.commit_hash or 'N/A'}.\n"
-                    f"Changes:\n - {changes_str}\n"
-                    f"Summary: {aider_run_summary_obj.raw_output_summary or 'N/A'}"
-                )
+                changes_str = "\n  - ".join(aider_run_summary_obj.changes_made) if aider_run_summary_obj.changes_made else aider_run_summary_obj.raw_output_summary
+
+                event_summary = f"{changes_str}\n\n"
+                if aider_run_summary_obj.commit_hash:
+                    event_summary += f"  - Commit: {aider_run_summary_obj.commit_hash or 'N/A'} - {aider_run_summary_obj.commit_message or 'N/A'}\n"
+                else:
+                    event_summary += "  - No commit made by aider."
+
                 state['last_event_summary'] = event_summary
                 state['error_message'] = None # Clear previous errors if any
 
