@@ -1,0 +1,54 @@
+# AI Agent Specification: Error Handling Refactor
+
+## 1. Problem
+    *   **`goal`**: "Refactor node functions to reduce error handling boilerplate."
+    *   **`context`**: "Node functions (e.g., `manifest_create_node` in `poc-7-langgraph-aider/src/nodes/`) contain repetitive try-catch blocks for error handling. This includes logging errors, updating multiple fields in the `WorkflowState` (e.g., `error_message`, `last_event_summary`, operation-specific flags like `is_manifest_generated`), and returning the state. This makes the code verbose and harder to maintain."
+    *   **`desired_outcome`**: "Node functions should be cleaner, with error handling logic centralized in a reusable utility. The core logic of the node should be more prominent. Error reporting and state updates must remain consistent with current behavior."
+
+## 2. Solution
+    *   **`chosen_approach`**: "Implement a centralized error handling utility module: `src/utils/node_error_handler.py`."
+    *   **`utility_details`**:
+        *   "**`NodeOperation` Enum**: Define an enum `NodeOperation` (in `node_error_handler.py`) for different types of operations within nodes (e.g., `LLM_CALL`, `FILE_WRITE`, `CHANGELOG_UPDATE`, `GIT_COMMIT`, `GENERAL_VALIDATION`)."
+        *   "**`handle_operation_error` Function**:
+            *   **Signature**: `def handle_operation_error(state: dict, config: dict, operation: NodeOperation, exception: Exception, custom_error_message_override: str = None, additional_error_info: str = None, custom_state_updates: dict = None, set_aider_exit_code: bool = True) -> bool:`
+            *   **Responsibility**: Logs the error (using a logger obtained from `config` or a default logger), updates `state['error_message']` (appending if existing), `state['last_event_summary']`, and applies `custom_state_updates`. Also applies default state changes based on `NodeOperation` (e.g., for `LLM_CALL`, set `is_manifest_generated=False`, `manifest_data=None`). Sets `state['aider_last_exit_code']` if `set_aider_exit_code` is True and no code is set.
+            *   **Return Value**: Returns `True` to signal that the calling node should typically return its `state`."
+        *   "**`_apply_state_updates` Helper Function**: Internal helper in `node_error_handler.py` to manage default and custom state updates based on `NodeOperation`."
+    *   **`node_modification_pattern`**:
+        *   "Identify try-except blocks and manual error state setting in node functions (e.g., `manifest_create_node.py`)."
+        *   "Replace the boilerplate error handling (logging, setting `error_message`, `last_event_summary`, specific flags) with a call to `handle_operation_error`."
+        *   "The node should then `return state` if `handle_operation_error` indicates an error was handled."
+        *   "For application-level errors (e.g., an expected service call returns `None` or `False` instead of raising an exception), create an appropriate Exception instance (e.g., `ValueError` or `RuntimeError`) to pass to `handle_operation_error`."
+
+## 3. High-Level Implementation Plan
+    *   **`step_1_create_utility`**:
+        *   **Action**: "Create the file `poc-7-langgraph-aider/src/utils/node_error_handler.py`."
+        *   **Content**: "Implement the `NodeOperation` enum, the `handle_operation_error` function, and the `_apply_state_updates` helper function as detailed in the A+ solution from `critique.txt`."
+        *   **Details**: "Ensure logger acquisition is robust. Define initial `NodeOperation` members for common tasks like `LLM_CALL`, `FILE_WRITE`, `CHANGELOG_UPDATE`, `GIT_COMMIT`, `GENERAL_VALIDATION`. Implement the logic for `_apply_state_updates` to handle operation-specific default state changes (e.g., for `LLM_CALL`, `is_manifest_generated=False`, `manifest_data=None`)."
+    *   **`step_2_refactor_node`**:
+        *   **Target_File**: "`poc-7-langgraph-aider/src/nodes/manifest_create.py`"
+        *   **Action**: "Refactor `manifest_create_node` to use the new `node_error_handler` utility."
+        *   **Details**:
+            *   "Import `handle_operation_error` and `NodeOperation`."
+            *   "For each existing try-except block:
+                *   Replace the error logging and state update lines with a call to `handle_operation_error`.
+                *   Pass the current `state`, `config`, appropriate `NodeOperation` enum member, the caught `exception`, and any `custom_state_updates` needed (e.g., `{'is_manifest_generated': False, 'manifest_data': None}`).
+                *   Ensure the node `return state` immediately after the call to `handle_operation_error`."
+            *   "For explicit checks that lead to error states (e.g., `if not manifest_config_llm:`):
+                *   Construct an appropriate exception instance (e.g., `ValueError('LLM did not return structured data')`).
+                *   Call `handle_operation_error` with this new exception.
+                *   Ensure the node `return state`."
+            *   "Remove the broad, outermost `try...except Exception as e:` block if all specific errors within are handled by the new utility. If kept as a final safety net, its body should also use `handle_operation_error` with a generic `NodeOperation` type."
+    *   **`step_3_verify_behavior`**:
+        *   **Action**: "Manually review the refactored `manifest_create_node`."
+        *   **Checklist**: "Ensure that for each error scenario previously handled:
+            *   `state['error_message']` is set correctly (and appends if multiple errors).
+            *   `state['last_event_summary']` is set appropriately.
+            *   Relevant boolean flags (e.g., `is_manifest_generated`, `is_changelog_entry_added`) are set to `False` or their correct error state.
+            *   Other state variables (e.g., `manifest_data`) are correctly nulled or set.
+            *   `state['aider_last_exit_code']` is set if applicable.
+            *   The node function returns the `state` upon error.
+            *   Logging behavior is preserved or improved (errors are logged with `exc_info=True`)."
+    *   **`step_4_apply_to_other_nodes (optional)`**:
+        *   **Action**: "If time permits and the pattern is stable, identify 1-2 other node files in `poc-7-langgraph-aider/src/nodes/` that have similar boilerplate and refactor them using the `node_error_handler.py` utility."
+        *   **Note**: "This step is secondary to successfully refactoring and verifying `manifest_create_node.py`."
