@@ -1,0 +1,22 @@
+[project]
+name = "poc-9-async-langgraph-pydanticai"
+version = "0.1.0"
+description = "PoC for fully asynchronous LangGraph with Pydantic-AI."
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "langgraph",
+    "pydantic-ai",
+    "python-dotenv",
+    "google-generativeai",
+    "pyyaml>=6.0"
+]
+
+[project.scripts]
+# This allows running `uv run poc9` if the package is installed,
+# and assuming there's a function main_cli in src/main.py
+# that calls asyncio.run(main()).
+# For `uv run python src/main.py`, this section isn't strictly needed.
+# Let's assume direct execution: `uv run python src/main.py` for the .bat file later.
+# poc9 = "src.main:main" # If main were synchronous or wrapped
