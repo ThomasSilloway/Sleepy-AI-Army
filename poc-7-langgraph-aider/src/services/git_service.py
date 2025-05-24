@@ -48,3 +48,17 @@ class GitService:
                 return self._run_git_command(["show", "--stat", "--pretty=format:\"\"", "HEAD"]) # Get stat for the initial commit
         except (subprocess.CalledProcessError, ValueError):
             return None
+
+    def commit_changes(self, commit_message: str) -> bool:
+        try:
+            self._run_git_command(["add", "."])
+            self._run_git_command(["commit", "-m", commit_message])
+            return True
+        except subprocess.CalledProcessError as e:
+            # Log the error or handle it as appropriate
+            print(f"Git command failed: {e}")
+            return False
+        except FileNotFoundError:
+            # Log the error or handle it as appropriate
+            print("Git command not found. Ensure Git is installed and in PATH.")
+            return False
