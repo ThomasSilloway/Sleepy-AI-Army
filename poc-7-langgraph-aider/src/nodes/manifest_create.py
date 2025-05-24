@@ -1,4 +1,4 @@
-"""Contains logic for the generate_manifest_node."""
+"""Contains logic for the generate_manifest_create_node."""
 import asyncio
 import logging
 from datetime import datetime
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # This node needs to be async if LlmPromptService.get_structured_output is async
 # and we want to await it properly.
-def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
+def generate_manifest_create_node(state: WorkflowState, config) -> WorkflowState:
     """
     Generates the goal manifest file using LlmPromptService for data extraction
     and WriteFileFromTemplateService for rendering. Records the event in the
@@ -40,7 +40,7 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         manifest_output_path_str = state.get('manifest_output_path')
 
         if not all([task_description_content, manifest_template_path_str, manifest_output_path_str]):
-            error_msg = "[ManifestGeneration] Critical information missing in state for manifest generation (task_description_content, manifest_template_path, or manifest_output_path)."
+            error_msg = "[ManifestCreate] Critical information missing in state for manifest generation (task_description_content, manifest_template_path, or manifest_output_path)."
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: Missing critical info for manifest generation."
@@ -80,15 +80,15 @@ From the user's task description, extract:
                 llm_model_name=app_config.gemini_weak_model_name
             ))
         except Exception as e:
-            error_msg = f"[ManifestGeneration] Error during LLM call: {e}"
+            error_msg = f"[ManifestCreate] Error during LLM call: {e}"
             logger.error(error_msg, exc_info=True)
             state['error_message'] = error_msg
-            state['last_event_summary'] = "Error: LLM call failed during manifest generation."
+            state['last_event_summary'] = "Error: LLM call failed during manifest creation."
             state['is_manifest_generated'] = False
             return state
 
         if not manifest_config_llm:
-            error_msg = "[ManifestGeneration] LLM did not return structured data (ManifestConfigLLM is None)."
+            error_msg = "[ManifestCreate] LLM did not return structured data (ManifestConfigLLM is None)."
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: LLM failed to parse task description for manifest."
@@ -129,7 +129,7 @@ From the user's task description, extract:
                 output_abs_path_str=manifest_output_path_str
             )
         except Exception as e:
-            error_msg = f"[ManifestGeneration] Error during template rendering or file writing: {e}"
+            error_msg = f"[ManifestCreate] Error during template rendering or file writing: {e}"
             logger.error(error_msg, exc_info=True)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: Failed to write manifest file."
@@ -159,7 +159,7 @@ From the user's task description, extract:
                     preceding_event_summary=changelog_summary
                 )
             except Exception as e:
-                error_msg = f"[ManifestGeneration] Error during changelog service call: {e}"
+                error_msg = f"[ManifestCreate] Error during changelog service call: {e}"
                 logger.error(error_msg, exc_info=True)
                 # Manifest was generated, but changelog failed. Update state accordingly.
                 state['is_changelog_entry_added'] = False
@@ -176,7 +176,7 @@ From the user's task description, extract:
                 state['last_event_summary'] = f"Manifest '{manifest_config_llm.goal_title}' created and changelog updated."
 
             else:
-                error_msg = "[ManifestGeneration] ChangelogService failed to record event."
+                error_msg = "[ManifestCreate] ChangelogService failed to record event."
                 logger.error(error_msg)
                 # Manifest was generated, but changelog failed.
                 state['is_changelog_entry_added'] = False
@@ -201,12 +201,12 @@ From the user's task description, extract:
                 state['last_event_summary'] += f", but git commit failed: {e}"
 
     except Exception as e:
-        error_msg = f"[ManifestGeneration] Unexpected error during manifest generation: {e}"
+        error_msg = f"[ManifestCreate] Unexpected error during manifest creation: {e}"
         logger.error(error_msg, exc_info=True)
         state['is_manifest_generated'] = False # Ensure it's false if an overarching error occurs
         state['is_changelog_entry_added'] = False
         state['error_message'] = error_msg
-        state['last_event_summary'] = f"Unexpected error in manifest generation: {e}"
+        state['last_event_summary'] = f"Unexpected error in manifest creation: {e}"
         if state.get('aider_last_exit_code') is None: # Aider not directly used here, but good practice
             state['aider_last_exit_code'] = -1 
 
