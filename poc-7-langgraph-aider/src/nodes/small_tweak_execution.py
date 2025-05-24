@@ -1,64 +1,17 @@
 """Contains logic for the execute_small_tweak_node."""
-import asyncio
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from src.config import AppConfig
 from src.services.aider_service import AiderService, AiderExecutionResult
 from src.services.changelog_service import ChangelogService
-from src.services.git_service import GitService # Keep for potential direct git ops if needed, though primary info via LLM
 from src.services.llm_prompt_service import LlmPromptService
 from src.models.aider_summary import AiderRunSummary
 from src.state import WorkflowState
 
 logger = logging.getLogger(__name__)
-
-# TODO: Move this to a constants file or make it configurable via AppConfig
-LLM_MODEL_FOR_SUMMARY = "gemini-1.5-flash-latest"
-
-def _create_llm_messages_for_summary(aider_stdout: str, aider_stderr: str) -> list[dict]:
-    """Helper function to create messages for the LLM summary."""
-    system_prompt = """
-You are an expert at analyzing the output of the 'aider' command-line tool.
-Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
-that matches the AiderRunSummary Pydantic model.
-
-The AiderRunSummary model includes the following fields:
-- changes_made: (list[str]) A bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change (e.g., "Added function `foo` to `bar.py`", "Modified `baz.py` to handle new error condition").
-- commit_hash: (Optional[str]) The full git commit hash if aider made a commit *during this specific run*. If no commit was made by aider, this should be null.
-- files_modified: (Optional[list[str]]) List of file paths that were modified by aider.
-- files_created: (Optional[list[str]]) List of file paths that were newly created by aider.
-- errors_reported: (Optional[list[str]]) Any error messages or significant warnings reported by aider.
-- raw_output_summary: (Optional[str]) A brief, general summary of what aider did or reported, especially if specific details aren't available or applicable from its output.
-- commit_message: (Optional[str]) The full commit message if aider made a commit. If no commit was made, this should be null.
-
-Analyze the provided stdout and stderr from an aider execution.
-Extract the information to populate these fields accurately.
-If aider's output clearly indicates a commit, extract the hash and message.
-If aider failed or no specific changes are identifiable, focus on `errors_reported` and `raw_output_summary`.
-Pay close attention to whether a commit was actually made by aider in *this* run. Do not infer commits.
-The output MUST be a JSON object matching the AiderRunSummary structure.
-"""
-    user_prompt_content = f"""
-Please analyze the following output from an 'aider' command execution:
-
-**Aider STDOUT:**
-```
-{aider_stdout}
-```
-
-**Aider STDERR:**
-```
-{aider_stderr}
-```
-
-Based on this output, provide a JSON summary matching the AiderRunSummary model.
-"""
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt_content},
-    ]
 
 def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
     """
@@ -183,31 +136,8 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
 
         # Attempt to get a structured summary from LLM regardless of aider exit code
         # as even on failure, stderr might contain useful info for the summary.
-        aider_run_summary_obj: Optional[AiderRunSummary] = None
-        try:
-            logger.info("Attempting to extract Aider execution summary using LLM.")
-            llm_messages = _create_llm_messages_for_summary(aider_result.stdout, aider_result.stderr)
-            
-            # Note: Using a placeholder for llm_model_name. This should come from app_config.
-            # e.g., app_config.llm_model_for_summaries
-            aider_run_summary_obj = asyncio.run(llm_prompt_service.get_structured_output(
-                messages=llm_messages,
-                output_pydantic_model_type=AiderRunSummary,
-                llm_model_name=LLM_MODEL_FOR_SUMMARY, # Placeholder
-                llm_temperature_value=0.1 # Low temp for factual extraction
-            ))
-            state['aider_run_summary'] = aider_run_summary_obj.dict() if aider_run_summary_obj else None
-            if aider_run_summary_obj:
-                logger.info("Successfully extracted Aider run summary.")
-                logger.debug(f"Aider Run Summary: {aider_run_summary_obj.json(indent=2)}")
-            else:
-                logger.warning("LLM did not return a valid AiderRunSummary object.")
-        except Exception as llm_exc:
-            logger.error(f"Error during LLM summary extraction: {llm_exc}", exc_info=True)
-            state['error_message'] = f"Error during LLM summary extraction: {llm_exc}"
-            # Fallback summary if LLM fails, will be refined based on aider exit code later
-            state['last_event_summary'] = "Aider execution completed, but summary extraction failed."
-
+        aider_run_summary_obj: Optional[AiderRunSummary] = aider_service.get_summary(aider_result)
+        state['aider_run_summary'] = aider_run_summary_obj.model_dump() if aider_run_summary_obj else None
 
         if aider_result.exit_code == 0:
             logger.info("Aider executed successfully (exit code 0).")

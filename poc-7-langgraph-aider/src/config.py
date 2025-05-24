@@ -23,6 +23,7 @@ class AppConfig(BaseModel):
 
     changelog_aider_model: str
     aider_code_model: str
+    aider_summary_model: str
     gemini_weak_model_name: str
 
     @classmethod
