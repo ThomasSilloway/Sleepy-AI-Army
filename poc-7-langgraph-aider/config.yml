@@ -21,5 +21,6 @@ changelog_template_filename: "ai-docs\\format-templates\\format-changelog.md"
 changelog_aider_model: "gemini/gemini-2.0-flash-exp"
 
 aider_code_model: "gemini/gemini-2.5-pro-preview-03-25"
+aider_summary_model: "gemini-2.0-flash-exp"
 
 gemini_weak_model_name: "gemini-2.0-flash-exp"

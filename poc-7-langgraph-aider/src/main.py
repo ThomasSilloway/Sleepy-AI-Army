@@ -2,6 +2,7 @@
 import logging
 import traceback
 
+import nest_asyncio
 from dotenv import load_dotenv
 
 from src.config import AppConfig
@@ -10,14 +11,18 @@ from src.services import (
     AiderService,
     ChangelogService,
     GitService,
+    LlmPromptService,  # Added import
     WriteFileFromTemplateService,
-    LlmPromptService # Added import
 )
 from src.state import WorkflowState
 from src.utils.logging_setup import setup_logging
 
 # Load the .env file
 load_dotenv()
+
+# Apply nest_asyncio *before* any async operations can start
+# Required for our hacky way of using asyncio.run() in different places just for pydantic ai
+nest_asyncio.apply() # <-- Apply the patch
 
 def main():
     print("PoC7 LangGraph Orchestrator Starting...")
@@ -33,12 +38,12 @@ def main():
         logger.overview(f"Goal root: {app_config.goal_root_path}")
 
         # Instantiate Services
-        aider_service = AiderService(app_config=app_config)
         changelog_service = ChangelogService(app_config=app_config)
         repo_path = app_config.goal_git_path        
         git_service = GitService(repo_path=repo_path)
         write_file_service = WriteFileFromTemplateService()
-        llm_prompt_service = LlmPromptService(app_config=app_config) # Instantiate LlmPromptService
+        llm_prompt_service = LlmPromptService(app_config=app_config)
+        aider_service = AiderService(app_config=app_config, llm_prompt_service=llm_prompt_service)
         logger.debug("Services instantiated.")
 
     except Exception as e:
@@ -54,7 +59,7 @@ def main():
     # Define LangGraph graph
     graph_builder = build_graph()
     logger.debug("Graph builder created.")
-    
+
     # Compile graph
     app_graph = graph_builder.compile()
     logger.debug("Graph compiled.")
@@ -98,10 +103,10 @@ def main():
     # Invoke graph execution
     logger.overview("Invoking graph execution...")
     final_state = app_graph.invoke(initial_state, config=runnable_config)
-    
+
     # logger.info(f"Final workflow state: {final_state}")
     # Output only the current_step_name, last_event_summary, error_message, is_manifest_generated, and is_changelog_entry_added each on separate lines with helpful indentation and labels
-    logger.overview(f"PoC7 LangGraph Orchestrator finished.")
+    logger.overview("PoC7 LangGraph Orchestrator finished.")
     logger.overview(f"  - Current Step Name: {final_state.get('current_step_name', 'N/A')}")
     logger.overview(f"  - Last Event Summary: {final_state.get('last_event_summary', 'N/A')}")
     logger.overview(f"  - Error Message: {final_state.get('error_message', 'N/A')}")
