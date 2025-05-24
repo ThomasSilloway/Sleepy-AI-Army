@@ -6,7 +6,7 @@ from langgraph.graph import END, StateGraph
 from src.nodes import (
     error_path_node,
     execute_small_tweak_node,
-    generate_manifest_create_node,
+    manifest_create_node,
     initialize_workflow_node,
     manifest_update_node, # Add this
     success_path_node,
@@ -25,7 +25,7 @@ def build_graph() -> StateGraph:
     # Add nodes
     graph_builder.add_node("initialize_workflow", initialize_workflow_node)
     graph_builder.add_node("validate_inputs", validate_inputs_node)
-    graph_builder.add_node("generate_manifest_create_node", generate_manifest_create_node)
+    graph_builder.add_node("manifest_create_node", manifest_create_node)
     graph_builder.add_node("execute_small_tweak", execute_small_tweak_node)
     graph_builder.add_node("manifest_update_node", manifest_update_node) # Add this
     graph_builder.add_node("error_path", error_path_node)
@@ -56,7 +56,7 @@ def build_graph() -> StateGraph:
         if state.get("error_message"):
             logger.error("[Graph] Routing to error_path due to error_message after validation.")
             return "error_path"
-        logger.overview("[Graph] Input validation successful. Routing to generate_manifest_create_node.") # Updated log and target
+        logger.overview("[Graph] Input validation successful. Routing to manifest_create_node.") # Updated log and target
         return "validation_succeeded" 
 
     graph_builder.add_conditional_edges(
@@ -64,7 +64,7 @@ def build_graph() -> StateGraph:
         route_after_validation,
         {
             "error_path": "error_path",
-            "validation_succeeded": "generate_manifest_create_node" # Updated target node
+            "validation_succeeded": "manifest_create_node" # Updated target node
         }
     )
 
@@ -78,7 +78,7 @@ def build_graph() -> StateGraph:
         return "manifest_generation_succeeded" 
 
     graph_builder.add_conditional_edges(
-        "generate_manifest_create_node", # Updated source node
+        "manifest_create_node", # Updated source node
         route_after_manifest_generation,
         {
             "error_path": "error_path",

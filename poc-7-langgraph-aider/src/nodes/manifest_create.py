@@ -1,4 +1,4 @@
-"""Contains logic for the generate_manifest_create_node."""
+"""Contains logic for the manifest_create_node."""
 import asyncio
 import logging
 from datetime import datetime
@@ -7,7 +7,7 @@ from typing import Any
 from src.config import AppConfig
 from src.pydantic_models.core_schemas import ManifestConfigLLM
 from src.services.changelog_service import ChangelogService
-from src.services.git_service import GitService # Import GitService
+from src.services.git_service import GitService  # Import GitService
 from src.services.llm_prompt_service import LlmPromptService
 from src.services.write_file_from_template_service import WriteFileFromTemplateService
 from src.state import WorkflowState
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # This node needs to be async if LlmPromptService.get_structured_output is async
 # and we want to await it properly.
-def generate_manifest_create_node(state: WorkflowState, config) -> WorkflowState:
+def manifest_create_node(state: WorkflowState, config) -> WorkflowState:
     """
     Generates the goal manifest file using LlmPromptService for data extraction
     and WriteFileFromTemplateService for rendering. Records the event in the
