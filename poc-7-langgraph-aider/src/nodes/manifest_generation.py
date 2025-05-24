@@ -2,11 +2,12 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any  # Any will be replaced by any if used
+from typing import Any
 
 from src.config import AppConfig
 from src.pydantic_models.core_schemas import ManifestConfigLLM
 from src.services.changelog_service import ChangelogService
+from src.services.git_service import GitService # Import GitService
 from src.services.llm_prompt_service import LlmPromptService
 from src.services.write_file_from_template_service import WriteFileFromTemplateService
 from src.state import WorkflowState
@@ -32,6 +33,7 @@ def generate_manifest_node(state: WorkflowState, config) -> WorkflowState:
         llm_prompt_service: LlmPromptService = services_config["llm_prompt_service"]
         write_file_service: WriteFileFromTemplateService = services_config["write_file_service"]
         changelog_service: ChangelogService = services_config["changelog_service"]
+        git_service: GitService = services_config["git_service"] 
 
         task_description_content = state.get('task_description_content')
         manifest_template_path_str = state.get('manifest_template_path')
@@ -172,6 +174,7 @@ From the user's task description, extract:
                 logger.info("Successfully recorded manifest creation in changelog.")
                 state['is_changelog_entry_added'] = True
                 state['last_event_summary'] = f"Manifest '{manifest_config_llm.goal_title}' created and changelog updated."
+
             else:
                 error_msg = "[ManifestGeneration] ChangelogService failed to record event."
                 logger.error(error_msg)
@@ -180,7 +183,22 @@ From the user's task description, extract:
                 current_error = state.get('error_message', "")
                 state['error_message'] = f"{current_error} [ChangelogError] {error_msg}".strip()
                 state['last_event_summary'] = f"Manifest '{manifest_config_llm.goal_title}' generated, but changelog update failed (service reported failure)."
-                # Do not return error for the whole node if only changelog failed, but reflect in summary.
+                # Do not return error for the whole node if only changelog failed, but reflect in summary.\
+
+            # Attempt to commit changes
+            commit_message = f"Create Goal Manifest for [{manifest_config_llm.goal_title}]"
+            logger.info(f"Attempting to commit changes with message: '{commit_message}'")
+            try:
+                commit_success = git_service.commit_changes(commit_message)
+                if commit_success:
+                    logger.info("Successfully committed manifest and changelog changes.")
+                    # last_event_summary already reflects manifest and changelog success
+                else:
+                    logger.error("Failed to commit manifest and changelog changes.")
+                    state['last_event_summary'] += ", but git commit failed."
+            except Exception as e:
+                logger.error(f"Error during git commit: {e}", exc_info=True)
+                state['last_event_summary'] += f", but git commit failed: {e}"
 
     except Exception as e:
         error_msg = f"[ManifestGeneration] Unexpected error during manifest generation: {e}"
