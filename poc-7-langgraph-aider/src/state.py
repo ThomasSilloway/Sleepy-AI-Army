@@ -1,6 +1,8 @@
 """TypedDict definition for the workflow's dynamic state."""
 from typing import Optional, TypedDict
 
+from src.pydantic_models.core_schemas import ManifestData
+
 
 class WorkflowState(TypedDict):
     current_step_name: Optional[str]
@@ -32,3 +34,6 @@ class WorkflowState(TypedDict):
     # Add other state fields as they become necessary
 
     small_tweak_file_path: Optional[str]  # Path to the file to be tweaked
+
+    # Data for goal-manifest.md, managed by manifest_create and manifest_update nodes
+    manifest_data: Optional[ManifestData]

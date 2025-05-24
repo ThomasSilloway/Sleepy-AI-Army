@@ -1,33 +1,31 @@
-# {{ goal_title | default("[Goal Title Placeholder]") }}
-{{ task_description_for_manifest | default("[Task description placeholder]") }}
+# {{ manifest_data.goal_title | default("[Goal Title Placeholder]") }}
+{{ manifest_data.task_description_for_manifest | default("[Task description placeholder]") }}
 
 ## Overall Status
-{{ overall_status | default("[Status placeholder, e.g., New]") }}
+{{ manifest_data.overall_status | default("[Status placeholder, e.g., New]") }}
 
 ## Current Focus
-{{ current_focus | default("[Current focus placeholder, e.g., file path or artifact ID]") }}
+{{ manifest_data.current_focus | default("[Current focus placeholder, e.g., file path or artifact ID]") }}
 
 ## Artifacts
-{#
-  This section's content is expected to be a string, potentially multi-line,
-  provided via the 'artifacts_section_content' context variable.
-  It could be a formatted list of artifacts or a placeholder message like:
-  * [approved] AI-Docs/01-vision_statement.md
-  * [drafting] AI-Docs/03-prd.md
-  * [No artifacts defined yet]
-#}
-{{ artifacts_section_content | default("* [Artifacts list placeholder]") }}
+{% if manifest_data.artifacts and manifest_data.artifacts|length > 0 %}
+{% for artifact in manifest_data.artifacts %}
+* {{ artifact.status }} {{ artifact.path }}
+{% endfor %}
+{% else %}
+* [No artifacts defined yet]
+{% endif %}
 
 ## AI Questions for User
-{% if ai_questions_list and ai_questions_list|length > 0 %}
-{% for question in ai_questions_list %}
+{% if manifest_data.ai_questions_list and manifest_data.ai_questions_list|length > 0 %}
+{% for question in manifest_data.ai_questions_list %}
 * {{ question }}
 {% endfor %}
 {% else %}
-NONE
+{{ manifest_data.default_ai_questions_placeholder | default("NONE") }}
 {% endif %}
 
 ## Human Responses
-{{ human_responses_content | default("NONE") }}
+{{ manifest_data.human_responses_content | default("NONE") }}
 
-Last Update: {{ last_updated_timestamp | default("[Timestamp placeholder]") }}
+Last Update: {{ manifest_data.last_updated_timestamp | default("[Timestamp placeholder]") }}

@@ -41,7 +41,7 @@ class AiderRunSummary(BaseModel):
 
     class Config:
         # Example of how to add example data for schema generation (optional)
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "changes_made": [
                     "Refactored `process_data` function in `utils.py` for clarity.",

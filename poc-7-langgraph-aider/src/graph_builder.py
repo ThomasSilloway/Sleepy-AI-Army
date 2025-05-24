@@ -27,7 +27,7 @@ def build_graph() -> StateGraph:
     graph_builder.add_node("validate_inputs", validate_inputs_node)
     graph_builder.add_node("manifest_create_node", manifest_create_node)
     graph_builder.add_node("execute_small_tweak", execute_small_tweak_node)
-    graph_builder.add_node("manifest_update_node", manifest_update_node) # Add this
+    graph_builder.add_node("manifest_update_node", manifest_update_node)
     graph_builder.add_node("error_path", error_path_node)
     graph_builder.add_node("success_path", success_path_node)
 
