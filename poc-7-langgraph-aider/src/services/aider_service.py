@@ -4,16 +4,27 @@ import subprocess
 import threading
 from typing import Optional  # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
 
+from pydantic import BaseModel
+
 from src.config import AppConfig
 
 logger = logging.getLogger(__name__)
 
 
-def stream_output(pipe, log_func):
-    """Reads lines from a pipe and logs them using the provided logging function."""
+class AiderExecutionResult(BaseModel):
+    """Data class to hold the results of an Aider command execution."""
+    exit_code: int
+    stdout: str
+    stderr: str
+
+
+def stream_output(pipe, log_func, output_lines_list: list[str]):
+    """Reads lines from a pipe, logs them, and appends them to a list."""
     try:
         for line in iter(pipe.readline, ''):
-            log_func(line.strip())
+            stripped_line = line.strip()
+            log_func(stripped_line)
+            output_lines_list.append(stripped_line)
     finally:
         pipe.close()
 
@@ -22,19 +33,23 @@ class AiderService:
         self.app_config = app_config
         self.workspace_path = app_config.goal_git_path
 
-    def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> int:
+    def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> AiderExecutionResult:
         """
-        Executes an aider command as a subprocess, streams its output, and returns the exit code.
+        Executes an aider command as a subprocess, streams its output, captures stdout and stderr,
+        and returns an AiderExecutionResult.
 
         Args:
             command_args: A list of arguments to pass to the aider CLI.
             files_to_add: An optional list of file paths to be included in the aider command execution context.
 
         Returns:
-            An integer representing the exit code of the aider command.
+            An AiderExecutionResult object containing the exit code, stdout, and stderr.
         """
         if files_to_add is None:
             files_to_add = []
+
+        stdout_lines: list[str] = []
+        stderr_lines: list[str] = []
 
         full_command = ["aider"] + files_to_add + command_args + [
             "--yes-always",
@@ -57,8 +72,8 @@ class AiderService:
             )
 
             # Create threads to stream stdout and stderr
-            stdout_thread = threading.Thread(target=stream_output, args=(process.stdout, logger.info))
-            stderr_thread = threading.Thread(target=stream_output, args=(process.stderr, logger.error))
+            stdout_thread = threading.Thread(target=stream_output, args=(process.stdout, logger.info, stdout_lines))
+            stderr_thread = threading.Thread(target=stream_output, args=(process.stderr, logger.error, stderr_lines))
 
             # Start the threads
             stdout_thread.start()
@@ -72,11 +87,16 @@ class AiderService:
             exit_code = process.wait()
             logger.info(f"Aider command finished with exit code: {exit_code}")
 
-            return exit_code
+            stdout_str = "\n".join(stdout_lines)
+            stderr_str = "\n".join(stderr_lines)
+
+            return AiderExecutionResult(exit_code=exit_code, stdout=stdout_str, stderr=stderr_str)
 
         except FileNotFoundError:
-            logger.critical("Error: 'aider' command not found. Is aider installed and in the system PATH?")
-            return -1 # Indicate a failure to even start the process
+            error_msg = "Error: 'aider' command not found. Is aider installed and in the system PATH?"
+            logger.critical(error_msg)
+            return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
         except Exception as e:
-            logger.critical(f"An unexpected error occurred while executing aider: {e}", exc_info=True)
-            return -1 # Indicate a general failure
+            error_msg = f"An unexpected error occurred while executing aider: {e}"
+            logger.critical(error_msg, exc_info=True)
+            return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
