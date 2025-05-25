@@ -12,7 +12,7 @@ Your primary task is to generate a new `spec.md` file. This file will outline th
 ## 3. Content for the Generated `spec.md`
 
 ### 3.2. Structure, Format, and Level of Detail **(CRITICAL)**
-- **Template**: The generated `spec.md` **MUST** strictly adhere to the template and format exemplified by `spec.md` example
+- **Template**: The generated `spec.md` **MUST** strictly adhere to the template and format exemplified by `spec.md.example` example
 - **Template 2**: The generated `spec.md` tasks section **MUST** be higher level than the template. 
   - Good Example: ``` Update the graph_builder to point to the success node after `validate_inputs_node` is complete ```
   - Bad Examples specify specific code to write in files
@@ -31,37 +31,8 @@ The `Context` block within the `spec.md` you generate should include:
 ```
 /read-only ai-docs/CONVENTIONS.md
 
-/read-only poc-7-langgraph-aider\templates\goal-manifest.j2
-
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/03_prd.md
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_1_tech_architecture_overview.md
-/read-only poc-7-langgraph-aider/ai-docs/planning/03_manifest-generation-pydantic-ai/05_2-tech_architecture-flow.md
-/read-only poc-7-langgraph-aider\ai-docs\planning\01_vision-statement.md
-
-/read-only poc-7-langgraph-aider/config.yml
-/read-only poc-7-langgraph-aider/src/__init__.py
-/read-only poc-7-langgraph-aider/src/config.py
-/read-only poc-7-langgraph-aider/src/graph_builder.py
-/read-only poc-7-langgraph-aider/src/main.py
-/read-only poc-7-langgraph-aider/src/nodes/__init__.py
-/read-only poc-7-langgraph-aider/src/nodes/manifest_generation.py
-/read-only poc-7-langgraph-aider/src/services/__init__.py
-/read-only poc-7-langgraph-aider/src/services/changelog_service.py
-/read-only poc-7-langgraph-aider/src/state.py
-/read-only poc-7-langgraph-aider/src/utils/__init__.py
-/read-only poc-7-langgraph-aider/src/utils/logging_setup.py
-
-/read-only poc-7-langgraph-aider\src\services\write_file_from_template_service.py
-/read-only poc-7-langgraph-aider\src\services\llm_prompt_service.py
-
-/read-only poc-7-langgraph-aider/ai-docs/jinja-best-practices.md
-/read-only poc-7-langgraph-aider/ai-docs/jinja-sample-code.md
-/read-only poc-7-langgraph-aider/ai-docs/format-templates/format-goal-manifest.md
-/read-only poc-7-langgraph-aider/pyproject.toml
-
-
-/read-only poc-7-langgraph-aider\ai-commands\create-new-spec-latest.md
-/read-only poc-7-langgraph-aider\ai-specs\06-implement-aider-service\spec.md
+/read-only ai-commands\create-new-spec.md
+/read-only ai-docs\spec.md.example
 ```  
 
 ## Files that the spec should update
