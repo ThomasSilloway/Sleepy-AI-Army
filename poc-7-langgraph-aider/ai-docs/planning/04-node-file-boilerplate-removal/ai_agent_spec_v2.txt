@@ -1,0 +1,59 @@
+# AI Agent Specification: Error Handling Refactor (V2)
+
+## 1. Problem
+    *   **`goal`**: "Refactor node functions to use a new error handling mechanism that aligns with user feedback, emphasizing simpler try-catch blocks within nodes, custom exceptions, and declarative state management for errors via a decorator."
+    *   **`context`**: "Previous attempts to centralize error handling did not fully meet user preferences. The current task is to implement a new pattern: nodes use simple try-catch blocks to raise specific custom exceptions. A decorator then catches these (and any other unhandled exceptions) and uses a declarative configuration to update `WorkflowState`."
+    *   **`desired_outcome`**: "Node functions (`manifest_create.py` as the primary example) should be refactored to use this new decorator-based custom exception and declarative state handling pattern. Boilerplate for error handling and state updates within the main node logic should be significantly reduced. The error handling should be robust, maintainable, and consistent."
+
+## 2. Solution
+    *   **`chosen_approach`**: "Implement a system using Custom Exceptions, a Node Exception Handler Decorator, and a Declarative Error Configuration, as detailed in the 'A+ Solution (from V2 Brainstorming)' section of `critique_v2.txt`."
+    *   **`components`**:
+        *   **`CustomExceptions`**:
+            *   **Location**: `poc-7-langgraph-aider/src/utils/custom_exceptions.py`
+            *   **Content**: Define `NodeOperation(Enum)` (LLM_CALL, FILE_WRITE, etc.). Define `NodeOperationError(Exception)` base class, and specific subclasses like `LLMError`, `FileError`, `ValidationError`, `NodeConfigError`, `ChangelogError`, `GitError` etc., all taking `message`, `operation_type: NodeOperation`, and `original_exception` as params.
+        *   **`NodeExceptionHandlerDecorator`**:
+            *   **Location**: `poc-7-langgraph-aider/src/utils/node_exception_handler.py`
+            *   **Content**:
+                *   `NODE_ERROR_CONFIG (dict)`: A declarative configuration mapping `NodeOperation` enum values to error processing rules (e.g., `summary_template`, `state_updates` dictionary, `set_aider_exit_code` boolean).
+                *   `_get_logger` utility function.
+                *   `_process_error_and_update_state(state, node_config_arg, exception)`: Internal function that uses `NODE_ERROR_CONFIG` to log errors, format messages, and update `state` fields (`error_message`, `last_event_summary`, custom flags, `aider_last_exit_code`).
+                *   `@handle_node_exceptions (decorator)`: Wraps node functions. Implements a top-level try-catch. Catches `NodeOperationError` subtypes and generic `Exception`. Calls `_process_error_and_update_state` and returns the `state`.
+    *   **`node_modification_pattern`**:
+        *   Apply the `@handle_node_exceptions` decorator to node functions (e.g., `manifest_create_node`).
+        *   Inside the node, wrap specific operations (LLM calls, file I/O, validation checks that can fail) in simple `try-except` blocks.
+        *   These `except` blocks (or checks for non-exception failures) should `raise` the appropriate custom exception from `custom_exceptions.py` (e.g., `raise LLMError("LLM returned no data.", original_exception=e_or_None)`).
+        *   Remove all direct `state['error_message'] = ...`, `state['last_event_summary'] = ...`, `state[flag] = False` boilerplate for error conditions from the main body of the node, as the decorator and `_process_error_and_update_state` will handle this.
+        *   The node function should primarily focus on its happy path logic and raising custom exceptions upon failure.
+
+## 3. High-Level Implementation Plan
+    *   **`step_0_cleanup_previous_solution (IMPORTANT)`**:
+        *   **Action**: "Delete the file `poc-7-langgraph-aider/src/utils/node_error_handler.py` created by the previous solution, as its functionality is being replaced."
+        *   **Verification**: "Ensure the file is deleted to avoid conflicts or confusion."
+    *   **`step_1_create_custom_exceptions`**:
+        *   **Action**: "Create the file `poc-7-langgraph-aider/src/utils/custom_exceptions.py`."
+        *   **Content**: "Implement the `NodeOperation` enum and the hierarchy of custom exceptions (`NodeOperationError`, `LLMError`, `FileError`, `ChangelogError`, `GitError`, `ValidationError`, `NodeConfigError`) as detailed in `critique_v2.txt`'s A+ solution sketch."
+    *   **`step_2_create_exception_handler_module`**:
+        *   **Action**: "Create the file `poc-7-langgraph-aider/src/utils/node_exception_handler.py`."
+        *   **Content**: "Implement `NODE_ERROR_CONFIG`, `_get_logger`, `_process_error_and_update_state`, and the `@handle_node_exceptions` decorator as detailed in `critique_v2.txt`'s A+ solution sketch. Ensure imports from `custom_exceptions.py` are correct."
+    *   **`step_3_refactor_node`**:
+        *   **Target_File**: "`poc-7-langgraph-aider/src/nodes/manifest_create.py`"
+        *   **Action**: "Refactor `manifest_create_node` to use the new `@handle_node_exceptions` decorator and custom exceptions."
+        *   **Details**:
+            *   "Add the `@handle_node_exceptions` decorator to the `manifest_create_node` function."
+            *   "Import custom exception classes (e.g., `LLMError`, `FileError`, `ValidationError`, `NodeConfigError`) from `src.utils.custom_exceptions`."
+            *   "Import `_get_logger` from `src.utils.node_exception_handler` for internal node logging (happy path logging)."
+            *   "Replace existing try-catch blocks and error handling boilerplate:
+                *   For operations that might fail (LLM calls, file writes, service call failures, validation checks), use a `try-except` block.
+                *   In the `except` part, or for non-exception failures (e.g., `if not result:`), `raise` the appropriate custom exception with a descriptive message and the `NodeOperation` enum value. Include `original_exception=e` if an exception was caught.
+                *   Remove direct manipulation of `state['error_message']`, `state['last_event_summary']`, and error-related flags from the node's main logic.
+                *   The node should no longer return `state` prematurely in error cases; the decorator handles this."
+            *   "Ensure happy path logic correctly updates `state` for success cases (e.g., `state['is_manifest_generated'] = True`, `state['last_event_summary'] = 'Manifest generated.'`) before the final `return state`."
+    *   **`step_4_verify_behavior`**:
+        *   **Action**: "Manually review the refactored `manifest_create_node` and the new utility files."
+        *   **Checklist**: "Confirm that:
+            *   The old `node_error_handler.py` is deleted.
+            *   Custom exceptions and the decorator are implemented as per the spec.
+            *   `manifest_create.py` uses the decorator and raises custom exceptions.
+            *   Error-related state updates are consistent with `NODE_ERROR_CONFIG` for various simulated error conditions.
+            *   Happy path still functions correctly and updates state appropriately.
+            *   Logging behavior (both happy path and errors via decorator) is as expected."

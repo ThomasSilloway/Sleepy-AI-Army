@@ -1,0 +1,345 @@
+# Brainstorming Error Handling & State Management (V2)
+
+This document explores three alternative approaches for error handling and `WorkflowState` management in LangGraph nodes, based on user feedback.
+
+## 1. Refined Context Manager (`NodeOperationContext`)
+
+*   **Concept:**
+    A context manager, `NodeOperationContext`, is used to wrap blocks of code that represent a significant operation or a series of related sub-operations within a node. The context manager is responsible for catching exceptions that propagate from its block. For non-exception failures (e.g., a service call returns `None` or an unexpected value), the context manager instance itself provides a method (e.g., `handle_error_condition`) that can be called from within the `with` block to signal the error. Upon exiting the `with` block (either normally or due to an exception or an explicit error signal), the context manager updates the `WorkflowState` (logging, error messages, flags) based on the outcome. It can be configured with an `operation_type` (similar to `NodeOperation` enum) to determine default state updates.
+
+*   **Implementation Sketch:**
+    ```python
+    # In a utility module, e.g., src/utils/node_context_handler.py
+    import logging
+    # from src.state import WorkflowState # TypedDict or class
+    # from src.utils.node_error_handler import NodeOperation, _apply_state_updates # (or similar logic)
+
+    class NodeOperationContext:
+        def __init__(self, state: dict, config: dict, operation_type: NodeOperation, 
+                     custom_success_updates: dict = None,
+                     custom_failure_updates: dict = None):
+            self.state = state
+            self.config = config
+            self.operation_type = operation_type
+            self.custom_success_updates = custom_success_updates or {}
+            self.custom_failure_updates = custom_failure_updates or {}
+            self.logger = config.get("logger", logging.getLogger(state.get('current_step_name', 'NodeContext')))
+            self._error_occurred = False
+            self._exception_caught = None
+            self._error_condition_message = None
+
+        def __enter__(self):
+            self.logger.info(f"Entering operation context: {self.operation_type.value}")
+            return self # Returns the context manager instance
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if exc_type: # An exception propagated out
+                self._error_occurred = True
+                self._exception_caught = exc_val
+                self.logger.error(
+                    f"[{self.operation_type.value}] Exception caught: {exc_val}", exc_info=(exc_type, exc_val, exc_tb)
+                )
+                
+                # Core message for state
+                core_message = f"Exception: {exc_val}"
+                # Populate state (similar to handle_operation_error)
+                self.state['error_message'] = (self.state.get('error_message', '') + 
+                                              f"\n[{self.operation_type.value}] {core_message}").strip()
+                self.state['last_event_summary'] = f"Error during {self.operation_type.value}: {type(exc_val).__name__}"
+                # _apply_state_updates(self.state, self.operation_type, self.custom_failure_updates) # Simplified
+                self.state.update(self.custom_failure_updates) # Apply custom failure updates
+                # Apply operation-specific defaults (e.g., is_manifest_generated=False for LLM_CALL)
+                if self.operation_type == NodeOperation.LLM_CALL: # Example
+                    self.state['is_manifest_generated'] = False
+                    self.state['manifest_data'] = None
+
+            elif self._error_occurred: # Error signaled by handle_error_condition
+                self.state['error_message'] = (self.state.get('error_message', '') +
+                                              f"\n[{self.operation_type.value}] {self._error_condition_message}").strip()
+                self.state['last_event_summary'] = f"Error during {self.operation_type.value}: {self._error_condition_message}"
+                # _apply_state_updates(self.state, self.operation_type, self.custom_failure_updates) # Simplified
+                self.state.update(self.custom_failure_updates)
+                if self.operation_type == NodeOperation.LLM_CALL: # Example
+                    self.state['is_manifest_generated'] = False
+                    self.state['manifest_data'] = None
+            else: # Success
+                self.logger.info(f"Operation context {self.operation_type.value} completed successfully.")
+                self.state.update(self.custom_success_updates)
+                # Example: state['last_event_summary'] = f"{self.operation_type.value} succeeded."
+
+            if self.state.get('aider_last_exit_code') is None and self._error_occurred:
+                 self.state['aider_last_exit_code'] = -1
+
+            return True # Suppress the exception if it was handled by this context manager
+
+        def signal_error(self, message: str, custom_failure_updates: dict = None):
+            """Called from within the 'with' block to signal a non-exception error."""
+            self.logger.error(f"[{self.operation_type.value}] Error signaled: {message}")
+            self._error_occurred = True
+            self._error_condition_message = message
+            if custom_failure_updates: # Allow overriding/adding to initial custom_failure_updates
+                self.custom_failure_updates.update(custom_failure_updates)
+            # Note: State update happens in __exit__
+
+    # --- Example Usage in a Node ---
+    # def manifest_create_node(state: WorkflowState, config) -> WorkflowState:
+    #     state['current_step_name'] = "Create Manifest"
+    #     logger = config.get("logger", logging.getLogger(__name__))
+    #
+    #     # Outer try-catch for truly unexpected things outside a defined context
+    #     try:
+    #         # LLM Operation Context
+    #         llm_op_context_updates = {"is_manifest_generated": False, "manifest_data": None}
+    #         with NodeOperationContext(state, config, NodeOperation.LLM_CALL, custom_failure_updates=llm_op_context_updates) as llm_context:
+    #             manifest_config_llm = asyncio.run(llm_prompt_service.get_structured_output(...))
+    #             if not manifest_config_llm:
+    #                 llm_context.signal_error("LLM did not return structured data.")
+    #                 # No need to return state here; __exit__ handles it.
+    #
+    #         # If an error occurred in the LLM context, state is updated, and we might want to return
+    #         if state.get('error_message'): # A simple check, could be more robust
+    #             return state
+    #
+    #         # ... other operations ...
+    #
+    #     except Exception as e:
+    #         # Fallback for errors not caught by any context manager
+    #         # state['error_message'] = ... state['last_event_summary'] = ...
+    #         logger.error(f"[ManifestCreate] Unhandled exception: {e}", exc_info=True)
+    #         state['is_manifest_generated'] = False # etc.
+    #
+    #     return state
+    ```
+
+*   **Pros:**
+    *   Encapsulates setup, teardown (logging, state updates) for an operation.
+    *   Cleaner syntax within the `with` block for the happy path.
+    *   `signal_error()` method allows handling non-exception failures gracefully as per user preference.
+    *   Reduces `try...except` boilerplate for common exceptions if the context manager handles them.
+*   **Cons:**
+    *   The context manager itself can become complex if it has to handle many types of exceptions or state update rules.
+    *   Flow control: If an error occurs, the `with` block is exited. The node function needs to check state afterwards to decide whether to continue or return, which can be manual.
+    *   Overlapping contexts or nested contexts could be tricky to manage or debug.
+    *   The `__exit__` method can become quite large.
+
+## 2. Simplified Try-Catch with Custom Exceptions
+
+*   **Concept:**
+    Each fine-grained operation (e.g., a specific service call) is wrapped in a `try...except` block. This inner block catches generic exceptions (or specific library exceptions) and re-raises them as a custom, operation-specific exception (e.g., `LLMOperationError`, `FileWriteError`). These custom exceptions carry context about the operation and can wrap the original exception. A single, outer `try...except` block within the main node function is then responsible for catching these custom exception types (and a final `Exception` for anything unexpected). This outer handler interprets the custom exception type and its details to perform the appropriate `WorkflowState` updates.
+
+*   **Implementation Sketch:**
+    ```python
+    # In src/utils/custom_exceptions.py
+    class NodeOperationError(Exception):
+        """Base class for custom errors in node operations."""
+        def __init__(self, message, original_exception=None, operation_type=None, **kwargs):
+            super().__init__(message)
+            self.original_exception = original_exception
+            self.operation_type = operation_type # e.g., NodeOperation.LLM_CALL
+            self.additional_data = kwargs
+
+    class LLMOperationError(NodeOperationError):
+        pass
+
+    class FileWriteError(NodeOperationError):
+        pass
+
+    class ChangelogError(NodeOperationError):
+        pass
+        
+    class GitOperationError(NodeOperationError):
+        pass
+
+    # In src/utils/node_error_processor.py (or part of the node itself initially)
+    # from src.state import WorkflowState
+    # from src.utils.custom_exceptions import NodeOperationError, LLMOperationError, FileWriteError, ...
+    # from src.utils.node_error_handler import NodeOperation (enum for consistency)
+
+    def process_node_error(state: dict, config: dict, exception: Exception):
+        logger = config.get("logger", logging.getLogger(state.get('current_step_name', 'NodeErrorProcessor')))
+        
+        operation_type = NodeOperation.UNEXPECTED_ERROR # Default
+        custom_state_updates = {}
+        error_message_detail = str(exception)
+        
+        if isinstance(exception, NodeOperationError):
+            # Common handling for all NodeOperationErrors
+            logger.error(f"[{exception.operation_type.value if exception.operation_type else 'NodeOp'}] Custom error: {exception}", exc_info=exception.original_exception or True)
+            error_message_detail = str(exception)
+            if exception.operation_type:
+                operation_type = exception.operation_type
+
+            # Type-specific handling
+            if isinstance(exception, LLMOperationError):
+                custom_state_updates = {"is_manifest_generated": False, "manifest_data": None}
+                state['last_event_summary'] = f"Error during LLM Operation: {exception}"
+            elif isinstance(exception, FileWriteError):
+                custom_state_updates = {"is_manifest_generated": False} # Example
+                state['last_event_summary'] = f"Error during File Write: {exception}"
+            # ... other custom exception types ...
+            else: # Generic NodeOperationError
+                state['last_event_summary'] = f"Error during {operation_type.value}: {exception}"
+        else: # Generic, non-custom exception
+            logger.error(f"[UNHANDLED] Unexpected error: {exception}", exc_info=True)
+            state['last_event_summary'] = f"Unexpected error: {type(exception).__name__} - {exception}"
+
+        # Centralized state update logic (can use parts of existing handle_operation_error)
+        state['error_message'] = (state.get('error_message', '') + f"\n[{operation_type.value}] {error_message_detail}").strip()
+        # _apply_state_updates(state, operation_type, custom_state_updates)
+        state.update(custom_state_updates) # Simplified for sketch
+        if operation_type == NodeOperation.LLM_CALL: # Example of default for operation type
+            state['is_manifest_generated'] = False
+            state['manifest_data'] = None
+
+        if state.get('aider_last_exit_code') is None:
+            state['aider_last_exit_code'] = -1
+        
+    # --- Example Usage in a Node ---
+    # def manifest_create_node(state: WorkflowState, config) -> WorkflowState:
+    #     state['current_step_name'] = "Create Manifest"
+    #     try:
+    #         try:
+    #             manifest_config_llm = asyncio.run(llm_prompt_service.get_structured_output(...))
+    #             if not manifest_config_llm:
+    #                 raise LLMOperationError("LLM did not return structured data.", operation_type=NodeOperation.LLM_CALL)
+    #         except Exception as e:
+    #             if not isinstance(e, LLMOperationError): # Avoid re-wrapping
+    #                 raise LLMOperationError(f"LLM service call failed: {e}", original_exception=e, operation_type=NodeOperation.LLM_CALL)
+    #             raise # Re-raise already wrapped custom exception
+    #
+    #         # ... other operations, each with its own try/except raising custom errors ...
+    #
+    #     except (LLMOperationError, FileWriteError, ChangelogError, GitOperationError, NodeOperationError) as noe:
+    #         process_node_error(state, config, noe)
+    #         return state
+    #     except Exception as e: # Catch-all for truly unexpected errors
+    #         process_node_error(state, config, e) # Will be handled as UNEXPECTED_ERROR
+    #         return state
+    #
+    #     return state
+    ```
+
+*   **Pros:**
+    *   Clear separation of concerns: inner blocks detect/classify errors, outer block processes them for state.
+    *   Custom exceptions improve semantic clarity of errors.
+    *   Outer `try...except` block becomes simpler, handling a defined set of custom errors.
+    *   Maintains the `try...except` structure preferred by the user for individual operations.
+*   **Cons:**
+    *   Still involves nested `try...except` blocks, though the inner ones are minimal ("raise specific error").
+    *   Requires defining and maintaining a hierarchy of custom exceptions.
+    *   The outer error processing function (`process_node_error`) can become large if it needs to handle many custom exception types with different state update logic (though this can be mitigated by good design within that function).
+
+## 3. Declarative State Outcome Configuration
+
+*   **Concept:**
+    At the beginning of a node function (or via an associated configuration object), mappings are defined for how the `WorkflowState` should be altered for different outcomes. These outcomes include: overall success of the node, specific custom error types (linking to idea #2), or generic/unhandled exceptions. The main body of the node executes its logic, potentially raising custom exceptions. A final utility function (or a decorator/wrapper around the node) is then invoked. This utility inspects the outcome (e.g., value returned by node, or type of exception caught by a generic outer handler) and uses the declarative configuration to update the `WorkflowState` in a standardized way.
+
+*   **Implementation Sketch:**
+    ```python
+    # In src/utils/state_config_handler.py
+    import logging
+    # from src.state import WorkflowState
+    # from src.utils.custom_exceptions import NodeOperationError, LLMOperationError, FileWriteError, ...
+    # from src.utils.node_error_handler import NodeOperation # Enum for consistency
+
+    class NodeOutcome(Enum):
+        SUCCESS = "SUCCESS"
+        # Custom error types could be enum members or directly use exception classes
+        LLM_ERROR = "LLM_ERROR" 
+        FILE_WRITE_ERROR = "FILE_WRITE_ERROR"
+        GENERIC_FAILURE = "GENERIC_FAILURE"
+
+    # Configuration for a specific node
+    # This could be a class instance or a dictionary defined within the node or alongside it.
+    NODE_STATE_OUTCOMES_CONFIG = {
+        "manifest_create_node": { # Node name or unique ID
+            NodeOutcome.SUCCESS: {
+                "last_event_summary": "Manifest creation process completed successfully.",
+                # Potentially other state fields to set/ensure on success
+                # e.g., "is_manifest_generated": True (though usually set directly in happy path)
+            },
+            NodeOutcome.LLM_ERROR: { # Corresponds to catching LLMOperationError
+                "last_event_summary_template": "LLM operation failed: {error_message}",
+                "error_message_template": "[LLM Call] {error_message}",
+                "set_flags": {"is_manifest_generated": False, "manifest_data": None},
+            },
+            NodeOutcome.FILE_WRITE_ERROR: {
+                "last_event_summary_template": "File writing failed: {error_message}",
+                "error_message_template": "[File Write] {error_message}",
+                "set_flags": {"is_manifest_generated": False},
+            },
+            NodeOutcome.GENERIC_FAILURE: {
+                "last_event_summary_template": "An unexpected error occurred: {error_message}",
+                "error_message_template": "[Unexpected] {error_message}",
+                "set_flags": {"is_manifest_generated": False, "manifest_data": None, "is_changelog_entry_added": False},
+            }
+        }
+    }
+
+    def finalize_node_state(state: dict, config: dict, node_name: str, outcome: NodeOutcome, error_details: dict = None):
+        logger = config.get("logger", logging.getLogger(state.get('current_step_name', 'StateConfigHandler')))
+        outcome_config = NODE_STATE_OUTCOMES_CONFIG.get(node_name, {}).get(outcome)
+
+        if not outcome_config:
+            logger.error(f"No outcome configuration found for node {node_name}, outcome {outcome}. Applying generic failure.")
+            outcome_config = NODE_STATE_OUTCOMES_CONFIG.get(node_name, {}).get(NodeOutcome.GENERIC_FAILURE, {})
+            if not error_details: error_details = {"error_message": "Unknown error with no configuration."}
+
+        error_message = (error_details or {}).get('error_message', 'No details.')
+
+        # Update last_event_summary
+        summary_template = outcome_config.get('last_event_summary_template', "Operation finished.")
+        state['last_event_summary'] = summary_template.format(error_message=error_message)
+        
+        # Update error_message in state (if it's an error outcome)
+        if outcome != NodeOutcome.SUCCESS:
+            msg_template = outcome_config.get('error_message_template', "[Error] {error_message}")
+            full_error_msg = msg_template.format(error_message=error_message)
+            existing_errors = state.get('error_message', "")
+            state['error_message'] = (f"{existing_errors}\n{full_error_msg}" if existing_errors else full_error_msg).strip()
+            logger.error(full_error_msg, exc_info=error_details.get('exception_instance', False))
+
+
+        # Update specific flags
+        if "set_flags" in outcome_config:
+            for flag, value in outcome_config["set_flags"].items():
+                state[flag] = value
+        
+        if outcome != NodeOutcome.SUCCESS and state.get('aider_last_exit_code') is None:
+            state['aider_last_exit_code'] = -1
+
+    # --- Example Usage (conceptual, e.g., with a decorator or explicit final call) ---
+    # @process_with_state_config(node_name="manifest_create_node") # Decorator approach
+    # def manifest_create_node(state: WorkflowState, config) -> WorkflowState: # Or returns a result/error
+    #     # ... main logic ...
+    #     # 1. Happy path returns, decorator infers NodeOutcome.SUCCESS
+    #     # 2. Raises LLMOperationError("details"), decorator catches, infers NodeOutcome.LLM_ERROR
+    #     # ...
+    #     # If no decorator, then:
+    #     # outcome_to_report = NodeOutcome.SUCCESS
+    #     # error_info = None
+    #     # try:
+    #     #    # node logic, raise custom exceptions
+    #     # except LLMOperationError as e:
+    #     #    outcome_to_report = NodeOutcome.LLM_ERROR
+    #     #    error_info = {"error_message": str(e), "exception_instance": e}
+    #     # except Exception as e:
+    #     #    outcome_to_report = NodeOutcome.GENERIC_FAILURE
+    #     #    error_info = {"error_message": str(e), "exception_instance": e}
+    #     # finally:
+    #     #    finalize_node_state(state, config, "manifest_create_node", outcome_to_report, error_info)
+    #     # return state
+    ```
+
+*   **Pros:**
+    *   Highly centralizes how `WorkflowState` is modified for various end-states of a node.
+    *   Configuration is explicit and easy to read/modify for specific nodes and outcomes.
+    *   Node business logic can focus on its task and raising appropriate (custom) exceptions, with less concern for direct state manipulation.
+    *   Promotes consistency in state updates for similar error types across different nodes if they use similar outcome keys.
+*   **Cons:**
+    *   The configuration (e.g., `NODE_STATE_OUTCOMES_CONFIG`) could become very large and potentially complex to manage for many nodes and outcomes.
+    *   Requires a robust mechanism to determine the correct `NodeOutcome` to pass to `finalize_node_state` (e.g., sophisticated decorator, or careful manual try/except/finally block in each node).
+    *   Flexibility for very dynamic error messages or state updates not easily expressed in the static config might be reduced (though templates help).
+    *   Initial setup of the configuration dictionary/structure.
+
+This concludes the brainstorming for these three approaches. Each offers a different way to tackle boilerplate and improve clarity, with its own trade-offs.
