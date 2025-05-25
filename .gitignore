@@ -2,3 +2,5 @@
 *.env
 Sleepy AI Army - visual selection.pdn
 .aider*
+
+*.lock

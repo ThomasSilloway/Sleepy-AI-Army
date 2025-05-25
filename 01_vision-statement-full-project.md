@@ -11,7 +11,6 @@ This document outlines the requirements for the Minimum Viable Product (MVP) of 
 * **Objective:** Integrate with `aider` for code generation/modification tasks, using `gemini-2.5` as the backend LLM.
 * **Objective:** Implement a Discord bot interface for manual triggering.
 * **Objective:** Ensure the system runs reliably in a local Docker environment.
-* **Objective:** Handle Gemini API rate limits via key cycling.
 * **Objective:** Refactor the Discord bot communication from the Godot-AI-Developer project for more direct command/response interaction.
 
 ## 3. Target Audience / User Personas

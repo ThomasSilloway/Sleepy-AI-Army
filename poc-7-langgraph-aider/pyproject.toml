@@ -1,0 +1,28 @@
+[project]
+name = "src"
+version = "0.1.0"
+description = "PoC7 LangGraph Orchestrator for initial document generation."
+authors = [
+  { name = "Thomas Silloway", email = "tcsillow@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GNU3" } 
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "langgraph",
+    "pydantic",
+    "omegaconf",
+    "python-dotenv",
+    "pydantic_ai",
+    "Jinja2",
+    "nest_asyncio"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+backend-path = ["."] # Specifies that pyproject.toml is at the root

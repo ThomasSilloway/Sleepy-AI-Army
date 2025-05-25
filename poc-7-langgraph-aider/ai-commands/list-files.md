@@ -1,0 +1,1 @@
+git ls-files ai-docs poc-7-langgraph-aider | ForEach-Object { "/read-only $_" } | Set-Clipboard
