@@ -1,4 +1,4 @@
-# poc7_langgraph_orchestrator
+# army-man-small-tweak
 
 Proof-of-Concept for LangGraph Orchestration (PoC7).
 
@@ -21,7 +21,7 @@ Proof-of-Concept for LangGraph Orchestration (PoC7).
 
 To execute the main application script:
 ```bash
-cd poc-7-langgraph-aider
+cd army-man-small-tweak
 uv run .\src\main.py
 ```
 This command tells `uv` to run the specified Python script within the managed environment, ensuring all dependencies from `pyproject.toml` (and `uv.lock` if present) are available.

@@ -94,7 +94,23 @@ The workflow operates in cycles, prioritizing safety and human control:
 * **Single Step Execution & Human Review Required:** The AI performs only *one defined step per goal per run cycle* and then waits for batch review. It won't complete complex features end-to-end autonomously.
     * *Example:* The AI might write code for a feature based on a plan. It stops. You review it later with all other updates from that run. Only after your review can it proceed to the *next* step (like writing tests) in a *future* run cycle. Your review gates progress for *all* tasks.
 
-## POC Status
+## Additional Brainstorming
 
-- PoC 3, 4, and 5 are incomplete projects see their readme for more info
-- PoC 1, 2, 6 Are fully implemented and intended to be run with `adk web`
+### Problem - Context switching
+There may be an issue with context switching especially if it's only going to be one step per goal per run cycle. 
+
+#### Potential Solution
+- Perhaps there should be a way to control the number of steps per goal per run cycle. This would allow for more steps to be taken per goal per run cycle if needed. 
+- Alternatively there could be an army man spinned up for a single step and all steps just in case it gets the entire thing correct.
+   - The review process would be to see if the full process accomplished the goal, if not, look at the single step.
+   - The single step may be the same as the first step in the full process, so it may be better to do the full process and then the user flow would be to revert back to whichever commit was the most correct that they want to operate on.
+   - This will cost significantly more money to run, so maybe the option to specify which steps to take would be good
+
+## Current Status
+Each component below was directly taken from a proof of concept, so the code is very messy. We wanted to bring the project to a useful state as fast as possible though, so this is sufficient for now. Subsequent updates will clean up the code and make it more maintainable.
+
+- `Army Man` - Capable of making a small tweak to a file based on a prompt on a single file. The file must contain the relative path to the file from the root of the git repository.
+
+### TODO:
+- `Secretary` - Converts the backlog into new ai-goals folders and records the folder names for the General that should be operated on
+- `General` - Initiates the Secretary, upon completion, reads the folder names to operate on and starts a new Army Man for each folder

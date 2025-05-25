@@ -237,4 +237,4 @@ class TestManifestUpdateNode(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
 
-[end of poc-7-langgraph-aider/tests/test_manifest_update_node.py]
+

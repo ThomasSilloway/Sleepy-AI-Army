@@ -8,14 +8,14 @@
 
 ## Context
 
-/add poc-7-langgraph-aider\src\utils\logging_setup.py
+/add army-man-small-tweak\src\utils\logging_setup.py
 
 ## Low-Level Tasks
 > Ordered from start to finish
 
 ### Task 1: Update Logging Timestamp Format and Address Node TODOs
 ```
-- UPDATE `poc-7-langgraph-aider\src\utils\logging_setup.py`
+- UPDATE `army-man-small-tweak\src\utils\logging_setup.py`
     - Locate the `# TODO`
     - Make the required changes to satisfy that TODO
 ```

@@ -5,9 +5,9 @@ import logging
 import uuid # For generating random text
 
 # Adjust sys.path to allow imports from the 'src' directory
-# This assumes the script is in 'poc-7-langgraph-aider/tests/'
-# and 'src' is in 'poc-7-langgraph-aider/'
-# Also assumes 'config.yml' is in 'poc-7-langgraph-aider/'
+# This assumes the script is in 'army-man-small-tweak/tests/'
+# and 'src' is in 'army-man-small-tweak/'
+# Also assumes 'config.yml' is in 'army-man-small-tweak/'
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
