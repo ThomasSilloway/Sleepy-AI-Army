@@ -1,12 +1,9 @@
 """Contains logic for the initialize_workflow node."""
 import logging
-import os
 from pathlib import Path
-from typing import Dict, Any
 
 from src.config import AppConfig
-from src.state import WorkflowState # Assuming WorkflowState is a TypedDict
-from src.utils.logging_setup import setup_logging
+from src.state import WorkflowState  # Assuming WorkflowState is a TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +17,7 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
 
     config = config["configurable"]
     app_config: AppConfig = config["app_config"]
-    
+
     logger.info("[Initializer] Initializer Node")
 
     # Validate goal_root_path and workspace_root_path
@@ -49,17 +46,15 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
     # Resolve and store critical absolute paths in WorkflowState
     try:
         state['manifest_template_path'] = str(workspace_root_path / app_config.manifest_template_filename)
-        state['changelog_template_path'] = str(workspace_root_path / app_config.changelog_template_filename)
-        
+
         state['task_description_path'] = str(goal_root_path / app_config.task_description_filename)
         state['manifest_output_path'] = str(goal_root_path / app_config.manifest_output_filename)
         state['changelog_output_path'] = str(goal_root_path / app_config.changelog_output_filename)
 
-        
+
 
         # logger.info(f" - Task description path: {state['task_description_path']}")
         # logger.info(f"Manifest template path: {state['manifest_template_path']}")
-        # logger.info(f"Changelog template path: {state['changelog_template_path']}")
         # logger.info(f"Manifest output path: {state['manifest_output_path']}")
         # logger.info(f"Changelog output path: {state['changelog_output_path']}")
 
@@ -72,7 +67,7 @@ def initialize_workflow_node(state: WorkflowState, config) -> WorkflowState:
 
     state['last_event_summary'] = "Initialization complete; paths resolved."
     # logger.info("Workflow initialization successful.")
-    
+
     # Clear error message if initialization was successful
     state['error_message'] = None 
     return state

@@ -19,7 +19,6 @@ class AppConfig(BaseModel):
     # Example of a more complex field if needed later:
     # aider_model: Optional[str] = None 
     manifest_template_filename: str
-    changelog_template_filename: str
 
     changelog_aider_model: str
     aider_code_model: str

@@ -19,7 +19,6 @@ def validate_inputs_node(state: WorkflowState, config) -> WorkflowState:
     paths_to_check = {
         "Task Description": state.get('task_description_path'),
         "Manifest Template": state.get('manifest_template_path'),
-        "Changelog Template": state.get('changelog_template_path'),
     }
 
     for file_description, file_path_str in paths_to_check.items():

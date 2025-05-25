@@ -40,7 +40,6 @@ def run_changelog_update_test(app_config: AppConfig, changelog_service: Changelo
         "task_description_path": None,
         "task_description_content": None,
         "manifest_template_path": None,
-        "changelog_template_path": None, # No longer used by the service
         "manifest_output_path": "data/output/placeholder_manifest.md",
         "changelog_output_path": changelog_file_path,
         "last_event_summary": "Initial state before any test events.", # Not used by current service version

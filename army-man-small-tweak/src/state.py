@@ -15,7 +15,6 @@ class WorkflowState(TypedDict):
     task_description_content: Optional[str]
 
     manifest_template_path: Optional[str]
-    changelog_template_path: Optional[str]
 
     manifest_output_path: Optional[str]
     changelog_output_path: Optional[str]

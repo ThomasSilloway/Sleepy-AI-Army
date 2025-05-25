@@ -15,8 +15,7 @@ overview_log_filename: "overview.log"
 detailed_log_filename: "detailed.log"
 
 # Template names
-manifest_template_filename: "src\\templates\\goal-manifest.j2" 
-changelog_template_filename: "ai-docs\\format-templates\\format-changelog.md" 
+manifest_template_filename: "src\\templates\\goal-manifest.j2"
 
 changelog_aider_model: "gemini/gemini-2.0-flash-exp"
 
