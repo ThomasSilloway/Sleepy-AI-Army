@@ -1,15 +1,14 @@
-# poc-8-backlog-to-goals/src/services/backlog_processor.py
-import asyncio
 import logging
 import os
 import re
-from typing import Optional, Tuple
+from typing import Optional
+
+from ..config import AppConfig  # AppConfig might be needed by LlmPromptService
+from ..models.goal_models import SanitizedGoalInfo
 
 # Assuming LlmPromptService and SanitizedGoalInfo will be importable
 # Adjust these imports based on the final location if they differ
 from .llm_prompt_service import LlmPromptService
-from ..models.goal_models import SanitizedGoalInfo
-from ..config import AppConfig # AppConfig might be needed by LlmPromptService
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +84,7 @@ class BacklogProcessor:
             return f"task-{sanitized_title_fallback[:50]}" if task_title else "untitled-task"
 
 
-    def parse_task_from_section(self, task_section: str) -> Optional[Tuple[str, str]]:
+    def parse_task_from_section(self, task_section: str) -> Optional[tuple[str, str]]:
         """
         Extracts the title and description from a markdown task section.
         A task section is expected to start with '## ' for the title.
@@ -123,7 +122,7 @@ class BacklogProcessor:
         """
         logger.info(f"Starting processing of backlog file: {backlog_filepath}")
         try:
-            with open(backlog_filepath, 'r', encoding='utf-8') as f:
+            with open(backlog_filepath, encoding='utf-8') as f:
                 content = f.read()
         except FileNotFoundError:
             logger.error(f"Backlog file not found: {backlog_filepath}")
@@ -135,7 +134,7 @@ class BacklogProcessor:
             return
 
         task_sections = re.split(r'(?=^## )', content, flags=re.MULTILINE)
-        
+
         processed_tasks = 0
         for section in task_sections:
             section = section.strip()
@@ -143,13 +142,13 @@ class BacklogProcessor:
                 if section: # Log if it's not empty but doesn't start with ##
                     logger.debug(f"Skipping section not starting with '## ': {section[:50]}...")
                 continue
-                
+
             parsed_info = self.parse_task_from_section(section)
             if not parsed_info:
                 continue
 
             task_title, task_description = parsed_info
-            logger.info(f"Processing task: {task_title}")
+            logger.info(f"\n\nProcessing task: {task_title}\n\n{task_description}\n\n")
 
             folder_name = await self.sanitize_title_with_llm(task_description, task_title)
 
@@ -157,10 +156,10 @@ class BacklogProcessor:
                 logger.warning(f"Folder name is None for task: '{task_title}'. Using emergency fallback.")
                 sanitized_title = re.sub(r'\s+', '-', task_title.lower())
                 sanitized_title = re.sub(r'[^a-z0-9\-]', '', sanitized_title)
-                folder_name = f"emergency-fallback-{sanitized_title[:50]}" if task_title else "emergency-fallback-untitled"
+                folder_name = f"{sanitized_title[:50]}" if task_title else "unknown-title" # TODO: Add a timestamp to the end - format: 2025-02-25_01-53-49-999 - last part is hours, minutes, seconds, milliseconds
 
             task_folder_path = os.path.join(self.output_dir, folder_name)
-            
+
             try:
                 if not os.path.exists(task_folder_path):
                     os.makedirs(task_folder_path)
@@ -176,29 +175,10 @@ class BacklogProcessor:
             except Exception as e:
                 logger.error(f"Error creating folder or file for task '{task_title}': {e}")
                 print(f"Error creating structure for task '{task_title}': {e}")
-        
+
         if processed_tasks > 0:
             logger.info(f"Successfully processed {processed_tasks} tasks.")
             print(f"Successfully processed {processed_tasks} tasks. Output is in '{self.output_dir}'.")
         else:
             logger.info(f"No tasks were processed. Check backlog file format or content: {backlog_filepath}")
             print(f"No tasks found or processed. Please ensure '{backlog_filepath}' contains tasks starting with '## '.")
-
-# Example (commented out)
-# async def main_test():
-#     class MockAppConfig:
-#         def __init__(self):
-#             self.gemini_api_key = os.getenv("GEMINI_API_KEY_TEST")
-#             self.default_llm_model_name = "gemini-1.5-flash-latest" 
-#     class MockLlmPromptService:
-#         async def get_structured_output(self, messages, output_pydantic_model_type, llm_model_name):
-#             title_from_prompt = "mock-llm-generated-title"
-#             return output_pydantic_model_type(folder_name=title_from_prompt)
-#     logging.basicConfig(level=logging.INFO)
-#     dummy_backlog_filepath = "test_backlog.md"
-#     with open(dummy_backlog_filepath, "w") as f: f.write("## Test Task\nDescription of test task.")
-#     mock_config = MockAppConfig()
-#     processor = BacklogProcessor(llm_service=MockLlmPromptService(), output_dir="test_output", app_config=mock_config)
-#     await processor.process_backlog_file(dummy_backlog_filepath)
-# if __name__ == "__main__":
-#     pass # asyncio.run(main_test())

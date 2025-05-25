@@ -3,38 +3,14 @@ name = "poc-8-backlog-to-goals"
 version = "0.1.0"
 description = "Proof of Concept 8: Parse backlog markdown into a structured directory of goal description files, using LLM for title sanitization."
 authors = [
-    {name = "AI Agent", email = "n/a"},
+    {name = "AI Agent / Thomas Silloway"},
 ]
 dependencies = [
     "pydantic>=2.0,<3.0",
     "pydantic-ai>=2.0.0", # Check for the latest appropriate version
     "python-dotenv>=1.0.0",
-    "google-generativeai>=0.3.0", # Often a direct or indirect dependency for pydantic-ai with Gemini
-    # fastapi and uvicorn are often pulled in by pydantic-ai or used in similar contexts.
-    # Adding them explicitly can help 'uv run' if it looks for a web server context,
-    # though our script is currently console-based.
-    # "fastapi>=0.100.0",
-    # "uvicorn[standard]>=0.20.0",
 ]
 requires-python = ">=3.9" # LlmPromptService uses async/await, good to specify modern Python.
-
-[project.scripts]
-# This allows running the script using 'uv run main' or 'uv run poc-8-backlog-to-goals'
-# The actual entry point will be defined in main.py's asyncio.run(run()) or run()
-# For 'uv run script_name', the script_name should correspond to a callable.
-# If main.py has a run() function, we can define it like this:
-# main = "src.main:run" 
-# However, 'uv run' can also directly execute a module if it's runnable,
-# or we can use 'uv run python src/main.py'
-
-[tool.uv]
-# Specifies that 'uv run' should execute the 'main' script defined in [project.scripts]
-# if 'uv run' is called without arguments in this directory.
-# This part is more for convenience if 'uv run' is used without specifying the script.
-# For direct execution like 'uv run python src/main.py', this section isn't strictly necessary.
-# As per plan, we will use `uv run` from the `poc-8-backlog-to-goals` directory.
-# The execution will likely be `uv run python src/main.py` or similar.
-# So, [project.scripts] is good, but tool.uv specific settings might not be needed yet.
 
 [project.optional-dependencies]
 test = [

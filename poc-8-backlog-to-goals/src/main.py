@@ -5,8 +5,8 @@ import os
 
 # Project-specific imports
 from config import AppConfig
-from services.llm_prompt_service import LlmPromptService
 from services.backlog_processor import BacklogProcessor
+from services.llm_prompt_service import LlmPromptService
 
 # Configuration
 # Assumes backlog.md is in the root directory of the entire project,
@@ -66,9 +66,6 @@ async def run():
     logger.info("PoC 8 processing finished.")
 
 if __name__ == "__main__":
-    # Ensure .env is loaded if AppConfig hasn't done it yet or if running directly
-    # from dotenv import load_dotenv
-    # load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env")) # Load from poc-8-backlog-to-goals/.env
-    
+
     # Python 3.7+
     asyncio.run(run())
