@@ -51,6 +51,7 @@ class GitService:
 
     def commit_changes(self, commit_message: str) -> bool:
         try:
+            # TODO: Add a check to see if there's any files to commit. If there's not, then return gracefully while returning True but log a warning
             self._run_git_command(["add", "."])
             self._run_git_command(["commit", "-m", commit_message])
             return True

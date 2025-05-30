@@ -77,8 +77,10 @@ async def run() -> None:
 
             git_service = GitService(repo_path=app_config.project_git_path)
             commit_message = "AI Army Secretary - Added new goals"
-            git_service.commit_changes(commit_message)
-            logger.info(f"Committed changes to git with message: {commit_message}")
+            if git_service.commit_changes(commit_message):
+                logger.info(f"Committed changes to git with message: {commit_message}")
+            else:
+                logger.warning("Failed to commit changes to git.")
 
         logger.info("PoC 8 processing finished successfully.")
     except ValueError as ve: # Catch validation errors from AppConfig specifically
