@@ -16,7 +16,7 @@ from datetime import datetime
 from config import AppConfig
 from services.backlog_processor import BacklogProcessor
 from services.llm_prompt_service import LlmPromptService
-from src.utils.logging_setup import LoggingSetup
+from utils.logging_setup import LoggingSetup
 
 # 1. Initialize AppConfig first
 app_config = AppConfig()

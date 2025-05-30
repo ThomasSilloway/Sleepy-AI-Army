@@ -55,7 +55,7 @@ class LoggingSetup:
         file_handler = logging.FileHandler(self.log_file_path)
         file_handler.setLevel(logging.DEBUG)
         file_formatter = LowercaseLevelnameFormatter(
-            "%(asctime)s - %(levelname)s - [%(module)s:%(lineno)d] - %(message)s",
+            "%(asctime)s - %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         file_handler.setFormatter(file_formatter)
