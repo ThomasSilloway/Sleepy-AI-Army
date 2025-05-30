@@ -10,63 +10,28 @@ to catch and log any unhandled exceptions during execution.
 
 import asyncio
 import logging
-import os
-import sys
 from datetime import datetime
 
 # Project-specific imports
 from config import AppConfig
 from services.backlog_processor import BacklogProcessor
 from services.llm_prompt_service import LlmPromptService
+from src.utils.logging_setup import LoggingSetup
 
-# Define log directory (e.g., poc-8-backlog-to-goals/logs/) and file path
-LOG_DIR_PATH: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
-LOG_FILE_PATH: str = os.path.join(LOG_DIR_PATH, "backlog-to-goals.log")
-os.makedirs(LOG_DIR_PATH, exist_ok=True)
+# 1. Initialize AppConfig first
+app_config = AppConfig()
 
+# 2. Initialize and setup logging using AppConfig
+logging_setup = LoggingSetup(app_config=app_config)
+logging_setup.setup_logging()
 
+# Get the logger instance
+logger = logging.getLogger(__name__)
 
-# Setup basic logging
-# TODO - Move logging setup into its own class under src\utils\logging_setup.py
-class LowercaseLevelnameFormatter(logging.Formatter):
-    def format(self, record):
-        record.levelname = record.levelname.lower()
-        return super().format(record)
-
-# Spec mentioned: fmt="[%(asctime)s.%(msecs)03d] (%(levelname)s) [%(name)s] %(message)s", datefmt="%H:%M:%S"
-# Adding [%(name)s] to file_formatter as per typical detailed logging.
-file_formatter = LowercaseLevelnameFormatter(     
-    fmt="[%(asctime)s.%(msecs)03d]: (%(levelname)s): %(message)s",
-    datefmt="%H:%M:%S"
-)
-
-console_formatter = LowercaseLevelnameFormatter(
-    fmt="%(asctime)s.%(msecs)03d: (%(levelname)s): %(message)s", # Keeping console simpler
-    datefmt="%M:%S" # Console uses MM:SS for brevity as per your current code
-)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-if logger.hasHandlers():
-    logger.handlers.clear()
-    
-# Configure Console Handler
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(console_formatter)
-logger.addHandler(console_handler)
-
-# Configure Overview File Handler
-file_handler = logging.FileHandler(LOG_FILE_PATH, mode='a') # Use 'a' for append
-file_handler.setFormatter(file_formatter)
-file_handler.setLevel(logging.DEBUG)
-logger.addHandler(file_handler)
 
 # Initial log message to confirm setup and show date
-# Changed to use the newly defined logger.overview for this prominent message
-logger.info(f"\n\n======== Logging initialized. Date: {datetime.now().strftime('%Y-%m-%d')} =========\n\n")
-logger.info("Detailed logging started (includes INFO, DEBUG, OVERVIEW, etc.).")
-logger.debug("Debug level test message for detailed log.")
+logger.info(f"\n\n======== Logging initialized via LoggingSetup & AppConfig. Date: {datetime.now().strftime('%Y-%m-%d')} =========\n\n")
+logger.debug("Debug level test message for detailed log from main.py.")
 
 async def run() -> None:
     """
@@ -75,9 +40,7 @@ async def run() -> None:
     """
     logger.info("Starting PoC 8: Backlog to Goals Processor.")
     try:
-        # 1. Initialize AppConfig (loads .env, including GEMINI_API_KEY and paths from config.yaml)
-        app_config = AppConfig()
-    
+
         # Get paths from AppConfig
         backlog_file_path: str = app_config.backlog_file_path
         goals_output_directory: str = app_config.goals_output_directory

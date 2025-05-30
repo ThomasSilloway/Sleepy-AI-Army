@@ -2,3 +2,10 @@ project_git_path: "C:\\GithubRepos\\Project-Elder\\projects\\isometric_2d_protot
 backlog_file_name: "BACKLOG.md"
 ai_goals_directory_name: "ai-goals"
 default_llm_model_name: "gemini-2.0-flash-exp"
+
+# Task description file name (used by BacklogProcessor)
+task_description_filename: "task-description.md"
+
+# Default logging configuration (used by LoggingSetup via AppConfig)
+default_log_directory: "logs"
+default_log_filename: "backlog-to-goals.log"

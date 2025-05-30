@@ -31,6 +31,9 @@ class AppConfig:
     ai_goals_directory_name: Optional[str]
     default_llm_model_name: str
     gemini_api_key: Optional[str]
+    task_description_filename: str # Standardized name
+    default_log_directory: str # New attribute for logging
+    default_log_filename: str # New attribute for logging
 
     def __init__(self) -> None:
         """
@@ -58,6 +61,9 @@ class AppConfig:
         self.backlog_file_name = yaml_config.get("backlog_file_name")
         self.ai_goals_directory_name = yaml_config.get("ai_goals_directory_name")
         self.default_llm_model_name = yaml_config.get("default_llm_model_name", "gemini-1.5-flash-latest")
+        self.task_description_filename = yaml_config.get("task_description_filename", "task-description.md") # Standardized name and YAML key
+        self.default_log_directory = yaml_config.get("default_log_directory", "logs") # Initialize new logging attribute
+        self.default_log_filename = yaml_config.get("default_log_filename", "backlog-to-goals.log") # Initialize new logging attribute
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -103,7 +109,13 @@ class AppConfig:
             raise ValueError("ai_goals_directory_name is not set in config.yaml.")
         if not self.default_llm_model_name or not isinstance(self.default_llm_model_name, str):
             raise ValueError("default_llm_model_name must be a non-empty string in config.yaml or defaults will apply.")
-        
+        if not self.task_description_filename or not isinstance(self.task_description_filename, str): # Validate standardized name
+            raise ValueError("task_description_filename must be a non-empty string in config.yaml or use the default value.")
+        if not self.default_log_directory or not isinstance(self.default_log_directory, str): # Validate new logging attribute
+            raise ValueError("default_log_directory must be a non-empty string in config.yaml or use the default value 'logs'.")
+        if not self.default_log_filename or not isinstance(self.default_log_filename, str): # Validate new logging attribute
+            raise ValueError("default_log_filename must be a non-empty string in config.yaml or use the default value 'backlog-to-goals.log'.")
+
         # Validate constructed paths
         if not self.backlog_file_path:
             # This case should ideally be caught by individual component checks,
