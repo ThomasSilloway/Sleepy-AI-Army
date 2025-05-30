@@ -1,4 +1,5 @@
 # Application configuration for PoC7 Orchestrator
+# TODO: Remove workspace root path - should bea ble to derive this from python file paths like we do in the Secretary code
 # workspace_root_path: "C:\\GithubRepos\\Sleepy-AI-Army\\army-man-small-tweak" 
 workspace_root_path: "C:\\GithubRepos\\Sleepy-Dev-Team\\army-man-small-tweak" 
 goal_root_path: "C:\\GithubRepos\\Project-Elder\\projects\\isometric_2d_prototype\\ai-goals\\SmallTweak_001_Document_Function_01"

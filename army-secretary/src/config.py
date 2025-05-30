@@ -8,23 +8,17 @@ variables (.env file). It also validates the loaded configuration to ensure
 all necessary parameters are present and valid.
 """
 
-import os
-import yaml
 import logging
+import os
+from typing import Any, Optional  # Added Any for yaml_config values
 
+import yaml
 from dotenv import load_dotenv
-from typing import Optional, Any # Added Any for yaml_config values
+
 
 class AppConfig:
     """
     Loads, stores, and validates application configuration settings.
-    
-    Attributes:
-        project_git_path (Optional[str]): Absolute path to the target git repository.
-        backlog_file_name (Optional[str]): Name of the backlog markdown file.
-        ai_goals_directory_name (Optional[str]): Name of the directory for AI-generated goals.
-        default_llm_model_name (str): Default LLM model name to be used.
-        gemini_api_key (Optional[str]): API key for Google Gemini services.
     """
     project_git_path: Optional[str]
     backlog_file_name: Optional[str]
@@ -49,7 +43,7 @@ class AppConfig:
             raise FileNotFoundError(f"Configuration file not found: {config_yaml_path}. It should be in the 'poc-8-backlog-to-goals' directory.")
 
         yaml_config: dict[str, Any] = {}
-        with open(config_yaml_path, 'r') as f:
+        with open(config_yaml_path) as f:
             loaded_yaml = yaml.safe_load(f)
             if isinstance(loaded_yaml, dict):
                 yaml_config = loaded_yaml
@@ -91,7 +85,7 @@ class AppConfig:
         if not self.project_git_path or not self.ai_goals_directory_name:
             return ""
         return os.path.join(self.project_git_path, self.ai_goals_directory_name)
-    
+
     @property
     def new_goal_folders_file_path(self) -> str:
         """
@@ -135,7 +129,7 @@ class AppConfig:
             raise ValueError("Could not construct backlog_file_path. Ensure project_git_path and backlog_file_name are valid in config.yaml.")
         if not os.path.isfile(self.backlog_file_path):
             raise ValueError(f"backlog_file_path '{self.backlog_file_path}' (from config.yaml) does not exist or is not a file.")
-        
+
         if not self.goals_output_directory:
             # Similar safeguard for goals_output_directory property
             raise ValueError("Could not construct goals_output_directory. Ensure project_git_path and ai_goals_directory_name are valid in config.yaml.")

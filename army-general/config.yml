@@ -1,0 +1,26 @@
+# Configuration for the Army General
+
+# Path to the root of the git repository the General is intended to operate on.
+root_git_path: "C:\\GithubRepos\\Project-Elder"
+
+# Paths to the Secretary and Army Man scripts/executables
+# These should be relative to the `sleepy_ai_army_root_path`
+secretary_script_path: "army-secretary\\src\\main.py"
+army_man_script_path: "army-man-small-tweak\\src\\main.py"
+
+# File where Secretary writes its output (list of folder names)
+# This path should be relative to the `root_git_path`
+secretary_output_file: "ai-goals\\new-goal-folders.txt"
+
+# Command templates for running Secretary and Army Man
+# The Python code will format these strings.
+secretary_run_command_template: "uv run \"{script}\" --root_git_path \"{target_folder}\""
+army_man_run_command_template: "uv run \"{script}\" --root_git_path \"{target_folder}\" --goal_path \"{goal_path}"
+
+# Logging level for the General application
+# Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level: "INFO"
+
+# Default logging configuration (used by LoggingSetup via AppConfig)
+default_log_directory: "logs"
+default_log_filename: "backlog-to-goals.log"
