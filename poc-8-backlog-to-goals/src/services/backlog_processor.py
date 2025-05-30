@@ -22,8 +22,6 @@ class BacklogProcessor:
     Processes a backlog file, extracts tasks, and creates a structured
     directory of goal description files, using an LLM for folder name generation.
     """
-    # TODO: Move this definition to the AppConfig
-    TASK_DESCRIPTION_FILENAME: str = "task-description.md"
 
     def __init__(self, llm_service: LlmPromptService, output_dir: str, app_config: AppConfig) -> None:
         """
@@ -187,7 +185,7 @@ class BacklogProcessor:
             else:
                 logger.warning(f"Task folder already exists (overwriting): {task_folder_path}")
 
-            description_filepath: str = os.path.join(task_folder_path, self.TASK_DESCRIPTION_FILENAME)
+            description_filepath: str = os.path.join(task_folder_path, self.app_config.task_description_filename)
             with open(description_filepath, 'w', encoding='utf-8') as f:
                 f.write(task_description)
             logger.info(f"Wrote task description to: {description_filepath}")
