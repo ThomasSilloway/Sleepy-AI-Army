@@ -63,6 +63,17 @@ async def run() -> None:
         logger.info(f"Attempting to process backlog file: {backlog_file_path}")
         await backlog_processor.process_backlog_file(backlog_file_path)
 
+        created_folders = backlog_processor.created_folders
+        if created_folders:
+            logger.info(f"Created folders: {created_folders}")
+
+        # Write new folders to a file specified in appconfig in the variable: new_goal_folders_file_path
+        new_goal_folders_file_path: str = app_config.new_goal_folders_file_path
+        if new_goal_folders_file_path:
+            with open(new_goal_folders_file_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(created_folders))
+            logger.info(f"Wrote created folders to file: {new_goal_folders_file_path}")
+
         logger.info("PoC 8 processing finished successfully.")
     except ValueError as ve: # Catch validation errors from AppConfig specifically
         logger.critical(f"Configuration error: {ve}. Please check your .env and config.yaml files. Exiting.", exc_info=False) # No need for full exc_info for expected ValueErrors

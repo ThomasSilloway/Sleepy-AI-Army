@@ -31,9 +31,10 @@ class AppConfig:
     ai_goals_directory_name: Optional[str]
     default_llm_model_name: str
     gemini_api_key: Optional[str]
-    task_description_filename: str # Standardized name
-    default_log_directory: str # New attribute for logging
-    default_log_filename: str # New attribute for logging
+    task_description_filename: str
+    default_log_directory: str
+    default_log_filename: str
+    new_goal_folders_filename: str
 
     def __init__(self) -> None:
         """
@@ -60,10 +61,11 @@ class AppConfig:
         self.project_git_path = yaml_config.get("project_git_path")
         self.backlog_file_name = yaml_config.get("backlog_file_name")
         self.ai_goals_directory_name = yaml_config.get("ai_goals_directory_name")
-        self.default_llm_model_name = yaml_config.get("default_llm_model_name", "gemini-1.5-flash-latest")
-        self.task_description_filename = yaml_config.get("task_description_filename", "task-description.md") # Standardized name and YAML key
-        self.default_log_directory = yaml_config.get("default_log_directory", "logs") # Initialize new logging attribute
-        self.default_log_filename = yaml_config.get("default_log_filename", "backlog-to-goals.log") # Initialize new logging attribute
+        self.default_llm_model_name = yaml_config.get("default_llm_model_name")
+        self.task_description_filename = yaml_config.get("task_description_filename")
+        self.default_log_directory = yaml_config.get("default_log_directory") 
+        self.default_log_filename = yaml_config.get("default_log_filename") 
+        self.new_goal_folders_filename = yaml_config.get("new_goal_folders_filename")
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -89,6 +91,16 @@ class AppConfig:
         if not self.project_git_path or not self.ai_goals_directory_name:
             return ""
         return os.path.join(self.project_git_path, self.ai_goals_directory_name)
+    
+    @property
+    def new_goal_folders_file_path(self) -> str:
+        """
+        Constructs the full path to the file that will contain the list of new goal folders.
+        Returns an empty string if components are missing.
+        """
+        if not self.project_git_path:
+            return ""
+        return os.path.join(self.goals_output_directory, self.new_goal_folders_filename)
 
     def validate(self) -> None:
         """

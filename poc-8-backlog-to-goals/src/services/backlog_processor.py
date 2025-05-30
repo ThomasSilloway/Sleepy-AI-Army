@@ -36,6 +36,8 @@ class BacklogProcessor:
         self.output_dir: str = output_dir
         self.app_config: AppConfig = app_config
 
+        self.created_folders: List[str] = []
+
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
             logger.info(f"Created output directory: {self.output_dir}")
@@ -184,6 +186,8 @@ class BacklogProcessor:
                 logger.info(f"Created task folder: {task_folder_path}")
             else:
                 logger.warning(f"Task folder already exists (overwriting): {task_folder_path}")
+
+            self.created_folders.append(task_folder_path)
 
             description_filepath: str = os.path.join(task_folder_path, self.app_config.task_description_filename)
             with open(description_filepath, 'w', encoding='utf-8') as f:
