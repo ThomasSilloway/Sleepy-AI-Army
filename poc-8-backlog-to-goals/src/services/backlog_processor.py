@@ -205,6 +205,9 @@ class BacklogProcessor:
         content: Optional[str] = self._read_backlog_content(backlog_filepath)
         if content is None:
             return 
+        
+        # define task name placeholder string
+        task_name_placeholder: str = "Insert Task Name Here"
 
         task_sections: List[str] = re.split(r'(?=^## )', content, flags=re.MULTILINE)
         
@@ -223,15 +226,24 @@ class BacklogProcessor:
                     parsing_errors.append(error_detail)
                     logger.warning(f"Skipping section not starting with '## ': {error_detail}")
                 continue
+
+            if task_name_placeholder in section_content:
+                logger.info(f"Skipping section with placeholder task name: {section_content[:100]}...")
+                continue
             
             if await self._process_single_task_section(section_content, i, content):
                 processed_tasks_count += 1
 
         logger.info("\n\n")
 
+        # Clear out BACKLOG.md so its now an empty file
+        clear_backlog = False
+
         # Final logging based on outcome
         if processed_tasks_count > 0:
             logger.info(f"Successfully processed {processed_tasks_count} tasks. Output is in '{self.output_dir}'.")
+
+            clear_backlog = True
         
         if parsing_errors:
             logger.warning(
@@ -242,7 +254,13 @@ class BacklogProcessor:
         if processed_tasks_count == 0 and not parsing_errors:
             if not any(s.strip() for s in task_sections if s.strip()): 
                  logger.info(f"Backlog file '{backlog_filepath}' is empty or contains no processable content.")
+                 clear_backlog = True
             else: 
                  logger.info(f"No valid task sections (starting with '##') found in '{backlog_filepath}'.")
+
+        if clear_backlog:
+            # Clear out BACKLOG.md so its now just the template
+            with open(backlog_filepath, 'w', encoding='utf-8') as f:
+                f.write(f"## {task_name_placeholder}\n\nInsert Task Description Here")
 
         logger.info("\n\n")
