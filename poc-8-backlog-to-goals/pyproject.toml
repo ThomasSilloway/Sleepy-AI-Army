@@ -1,0 +1,53 @@
+[project]
+name = "poc-8-backlog-to-goals"
+version = "0.1.0"
+description = "Proof of Concept 8: Parse backlog markdown into a structured directory of goal description files, using LLM for title sanitization."
+authors = [
+    {name = "AI Agent / Thomas Silloway"},
+]
+dependencies = [
+    "pydantic>=2.0,<3.0",
+    "pydantic-ai>=0.2.8,<0.3.0", # Adjusted version based on availability
+    "python-dotenv>=1.0.0",
+    "PyYAML>=6.0,<7.0", # Added PyYAML
+]
+requires-python = ">=3.9" # LlmPromptService uses async/await, good to specify modern Python.
+
+[tool.hatch.build.targets.wheel]
+# Include all files and directories from 'src' into the root of the wheel.
+# e.g. src/main.py -> main.py, src/models/* -> models/*
+include = ["/src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff] # Global settings can remain, or be moved to specific sections
+line-length = 144 # This is often also respected by the formatter
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+]
+
+# Add or modify the 'ignore' list to include "W291"
+ignore = [
+    "W291", # This will disable the trailing whitespace check
+    # Add any other rules you wish to ignore here, e.g., "N803"
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+# It's also good practice to have an explicit formatter section,
+# even if you're using defaults, to make its presence clear.
+# [tool.ruff.format]
+# # You can specify options like 'quote-style', 'indent-style', etc.
+# # If this section is absent, ruff format uses its defaults.
