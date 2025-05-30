@@ -19,8 +19,6 @@ class AppConfig:
     Loads, stores, and validates application configuration settings.
     """
     root_git_path: str
-    secretary_script_path: str
-    army_man_script_path: str
 
     # Default path for Secretary output if it writes to a file
     secretary_output_file: str
@@ -56,8 +54,6 @@ class AppConfig:
                 logger.warning(f"config.yaml at {config_yaml_path} did not load as a dictionary. Using empty config.")
 
         self.root_git_path = yaml_config.get("root_git_path")
-        self.secretary_script_path = yaml_config.get("secretary_script_path")
-        self.army_man_script_path = yaml_config.get("army_man_script_path")
         self.secretary_output_file = yaml_config.get("secretary_output_file")
         self.secretary_run_command_template = yaml_config.get("secretary_run_command_template")
         self.army_man_run_command_template = yaml_config.get("army_man_run_command_template")
@@ -86,10 +82,6 @@ class AppConfig:
         """
         if not self.root_git_path:
             raise ValueError("root_git_path is not set in config.yaml.")
-        if not self.secretary_script_path:
-            raise ValueError("secretary_script_path is not set in config.yaml.")
-        if not self.army_man_script_path:
-            raise ValueError("army_man_script_path is not set in config.yaml.")
         if not self.secretary_output_file:
             raise ValueError("secretary_output_file is not set in config.yaml.")
         if not self.secretary_run_command_template:

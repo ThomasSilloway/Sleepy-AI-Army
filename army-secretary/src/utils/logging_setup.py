@@ -47,7 +47,7 @@ class LoggingSetup:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_formatter = LowercaseLevelnameFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s", # Simplified format
+            "%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s", # Simplified format
             datefmt="%H:%M:%S", # Shorter time format
         )
         console_handler.setFormatter(console_formatter)
@@ -57,7 +57,7 @@ class LoggingSetup:
         file_handler = logging.FileHandler(self.log_file_path)
         file_handler.setLevel(logging.DEBUG)
         file_formatter = LowercaseLevelnameFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s",
+            "%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         file_handler.setFormatter(file_formatter)
