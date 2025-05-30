@@ -1,8 +1,8 @@
 """Defines the AiderService class."""
+import asyncio
 import logging
 import subprocess
 import threading
-import asyncio
 from typing import Optional  # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
 
 from pydantic import BaseModel
@@ -148,7 +148,7 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
         ]
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")
-            
+
             # Note: Using a placeholder for llm_model_name. This should come from app_config.
             # e.g., app_config.llm_model_for_summaries
             aider_run_summary_obj = asyncio.run(self.llm_prompt_service.get_structured_output(
@@ -156,7 +156,7 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
                 output_pydantic_model_type=AiderRunSummary,
                 llm_model_name=self.app_config.aider_summary_model
             ))
-            
+
             if aider_run_summary_obj:
                 logger.info("Successfully extracted Aider run summary.")
                 logger.debug(f"Aider Run Summary: {aider_run_summary_obj.model_dump_json(indent=2)}")
