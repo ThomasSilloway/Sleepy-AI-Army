@@ -1,4 +1,4 @@
-project_git_path: "C:\\GithubRepos\\Project-Elder\\projects\\isometric_2d_prototype"
+project_git_path: "C:\\GithubRepos\\Project-Elder"
 backlog_file_name: "BACKLOG.md"
 ai_goals_directory_name: "ai-goals"
 default_llm_model_name: "gemini-2.0-flash-exp"

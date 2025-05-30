@@ -191,7 +191,7 @@ class BacklogProcessor:
 
             description_filepath: str = os.path.join(task_folder_path, self.app_config.task_description_filename)
             with open(description_filepath, 'w', encoding='utf-8') as f:
-                f.write(task_description)
+                f.write(task_description + "\n")
             logger.info(f"Wrote task description to: {description_filepath}")
             return True
         except Exception as e:

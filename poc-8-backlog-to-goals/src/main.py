@@ -15,6 +15,7 @@ from datetime import datetime
 # Project-specific imports
 from config import AppConfig
 from services.backlog_processor import BacklogProcessor
+from services.git_service import GitService
 from services.llm_prompt_service import LlmPromptService
 from utils.logging_setup import LoggingSetup
 
@@ -67,12 +68,17 @@ async def run() -> None:
         if created_folders:
             logger.info(f"Created folders: {created_folders}")
 
-        # Write new folders to a file specified in appconfig in the variable: new_goal_folders_file_path
-        new_goal_folders_file_path: str = app_config.new_goal_folders_file_path
-        if new_goal_folders_file_path:
-            with open(new_goal_folders_file_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(created_folders))
-            logger.info(f"Wrote created folders to file: {new_goal_folders_file_path}")
+            # Write new folders to a file specified in appconfig in the variable: new_goal_folders_file_path
+            new_goal_folders_file_path: str = app_config.new_goal_folders_file_path
+            if new_goal_folders_file_path:
+                with open(new_goal_folders_file_path, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(created_folders) + "\n")
+                logger.info(f"Wrote created folders to file: {new_goal_folders_file_path}")
+
+            git_service = GitService(repo_path=app_config.project_git_path)
+            commit_message = "AI Army Secretary - Added new goals"
+            git_service.commit_changes(commit_message)
+            logger.info(f"Committed changes to git with message: {commit_message}")
 
         logger.info("PoC 8 processing finished successfully.")
     except ValueError as ve: # Catch validation errors from AppConfig specifically
