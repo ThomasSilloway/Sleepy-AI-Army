@@ -11,7 +11,6 @@ to catch and log any unhandled exceptions during execution.
 import asyncio
 import logging
 import os
-import sys # For potential sys.exit
 
 # Project-specific imports
 from config import AppConfig
@@ -24,7 +23,6 @@ LOG_FILE_PATH: str = os.path.join(LOG_DIR_PATH, "backlog-to-goals.log")
 os.makedirs(LOG_DIR_PATH, exist_ok=True)
 
 # Setup basic logging
-# More sophisticated logging can be added to a dedicated logging_setup.py if needed
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(name)s - %(module)s - %(funcName)s - %(message)s',
@@ -40,25 +38,16 @@ async def run() -> None:
     Main asynchronous function to run the PoC 8 backlog processing.
     Initializes services and processes the backlog file.
     """
-    logger.info("Starting PoC 8: Backlog to Goals Processor")
+    logger.info(
+        """
+        ==========================================================
+                Starting PoC 8: Backlog to Goals Processor
+        ==========================================================
+        """
+    )
     try:
         # 1. Initialize AppConfig (loads .env, including GEMINI_API_KEY and paths from config.yaml)
         app_config = AppConfig()
-        # Validate essential configurations from AppConfig
-        # These checks are now primarily handled by AppConfig.validate(), 
-        # but keeping them here as an early exit mechanism if AppConfig itself fails to initialize
-        # or if specific critical values are None (though validate() should catch that).
-        if not app_config.gemini_api_key: # AppConfig.validate() already checks this
-            logger.critical("GEMINI_API_KEY is not available after AppConfig initialization. Exiting.")
-            return # Or sys.exit(1)
-        if not app_config.backlog_file_path: # AppConfig.validate() already checks this
-            logger.critical("backlog_file_path is not available after AppConfig initialization. Exiting.")
-            return
-        if not app_config.goals_output_directory: # AppConfig.validate() already checks this
-            logger.critical("goals_output_directory is not available after AppConfig initialization. Exiting.")
-            return
-    
-        logger.info("AppConfig initialized successfully.")
     
         # Get paths from AppConfig
         backlog_file_path: str = app_config.backlog_file_path
@@ -85,10 +74,8 @@ async def run() -> None:
         logger.info("PoC 8 processing finished successfully.")
     except ValueError as ve: # Catch validation errors from AppConfig specifically
         logger.critical(f"Configuration error: {ve}. Please check your .env and config.yaml files. Exiting.", exc_info=False) # No need for full exc_info for expected ValueErrors
-        # sys.exit(1) # Optional: exit with error code
     except Exception as e:
         logger.error("An unhandled error occurred during PoC 8 execution:", exc_info=True)
-        # sys.exit(1) # Optional: exit with error code
 
 if __name__ == "__main__":
     # Python 3.7+

@@ -1,4 +1,4 @@
-goal_git_path: "/path/to/your/git/repo" # Please update this path
+project_git_path: "C:\\GithubRepos\\Project-Elder"
 backlog_file_name: "BACKLOG.md"
-ai_goals_directory_name: "ai_goals"
-default_llm_model_name: "gemini-1.5-pro-latest" # Example model, user can change
+ai_goals_directory_name: "ai-goals"
+default_llm_model_name: "gemini-2.0-flash-exp"

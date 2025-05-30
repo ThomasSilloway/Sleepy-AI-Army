@@ -1,6 +1,5 @@
-# poc-8-backlog-to-goals/src/services/backlog_processor.py
 """
-Provides the BacklogProcessor class, responsible for parsing a backlog
+BacklogProcessor class, responsible for parsing a backlog
 markdown file, interacting with an LLM to sanitize task titles for
 directory names, and creating a structured output of goal description files.
 """
@@ -23,6 +22,7 @@ class BacklogProcessor:
     Processes a backlog file, extracts tasks, and creates a structured
     directory of goal description files, using an LLM for folder name generation.
     """
+    # TODO: Move this definition to the AppConfig
     TASK_DESCRIPTION_FILENAME: str = "task-description.md"
 
     def __init__(self, llm_service: LlmPromptService, output_dir: str, app_config: AppConfig) -> None:
@@ -42,7 +42,7 @@ class BacklogProcessor:
             os.makedirs(self.output_dir)
             logger.info(f"Created output directory: {self.output_dir}")
 
-    async def sanitize_title_with_llm(self, task_description: str, task_title: str = "") -> str:
+    async def _sanitize_title_with_llm(self, task_description: str, task_title: str) -> str:
         """
         Uses the LlmPromptService to generate a sanitized, filesystem-friendly
         folder name based on the task description or title.
@@ -93,8 +93,7 @@ class BacklogProcessor:
         timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3] # Format: YYYY-MM-DD_HH-MM-SS-mmm
         return f"{base_name_sanitized}_{timestamp}"
 
-
-    def parse_task_from_section(self, task_section_content: str) -> Optional[Tuple[str, str]]:
+    def _parse_task_from_section(self, task_section_content: str) -> Optional[Tuple[str, str]]:
         """
         Extracts the title and description from a markdown task section.
         A task section is expected to start with '## ' for the title.
@@ -165,18 +164,17 @@ class BacklogProcessor:
         Returns:
             True if successful, False otherwise.
         """
-        parsed_info: Optional[Tuple[str, str]] = self.parse_task_from_section(task_section_content)
+        parsed_info: Optional[Tuple[str, str]] = self._parse_task_from_section(task_section_content)
         
         if not parsed_info:
-            # parse_task_from_section logs specific parsing issues.
             return False
 
         task_title, task_description = parsed_info
         logger.info(f"Processing task (section {section_index + 1}): '{task_title}' (description length: {len(task_description)} chars)")
 
-        folder_name: str = await self.sanitize_title_with_llm(task_description, task_title)
+        folder_name: str = await self._sanitize_title_with_llm(task_description, task_title)
         
-        if not folder_name: # Should not happen given sanitize_title_with_llm's robust fallback
+        if not folder_name: 
              logger.error(f"sanitize_title_with_llm unexpectedly returned empty for task: '{task_title}'. Skipping file creation for this task.")
              return False
 
@@ -230,14 +228,8 @@ class BacklogProcessor:
             
             if await self._process_single_task_section(section_content, i, content):
                 processed_tasks_count += 1
-            else:
-                # If _process_single_task_section failed, it might be due to parsing or file ops.
-                # We re-parse here to specifically add parsing failures to the summary.
-                # File op errors are logged within _process_single_task_section.
-                if not self.parse_task_from_section(section_content): 
-                    approx_line_start = content.count('\n', 0, content.find(section_content)) + 1 if content.find(section_content) != -1 else -1
-                    parsing_errors.append(f"Malformed task section {i+1} (near line {approx_line_start}, content: '{section_content[:100]}...')")
 
+        logger.info("==========================================================================================================\n\n")
 
         # Final logging based on outcome
         if processed_tasks_count > 0:
@@ -245,7 +237,7 @@ class BacklogProcessor:
         
         if parsing_errors:
             logger.warning(
-                f"{len(parsing_errors)} task section(s) could not be properly parsed or had issues. "
+                f"{len(parsing_errors)} task section(s) could not be properly parsed or had issues. \n\n"
                 f"Review backlog file for formatting. First few problematic sections (or contexts): {parsing_errors[:3]}"
             )
         
@@ -254,3 +246,5 @@ class BacklogProcessor:
                  logger.info(f"Backlog file '{backlog_filepath}' is empty or contains no processable content.")
             else: 
                  logger.info(f"No valid task sections (starting with '##') found in '{backlog_filepath}'.")
+
+        logger.info("\n\n==========================================================================================================\n")

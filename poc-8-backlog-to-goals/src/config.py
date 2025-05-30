@@ -10,6 +10,8 @@ all necessary parameters are present and valid.
 
 import os
 import yaml
+import logging
+
 from dotenv import load_dotenv
 from typing import Optional, Any # Added Any for yaml_config values
 
@@ -18,13 +20,13 @@ class AppConfig:
     Loads, stores, and validates application configuration settings.
     
     Attributes:
-        goal_git_path (Optional[str]): Absolute path to the target git repository.
+        project_git_path (Optional[str]): Absolute path to the target git repository.
         backlog_file_name (Optional[str]): Name of the backlog markdown file.
         ai_goals_directory_name (Optional[str]): Name of the directory for AI-generated goals.
         default_llm_model_name (str): Default LLM model name to be used.
         gemini_api_key (Optional[str]): API key for Google Gemini services.
     """
-    goal_git_path: Optional[str]
+    project_git_path: Optional[str]
     backlog_file_name: Optional[str]
     ai_goals_directory_name: Optional[str]
     default_llm_model_name: str
@@ -52,7 +54,7 @@ class AppConfig:
                 logger.warning(f"config.yaml at {config_yaml_path} did not load as a dictionary. Using empty config.")
 
 
-        self.goal_git_path = yaml_config.get("goal_git_path")
+        self.project_git_path = yaml_config.get("project_git_path")
         self.backlog_file_name = yaml_config.get("backlog_file_name")
         self.ai_goals_directory_name = yaml_config.get("ai_goals_directory_name")
         self.default_llm_model_name = yaml_config.get("default_llm_model_name", "gemini-1.5-flash-latest")
@@ -68,9 +70,9 @@ class AppConfig:
         Constructs the full path to the backlog file.
         Returns an empty string if components are missing.
         """
-        if not self.goal_git_path or not self.backlog_file_name:
+        if not self.project_git_path or not self.backlog_file_name:
             return "" 
-        return os.path.join(self.goal_git_path, self.backlog_file_name)
+        return os.path.join(self.project_git_path, self.backlog_file_name)
 
     @property
     def goals_output_directory(self) -> str:
@@ -78,9 +80,9 @@ class AppConfig:
         Constructs the full path to the AI goals output directory.
         Returns an empty string if components are missing.
         """
-        if not self.goal_git_path or not self.ai_goals_directory_name:
+        if not self.project_git_path or not self.ai_goals_directory_name:
             return ""
-        return os.path.join(self.goal_git_path, self.ai_goals_directory_name)
+        return os.path.join(self.project_git_path, self.ai_goals_directory_name)
 
     def validate(self) -> None:
         """
@@ -91,10 +93,10 @@ class AppConfig:
         """
         if not self.gemini_api_key:
             raise ValueError("GEMINI_API_KEY is not set. Please set it in the .env file.")
-        if not self.goal_git_path:
-            raise ValueError("goal_git_path is not set in config.yaml.")
-        if not os.path.isdir(self.goal_git_path):
-            raise ValueError(f"goal_git_path '{self.goal_git_path}' set in config.yaml is not a valid directory.")
+        if not self.project_git_path:
+            raise ValueError("project_git_path is not set in config.yaml.")
+        if not os.path.isdir(self.project_git_path):
+            raise ValueError(f"project_git_path '{self.project_git_path}' set in config.yaml is not a valid directory.")
         if not self.backlog_file_name:
             raise ValueError("backlog_file_name is not set in config.yaml.")
         if not self.ai_goals_directory_name:
@@ -106,16 +108,14 @@ class AppConfig:
         if not self.backlog_file_path:
             # This case should ideally be caught by individual component checks,
             # but as a safeguard for the property itself:
-            raise ValueError("Could not construct backlog_file_path. Ensure goal_git_path and backlog_file_name are valid in config.yaml.")
+            raise ValueError("Could not construct backlog_file_path. Ensure project_git_path and backlog_file_name are valid in config.yaml.")
         if not os.path.isfile(self.backlog_file_path):
             raise ValueError(f"backlog_file_path '{self.backlog_file_path}' (from config.yaml) does not exist or is not a file.")
         
         if not self.goals_output_directory:
             # Similar safeguard for goals_output_directory property
-            raise ValueError("Could not construct goals_output_directory. Ensure goal_git_path and ai_goals_directory_name are valid in config.yaml.")
+            raise ValueError("Could not construct goals_output_directory. Ensure project_git_path and ai_goals_directory_name are valid in config.yaml.")
         # We don't validate if goals_output_directory exists, as it might be created by the application.
-        # However, its parent (goal_git_path) is validated to be a directory.
+        # However, its parent (project_git_path) is validated to be a directory.
 
-# Added a logger for the warning in __init__
-import logging
 logger = logging.getLogger(__name__)
