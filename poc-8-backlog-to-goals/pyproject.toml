@@ -7,8 +7,9 @@ authors = [
 ]
 dependencies = [
     "pydantic>=2.0,<3.0",
-    "pydantic-ai>=2.0.0", # Check for the latest appropriate version
+    "pydantic-ai>=0.2.8,<0.3.0", # Adjusted version based on availability
     "python-dotenv>=1.0.0",
+    "PyYAML>=6.0,<7.0", # Added PyYAML
 ]
 requires-python = ">=3.9" # LlmPromptService uses async/await, good to specify modern Python.
 
@@ -16,6 +17,7 @@ requires-python = ">=3.9" # LlmPromptService uses async/await, good to specify m
 test = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.20.0",
+    "pyfakefs>=5.0.0",
 ]
 
 [tool.pytest.ini_options]
@@ -27,6 +29,11 @@ testpaths = [
 # Add other pytest configurations if needed, like markers, etc.
 # log_cli = true # Example: to show print statements and logs during tests
 # log_cli_level = "INFO"
+
+[tool.hatch.build.targets.wheel]
+# Include all files and directories from 'src' into the root of the wheel.
+# e.g. src/main.py -> main.py, src/models/* -> models/*
+include = ["/src"]
 
 [build-system]
 requires = ["hatchling"]
