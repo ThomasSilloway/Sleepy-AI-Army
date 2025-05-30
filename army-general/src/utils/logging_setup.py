@@ -16,11 +16,6 @@ class LoggingSetup:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
 
-        # Determine project root directory based on this file's location
-        # logging_setup.py is at .../poc-8-backlog-to-goals/src/utils/logging_setup.py
-        # .parent -> utils
-        # .parent.parent -> src
-        # .parent.parent.parent -> poc-8-backlog-to-goals (project root)
         PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
         log_dir_name_str = self.app_config.default_log_directory
