@@ -46,7 +46,7 @@ console_formatter = LowercaseLevelnameFormatter(
 )
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG) # Set root to lowest level to allow handlers to filter
+logger.setLevel(logging.INFO)
 
 if logger.hasHandlers():
     logger.handlers.clear()
@@ -54,13 +54,12 @@ if logger.hasHandlers():
 # Configure Console Handler
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(console_formatter)
-console_handler.setLevel("INFO")
 logger.addHandler(console_handler)
 
 # Configure Overview File Handler
 file_handler = logging.FileHandler(LOG_FILE_PATH, mode='a') # Use 'a' for append
 file_handler.setFormatter(file_formatter)
-file_handler.setLevel("INFO") 
+file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 
 # Initial log message to confirm setup and show date

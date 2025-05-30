@@ -185,7 +185,7 @@ class BacklogProcessor:
                 os.makedirs(task_folder_path)
                 logger.info(f"Created task folder: {task_folder_path}")
             else:
-                logger.info(f"Task folder already exists: {task_folder_path}")
+                logger.warning(f"Task folder already exists (overwriting): {task_folder_path}")
 
             description_filepath: str = os.path.join(task_folder_path, self.TASK_DESCRIPTION_FILENAME)
             with open(description_filepath, 'w', encoding='utf-8') as f:
@@ -229,7 +229,7 @@ class BacklogProcessor:
             if await self._process_single_task_section(section_content, i, content):
                 processed_tasks_count += 1
 
-        logger.info("\n\n==========================================================================================================\n\n")
+        logger.info("\n\n")
 
         # Final logging based on outcome
         if processed_tasks_count > 0:
@@ -247,4 +247,4 @@ class BacklogProcessor:
             else: 
                  logger.info(f"No valid task sections (starting with '##') found in '{backlog_filepath}'.")
 
-        logger.info("\n\n==========================================================================================================\n")
+        logger.info("\n\n")

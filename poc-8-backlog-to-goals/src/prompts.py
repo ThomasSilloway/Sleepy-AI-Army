@@ -5,10 +5,17 @@ This module centralizes the definition of system and user prompts used in
 various parts of the application, particularly for generating sanitized
 folder names from task descriptions.
 """
+from models.goal_models import SanitizedGoalInfo
 
-SANITIZE_FOLDER_NAME_SYSTEM_PROMPT: str = """
+SANITIZE_FOLDER_NAME_SYSTEM_PROMPT: str = f"""
     You are an expert assistant that generates filesystem-friendly folder names from task descriptions.
-    You only return the folder name and nothing else. You do not include any extra commentary.
+
+    Your goal is to extract specific pieces of information and structure them according to the provided JSON schema.
+    The JSON schema to use for your response is:
+    {SanitizedGoalInfo.model_json_schema()}
+    Ensure your output is a valid JSON object that conforms to this schema.
+    From the user's task title and description, extract:
+    1.  `folder_name`: A filesystem-friendly folder name derived from the task title or description.
 """
 
 def get_sanitize_folder_name_user_prompt(task_description: str, task_title: str) -> str:
@@ -23,18 +30,8 @@ def get_sanitize_folder_name_user_prompt(task_description: str, task_title: str)
         A string formatted as the user prompt to be sent to the LLM.
     """
     return f"""
-        Given the following task details, please generate a concise, filesystem-friendly folder name. 
-         IMPORTANT: 
-          - The folder name should be suitable for use in a URL or directory path. 
-          - It should be in lowercase, with spaces replaced by hyphens (-), and any special characters (like apostrophes, colons, etc.) removed or appropriately replaced. 
-          - Avoid using characters that are problematic for file systems of major operating systems (Windows, macOS, Linux).
-          - The folder name should be short, ideally less than 50 characters.
-          - Focus on the core subject of the task for the folder name.
-
         Task Title: '{task_title}'
 
         Task Description:
         {task_description}
-
-        Generate only the folder name based on these instructions. Do not include any extra commentary.
     """
