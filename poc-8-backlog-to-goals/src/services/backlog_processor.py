@@ -13,7 +13,7 @@ from datetime import datetime
 from config import AppConfig
 from models.goal_models import SanitizedGoalInfo
 from .llm_prompt_service import LlmPromptService
-from .. import prompts
+import prompts
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -229,7 +229,7 @@ class BacklogProcessor:
             if await self._process_single_task_section(section_content, i, content):
                 processed_tasks_count += 1
 
-        logger.info("==========================================================================================================\n\n")
+        logger.info("\n\n==========================================================================================================\n\n")
 
         # Final logging based on outcome
         if processed_tasks_count > 0:
