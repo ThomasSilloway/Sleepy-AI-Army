@@ -57,6 +57,8 @@ class AiderService:
 
         full_command = ["aider"] + files_to_add + command_args + [
             "--yes-always",
+            "--no-fancy-input",
+            "--no-pretty",
         ]
 
         logger.info(f"Executing aider command: {' '.join(full_command)}")
