@@ -76,7 +76,6 @@ def _run_secretary() -> bool:
         target_folder=app_config.root_git_path
     )
     logger.info(f"Constructed Secretary run command: {command_to_run}")
-    logger.info("Executing Secretary...")
 
     # Current project root directory
     current_root_directory = Path(__file__).resolve().parent.parent.parent
@@ -85,7 +84,6 @@ def _run_secretary() -> bool:
 
     # Run Secretary
     try:
-        logger.info("Running Secretary...")
         process = subprocess.run(
             command_to_run,
             cwd=secretary_directory,
@@ -171,41 +169,70 @@ def _run_army_man(folder: str) -> bool:
         return False
 
 async def run() -> None:
-    """
-    Main function for the Army General orchestrator.
-    """
-    logger.info("Orchestration logic will go here.")
+    logger.info("Army General orchestration started.")
 
-    if not _run_secretary():
-        logger.error("Secretary execution failed. Exiting Army General.")
-        return
-
-    # Get the secretary output file that contains the folders to operate on
     secretary_output_file = app_config.secretary_output_file_path
-    logger.info(f"Secretary output file: {secretary_output_file}")
-    if not os.path.exists(secretary_output_file):
-        logger.error(f"Secretary output file does not exist: {secretary_output_file}")
-        return
+    secretary_executed_successfully = False 
 
-    # Parse the folders from the file, each folder path is a single line in the file
-    with open(secretary_output_file) as file:
-        folders = [line.strip() for line in file if line.strip()]
+    try:
+        logger.info("Attempting to run Secretary...")
+        if not _run_secretary():
+            logger.error("Secretary execution failed. Further processing of its output will be skipped.")
+        else:
+            secretary_executed_successfully = True
 
-    logger.info(f"Found {len(folders)} folders to process from Secretary output.")
-    if not folders:
-        logger.warning("No folders found in Secretary output. Exiting Army General.")
-        return
+        # Proceed only if Secretary was successful
+        if not secretary_executed_successfully:
+            logger.warning("Skipping processing of Secretary's output file due to earlier errors.")
+            return # Exits run(), 'finally' block will execute.
 
-    num_goals_worked_on = 0
+        logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
+        if not os.path.exists(secretary_output_file):
+            logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
+            logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
+            return # Exits run(), 'finally' block will execute.
 
-    # For each folder, run the Army Man
-    for folder in folders:
-        logger.info(f"Processing folder: {folder}")
-        if _run_army_man(folder):
-            num_goals_worked_on += 1
-            logger.info(f"Successfully worked on goal in folder: {folder}")
+        # Parse the folders from the file
+        folders = []
+        try: # Nested try for file reading
+            with open(secretary_output_file, 'r') as file:
+                folders = [line.strip() for line in file if line.strip()]
+            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} folders.")
+        except Exception as e: # Catch any exception during file open/read
+            logger.error(f"Failed to read or parse secretary output file {secretary_output_file}: {e}")
+            return # Exits run(), 'finally' block will execute.
 
-    logger.info("Army General finished.")
+        if not folders:
+            logger.warning("No folders found in Secretary output. No Army Man tasks to perform.")
+            return # Exits run(), 'finally' block will execute.
+
+        num_goals_worked_on = 0
+        for folder_index, folder in enumerate(folders):
+            logger.info(f"Processing folder {folder_index + 1}/{len(folders)}: {folder}")
+            if _run_army_man(folder): # Assumes _run_army_man() returns bool
+                num_goals_worked_on += 1
+                logger.info(f"Successfully completed Army Man task for folder: {folder}")
+            else:
+                logger.warning(f"Army Man task failed for folder: {folder}. Continuing with next folder if any.")
+
+        logger.info(f"Completed processing all folders. Total goals worked on: {num_goals_worked_on}/{len(folders)}.")
+
+    finally:
+        # Cleanup: Attempt to delete the secretary_output_file.
+        # This block executes regardless of exceptions or return statements in the try block.
+        logger.info(f"Initiating cleanup of Secretary output file: {secretary_output_file}")
+        if os.path.exists(secretary_output_file):
+            try:
+                os.remove(secretary_output_file)
+                logger.info(f"Successfully cleaned up Secretary output file: {secretary_output_file}")
+            except OSError as e:
+                logger.error(f"Error deleting Secretary output file {secretary_output_file}: {e}. Manual cleanup might be required.")
+        else:
+            # This is not necessarily an error condition.
+            # It could mean Secretary failed before creating it, or it was (unexpectedly) already cleaned.
+            logger.info(f"Secretary output file {secretary_output_file} was not found during cleanup. This may be normal if Secretary did not produce it or if it was already handled.")
+
+    logger.info("Army General finished all operations.") # This is after the try-finally structure.
 
 if __name__ == "__main__":
     # Python 3.7+

@@ -1,6 +1,7 @@
 """Pydantic model for application configuration."""
 import logging
 import os
+from typing import Optional
 
 from omegaconf import MissingMandatoryValue, OmegaConf
 from pydantic import BaseModel, ValidationError
