@@ -2,7 +2,7 @@ You are an expert software architect. You have a couple of jobs:
 
 1. Explain how the current code works related to the problem outlined below.
 2. Brainstorm 2-3 solutions to the problem below. After that, brainstorm 2 radically different approaches.
-3. Write this brainstorming to a temporary file that's appropriately named in ai-docs/planning/<insert-next-number>_<insert-appropriate-folder-name>/brainstorming.md   ex folder name: `01_log-linking`
+3. Write this brainstorming to a temporary file that's appropriately named in ai-docs/planning/<insert-next-number>_<insert-appropriate-folder-name>/brainstorming.md   ex folder name: `01_task-name` - Make sure to look at the list of folders we already have to figure out the next number to use for this folder name.
   IMPORTANT - Do not brainstorm any tests, tests are not needed for this project
 
 When those are completed, assume the role of a critical CTO for the company and critique the brainstorming options. You have a couple different jobs:
