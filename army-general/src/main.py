@@ -55,15 +55,48 @@ def _run_secretary() -> bool:
             check=True, # Will raise CalledProcessError for non-zero exit codes
             encoding='utf-8' # Explicitly set encoding
         )
+        # Output logging logic starts here, before checking returncode
+        if app_config.log_secretary_output:
+            logger.info("--- Start of output from Secretary ---")
+            if process.stdout:
+                for line in process.stdout.splitlines():
+                    logger.info(f"[SECRETARY STDOUT]: {line}")
+            else:
+                logger.info("[SECRETARY STDOUT]: (empty)")
+
+            if process.stderr:
+                log_level = logging.ERROR if process.returncode != 0 else logging.WARNING
+                for line in process.stderr.splitlines():
+                    logger.log(log_level, f"[SECRETARY STDERR]: {line}")
+            else:
+                # Use info level for empty stderr to avoid confusion with actual warnings
+                logger.info("[SECRETARY STDERR]: (empty)")
+            logger.info("--- End of output from Secretary ---")
+
         if process.returncode != 0:
-            logger.error("Secretary returned non-zero exit code. Exiting.")
+            # Error already logged with stderr content if log_secretary_output is true
+            if not app_config.log_secretary_output: # Log a generic error if output wasn't logged
+                logger.error(f"Secretary returned non-zero exit code: {process.returncode}. STDOUT: {process.stdout[:200]}, STDERR: {process.stderr[:200]}")
             return False
         logger.info("Secretary completed successfully.")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Run Secretary failed: {e}")
+        logger.error(f"Run Secretary failed with CalledProcessError: {e}")
+        if app_config.log_secretary_output:
+            logger.info("--- Start of output from failed Secretary process (CalledProcessError) ---")
+            if e.stdout: # stdout/stderr are bytes here
+                for line in e.stdout.decode('utf-8', errors='replace').splitlines():
+                    logger.info(f"[SECRETARY STDOUT ON ERROR]: {line}")
+            else:
+                logger.info("[SECRETARY STDOUT ON ERROR]: (empty)")
+            if e.stderr:
+                for line in e.stderr.decode('utf-8', errors='replace').splitlines():
+                    logger.error(f"[SECRETARY STDERR ON ERROR]: {line}")
+            else:
+                logger.info("[SECRETARY STDERR ON ERROR]: (empty)")
+            logger.info("--- End of output from failed Secretary process (CalledProcessError) ---")
         return False
     except FileNotFoundError:
-        logger.error("Run Secretary failed")
+        logger.error("Run Secretary command not found.")
         return False
 
     return True
@@ -95,15 +128,46 @@ def _run_army_man(folder: str) -> bool:
             check=True, # Will raise CalledProcessError for non-zero exit codes
             encoding='utf-8' # Explicitly set encoding
         )
+        # Output logging logic starts here
+        if app_config.log_army_man_output:
+            logger.info("--- Start of output from Army Man ---")
+            if process.stdout:
+                for line in process.stdout.splitlines():
+                    logger.info(f"[ARMY-MAN STDOUT]: {line}")
+            else:
+                logger.info("[ARMY-MAN STDOUT]: (empty)")
+
+            if process.stderr:
+                log_level = logging.ERROR if process.returncode != 0 else logging.WARNING
+                for line in process.stderr.splitlines():
+                    logger.log(log_level, f"[ARMY-MAN STDERR]: {line}")
+            else:
+                logger.info("[ARMY-MAN STDERR]: (empty)")
+            logger.info("--- End of output from Army Man ---")
+
         if process.returncode != 0:
-            logger.error("Army Man returned non-zero exit code. Exiting.")
+            if not app_config.log_army_man_output: # Log a generic error if output wasn't logged
+                 logger.error(f"Army Man returned non-zero exit code: {process.returncode}. STDOUT: {process.stdout[:200]}, STDERR: {process.stderr[:200]}")
             return False
         logger.info("Army Man completed successfully.")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Run Army Man failed: {e}")
+        logger.error(f"Run Army Man failed with CalledProcessError: {e}")
+        if app_config.log_army_man_output:
+            logger.info("--- Start of output from failed Army Man process (CalledProcessError) ---")
+            if e.stdout: # stdout/stderr are bytes here
+                for line in e.stdout.decode('utf-8', errors='replace').splitlines():
+                    logger.info(f"[ARMY-MAN STDOUT ON ERROR]: {line}")
+            else:
+                logger.info("[ARMY-MAN STDOUT ON ERROR]: (empty)")
+            if e.stderr:
+                for line in e.stderr.decode('utf-8', errors='replace').splitlines():
+                    logger.error(f"[ARMY-MAN STDERR ON ERROR]: {line}")
+            else:
+                logger.info("[ARMY-MAN STDERR ON ERROR]: (empty)")
+            logger.info("--- End of output from failed Army Man process (CalledProcessError) ---")
         return False
     except FileNotFoundError:
-        logger.error("Run Army Man failed")
+        logger.error("Run Army Man command not found.")
         return False
 
     return True

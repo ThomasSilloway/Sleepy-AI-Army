@@ -19,3 +19,9 @@ log_level: "INFO"
 # Default logging configuration (used by LoggingSetup via AppConfig)
 default_log_directory: "logs"
 default_log_filename: "backlog-to-goals.log"
+
+# Optional logging of subprocess output to army-general's logs
+# Set to true to capture and log stdout/stderr from secretary
+log_secretary_output: false
+# Set to true to capture and log stdout/stderr from army-man
+log_army_man_output: false

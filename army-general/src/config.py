@@ -33,6 +33,10 @@ class AppConfig:
 
     log_level: str
 
+    # Subprocess output logging flags
+    log_secretary_output: bool
+    log_army_man_output: bool
+
     def __init__(self) -> None:
         """
         Initializes AppConfig by loading settings from config.yaml and .env file.
@@ -57,9 +61,13 @@ class AppConfig:
         self.secretary_output_file = yaml_config.get("secretary_output_file")
         self.secretary_run_command_template = yaml_config.get("secretary_run_command_template")
         self.army_man_run_command_template = yaml_config.get("army_man_run_command_template")
-        self.default_log_directory = yaml_config.get("default_log_directory") 
-        self.default_log_filename = yaml_config.get("default_log_filename") 
+        self.default_log_directory = yaml_config.get("default_log_directory")
+        self.default_log_filename = yaml_config.get("default_log_filename")
         self.log_level = yaml_config.get("log_level")
+
+        # Load new flags, defaulting to False if not present
+        self.log_secretary_output = bool(yaml_config.get("log_secretary_output", False))
+        self.log_army_man_output = bool(yaml_config.get("log_army_man_output", False))
 
         self.validate()
 
@@ -94,6 +102,9 @@ class AppConfig:
             raise ValueError("default_log_filename is not set in config.yaml.")
         if not self.log_level:
             raise ValueError("log_level is not set in config.yaml.")
+
+        # No validation needed for log_secretary_output and log_army_man_output
+        # as they default to False and are boolean.
 
         # Validate all paths
         if not os.path.isdir(self.root_git_path):
