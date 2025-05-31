@@ -33,7 +33,6 @@ logger.debug("Debug level test message for detailed log from main.py.")
 
 def _log_subprocess_details(
     process_name: str,
-    log_flag: bool,
     stdout_content: str | bytes,
     stderr_content: str | bytes,
     return_code: int
@@ -42,15 +41,11 @@ def _log_subprocess_details(
 
     Args:
         process_name: Name of the subprocess (e.g., "Secretary") for log prefixes.
-        log_flag: Boolean flag; if False, the function returns immediately.
         stdout_content: The stdout content (str or bytes) from the subprocess.
         stderr_content: The stderr content (str or bytes) from the subprocess.
         return_code: The return code of the subprocess, used to determine
                      log level for stderr (ERROR if non-zero, WARNING if zero).
     """
-    if not log_flag:
-        return
-
     logger.info(f"--- Start of output from {process_name} ---")
 
     # Process stdout
@@ -99,33 +94,31 @@ def _run_secretary() -> bool:
             check=True,       # Ensure check=True to raise CalledProcessError on non-zero
             encoding='utf-8'
         )
-        # If check=True, we only reach here if returncode is 0
-        _log_subprocess_details(
-            process_name="Secretary",
-            log_flag=app_config.log_secretary_output,
-            stdout_content=process.stdout, # Will be str
-            stderr_content=process.stderr, # Will be str
-            return_code=process.returncode # Will be 0 here
-        )
+        if app_config.log_secretary_output:
+            # If check=True, we only reach here if returncode is 0
+            _log_subprocess_details(
+                process_name="Secretary",
+                stdout_content=process.stdout, # Will be str
+                stderr_content=process.stderr, # Will be str
+                return_code=process.returncode # Will be 0 here
+            )
         logger.info("Secretary completed successfully.")
         return True
     except subprocess.CalledProcessError as e:
         # Log the primary error message first
         logger.error(f"Run Secretary failed with CalledProcessError: {e.returncode} - {e}")
         # Then log the detailed output if flag is set
-        _log_subprocess_details(
-            process_name="Secretary",
-            log_flag=app_config.log_secretary_output,
-            stdout_content=e.stdout, # Will be bytes
-            stderr_content=e.stderr, # Will be bytes
-            return_code=e.returncode
-        )
+        if app_config.log_secretary_output:
+            _log_subprocess_details(
+                process_name="Secretary",
+                stdout_content=e.stdout, # Will be bytes
+                stderr_content=e.stderr, # Will be bytes
+                return_code=e.returncode
+            )
         return False
     except FileNotFoundError:
         logger.error(f"Run Secretary command not found: {command_to_run}")
         return False
-
-    return True
 
 def _run_army_man(folder: str) -> bool:
     """
@@ -154,31 +147,28 @@ def _run_army_man(folder: str) -> bool:
             check=True,       # Ensure check=True
             encoding='utf-8'
         )
-        # If check=True, we only reach here if returncode is 0
-        _log_subprocess_details(
-            process_name="Army Man",
-            log_flag=app_config.log_army_man_output,
-            stdout_content=process.stdout,
-            stderr_content=process.stderr,
-            return_code=process.returncode
-        )
+        if app_config.log_army_man_output:
+            _log_subprocess_details(
+                process_name="Army Man",
+                stdout_content=process.stdout,
+                stderr_content=process.stderr,
+                return_code=process.returncode
+            )
         logger.info("Army Man completed successfully.")
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Run Army Man failed with CalledProcessError: {e.returncode} - {e}")
-        _log_subprocess_details(
-            process_name="Army Man",
-            log_flag=app_config.log_army_man_output,
-            stdout_content=e.stdout,
-            stderr_content=e.stderr,
-            return_code=e.returncode
-        )
+        if app_config.log_army_man_output:
+            _log_subprocess_details(
+                process_name="Army Man",
+                stdout_content=e.stdout,
+                stderr_content=e.stderr,
+                return_code=e.returncode
+            )
         return False
     except FileNotFoundError:
         logger.error(f"Run Army Man command not found: {command_to_run}")
         return False
-
-    return True
 
 async def run() -> None:
     """
