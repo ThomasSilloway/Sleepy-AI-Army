@@ -8,6 +8,7 @@ and then starts the backlog processing. It includes global error handling
 to catch and log any unhandled exceptions during execution.
 """
 
+import argparse  # Added for command-line argument parsing
 import asyncio
 import logging
 from datetime import datetime
@@ -19,10 +20,20 @@ from services.git_service import GitService
 from services.llm_prompt_service import LlmPromptService
 from utils.logging_setup import LoggingSetup
 
-# 1. Initialize AppConfig first
-app_config = AppConfig()
+# 1. Initialize ArgumentParser
+parser = argparse.ArgumentParser(description="Army Secretary - Backlog to Goals Processor")
+parser.add_argument(
+    "--root_git_path",
+    type=str,
+    help="Override the project_git_path from config.yaml with the provided path.",
+    required=False
+)
+args = parser.parse_args()
 
-# 2. Initialize and setup logging using AppConfig
+# 2. Initialize AppConfig first, passing the command line argument if provided
+app_config = AppConfig(command_line_git_path=args.root_git_path)
+
+# 3. Initialize and setup logging using AppConfig
 logging_setup = LoggingSetup(app_config=app_config)
 logging_setup.setup_logging()
 
@@ -32,6 +43,8 @@ logger = logging.getLogger(__name__)
 
 # Initial log message to confirm setup and show date
 logger.info(f"\n\n======== Logging initialized via LoggingSetup & AppConfig. Date: {datetime.now().strftime('%Y-%m-%d')} =========\n\n")
+if args.root_git_path:
+    logger.info(f"Overriding project_git_path with command line argument: {args.root_git_path}")
 logger.debug("Debug level test message for detailed log from main.py.")
 
 async def run() -> None:
@@ -83,11 +96,10 @@ async def run() -> None:
                 logger.warning("Failed to commit changes to git.")
 
         logger.info("PoC 8 processing finished successfully.")
-    except ValueError as ve: # Catch validation errors from AppConfig specifically
-        logger.critical(f"Configuration error: {ve}. Please check your .env and config.yaml files. Exiting.", exc_info=False) # No need for full exc_info for expected ValueErrors
-    except Exception as e:
+    except ValueError as ve:
+        logger.critical(f"Configuration error: {ve}. Please check your .env, config.yaml files, or command line arguments. Exiting.", exc_info=False)
+    except Exception:
         logger.error("An unhandled error occurred during PoC 8 execution:", exc_info=True)
 
 if __name__ == "__main__":
-    # Python 3.7+
     asyncio.run(run())

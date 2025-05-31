@@ -1,13 +1,14 @@
 """Pydantic model for application configuration."""
 import logging
+import os
+from typing import Optional
+
+from omegaconf import MissingMandatoryValue, OmegaConf
 from pydantic import BaseModel, ValidationError
-from typing import List, Optional # List will be replaced by list if used
-from omegaconf import OmegaConf, MissingMandatoryValue
 
 logger = logging.getLogger(__name__)
 
 class AppConfig(BaseModel):
-    workspace_root_path: str
     goal_root_path: str
     goal_git_path: str # Path to the root of the Git repo that contains the goal_root_path
     task_description_filename: str
@@ -24,6 +25,10 @@ class AppConfig(BaseModel):
     aider_code_model: str
     aider_summary_model: str
     gemini_weak_model_name: str
+
+    @property
+    def workspace_root_path(self) -> str:
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml", root_git_path: Optional[str] = None, goal_path: Optional[str] = None) -> "AppConfig":
@@ -71,7 +76,7 @@ class AppConfig(BaseModel):
             # Ensure this error message clearly indicates which key is missing.
             # OmegaConf's MissingMandatoryValue exception __str__ usually includes the key.
             raise ValueError(f"Missing mandatory value in configuration: {e}") from e
-        
+
         # TODO: Fix me - AttributeError: type object 'OmegaConf' has no attribute 'errors'
         # except OmegaConf.errors.OmegaConfBaseException as e: # Catches various OmegaConf errors
         #     logger.error(f"Error loading or parsing configuration file ({config_path}): {e}")

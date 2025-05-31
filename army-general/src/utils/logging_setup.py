@@ -16,11 +16,6 @@ class LoggingSetup:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
 
-        # Determine project root directory based on this file's location
-        # logging_setup.py is at .../poc-8-backlog-to-goals/src/utils/logging_setup.py
-        # .parent -> utils
-        # .parent.parent -> src
-        # .parent.parent.parent -> poc-8-backlog-to-goals (project root)
         PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
         log_dir_name_str = self.app_config.default_log_directory
@@ -48,7 +43,7 @@ class LoggingSetup:
         console_handler.setLevel(logging.INFO)
         console_formatter = LowercaseLevelnameFormatter(
             "%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s", # Simplified format
-            datefmt="%H:%M:%S", # Shorter time format
+            datefmt="%M:%S", # Shorter time format
         )
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
