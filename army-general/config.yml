@@ -24,4 +24,4 @@ default_log_filename: "backlog-to-goals.log"
 # Set to true to capture and log stdout/stderr from secretary
 log_secretary_output: false
 # Set to true to capture and log stdout/stderr from army-man
-log_army_man_output: false
+log_army_man_output: true

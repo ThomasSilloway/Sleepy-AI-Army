@@ -76,7 +76,6 @@ def _run_secretary() -> bool:
         target_folder=app_config.root_git_path
     )
     logger.info(f"Constructed Secretary run command: {command_to_run}")
-    logger.info("Executing Secretary...")
 
     # Current project root directory
     current_root_directory = Path(__file__).resolve().parent.parent.parent
@@ -85,7 +84,6 @@ def _run_secretary() -> bool:
 
     # Run Secretary
     try:
-        logger.info("Running Secretary...")
         process = subprocess.run(
             command_to_run,
             cwd=secretary_directory,
@@ -174,16 +172,14 @@ async def run() -> None:
     logger.info("Army General orchestration started.")
 
     secretary_output_file = app_config.secretary_output_file_path
-    secretary_executed_successfully = False # Flag to track Secretary's outcome
+    secretary_executed_successfully = False 
 
     try:
         logger.info("Attempting to run Secretary...")
-        if not _run_secretary(): # Assumes _run_secretary() returns bool
+        if not _run_secretary():
             logger.error("Secretary execution failed. Further processing of its output will be skipped.")
-            # secretary_executed_successfully remains False
         else:
             secretary_executed_successfully = True
-            logger.info("Secretary executed successfully.")
 
         # Proceed only if Secretary was successful
         if not secretary_executed_successfully:
@@ -192,7 +188,7 @@ async def run() -> None:
 
         logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
         if not os.path.exists(secretary_output_file):
-            logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}. This might be an issue with Secretary's output generation.")
+            logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
             return # Exits run(), 'finally' block will execute.
 
         # Parse the folders from the file
