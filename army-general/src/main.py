@@ -30,6 +30,45 @@ logger = logging.getLogger(__name__)
 logger.info(f"\n\n======== Logging initialized via LoggingSetup & AppConfig. Date: {datetime.now().strftime('%Y-%m-%d')} =========\n\n")
 logger.debug("Debug level test message for detailed log from main.py.")
 
+
+def _log_subprocess_details(
+    process_name: str,
+    stdout_content: str | bytes,
+    stderr_content: str | bytes,
+    return_code: int
+) -> None:
+    """Logs the stdout and stderr from a subprocess if log_flag is True.
+
+    Args:
+        process_name: Name of the subprocess (e.g., "Secretary") for log prefixes.
+        stdout_content: The stdout content (str or bytes) from the subprocess.
+        stderr_content: The stderr content (str or bytes) from the subprocess.
+        return_code: The return code of the subprocess, used to determine
+                     log level for stderr (ERROR if non-zero, WARNING if zero).
+    """
+    logger.info(f"--- Start of output from {process_name} ---")
+
+    # Process stdout
+    stdout_str = stdout_content.decode('utf-8', errors='replace') if isinstance(stdout_content, bytes) else stdout_content
+    if stdout_str and stdout_str.strip():
+        for line in stdout_str.splitlines():
+            logger.info(f"[{process_name.upper()} STDOUT]: {line}")
+    else:
+        logger.info(f"[{process_name.upper()} STDOUT]: (empty)")
+
+    # Process stderr
+    stderr_str = stderr_content.decode('utf-8', errors='replace') if isinstance(stderr_content, bytes) else stderr_content
+    if stderr_str and stderr_str.strip():
+        log_level = logging.ERROR if return_code != 0 else logging.WARNING
+        for line in stderr_str.splitlines():
+            logger.log(log_level, f"[{process_name.upper()} STDERR]: {line}")
+    else:
+        # Log as INFO if stderr is empty, consistent with previous behavior for empty streams
+        logger.info(f"[{process_name.upper()} STDERR]: (empty)")
+
+    logger.info(f"--- End of output from {process_name} ---")
+
+
 def _run_secretary() -> bool:
     # Implement Secretary execution:
     #    - Construct command and execute using app_config.secretary_run_command_template.
@@ -46,27 +85,40 @@ def _run_secretary() -> bool:
 
     # Run Secretary
     try:
-        logger.info("Running Secetary...")
+        logger.info("Running Secretary...")
         process = subprocess.run(
             command_to_run,
             cwd=secretary_directory,
             capture_output=True,
-            text=True,
-            check=True, # Will raise CalledProcessError for non-zero exit codes
-            encoding='utf-8' # Explicitly set encoding
+            text=True,        # Ensure text=True for str output
+            check=True,       # Ensure check=True to raise CalledProcessError on non-zero
+            encoding='utf-8'
         )
-        if process.returncode != 0:
-            logger.error("Secretary returned non-zero exit code. Exiting.")
-            return False
+        if app_config.log_secretary_output:
+            # If check=True, we only reach here if returncode is 0
+            _log_subprocess_details(
+                process_name="Secretary",
+                stdout_content=process.stdout, # Will be str
+                stderr_content=process.stderr, # Will be str
+                return_code=process.returncode # Will be 0 here
+            )
         logger.info("Secretary completed successfully.")
+        return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Run Secretary failed: {e}")
+        # Log the primary error message first
+        logger.error(f"Run Secretary failed with CalledProcessError: {e.returncode} - {e}")
+        # Then log the detailed output if flag is set
+        if app_config.log_secretary_output:
+            _log_subprocess_details(
+                process_name="Secretary",
+                stdout_content=e.stdout, # Will be bytes
+                stderr_content=e.stderr, # Will be bytes
+                return_code=e.returncode
+            )
         return False
     except FileNotFoundError:
-        logger.error("Run Secretary failed")
+        logger.error(f"Run Secretary command not found: {command_to_run}")
         return False
-
-    return True
 
 def _run_army_man(folder: str) -> bool:
     """
@@ -91,22 +143,32 @@ def _run_army_man(folder: str) -> bool:
             command_to_run,
             cwd=army_man_directory,
             capture_output=True,
-            text=True,
-            check=True, # Will raise CalledProcessError for non-zero exit codes
-            encoding='utf-8' # Explicitly set encoding
+            text=True,        # Ensure text=True
+            check=True,       # Ensure check=True
+            encoding='utf-8'
         )
-        if process.returncode != 0:
-            logger.error("Army Man returned non-zero exit code. Exiting.")
-            return False
+        if app_config.log_army_man_output:
+            _log_subprocess_details(
+                process_name="Army Man",
+                stdout_content=process.stdout,
+                stderr_content=process.stderr,
+                return_code=process.returncode
+            )
         logger.info("Army Man completed successfully.")
+        return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Run Army Man failed: {e}")
+        logger.error(f"Run Army Man failed with CalledProcessError: {e.returncode} - {e}")
+        if app_config.log_army_man_output:
+            _log_subprocess_details(
+                process_name="Army Man",
+                stdout_content=e.stdout,
+                stderr_content=e.stderr,
+                return_code=e.returncode
+            )
         return False
     except FileNotFoundError:
-        logger.error("Run Army Man failed")
+        logger.error(f"Run Army Man command not found: {command_to_run}")
         return False
-
-    return True
 
 async def run() -> None:
     """
