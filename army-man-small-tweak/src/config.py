@@ -26,13 +26,15 @@ class AppConfig(BaseModel):
     gemini_weak_model_name: str
 
     @classmethod
-    def load_from_yaml(cls, config_path: str = "config.yml") -> "AppConfig":
+    def load_from_yaml(cls, config_path: str = "config.yml", root_git_path: Optional[str] = None, goal_path: Optional[str] = None) -> "AppConfig":
         """
         Loads application configuration from a YAML file using OmegaConf
         and instantiates an AppConfig object.
 
         Args:
             config_path: Path to the configuration file.
+            root_git_path: Optional path to the root of the Git repo. If provided, overrides `goal_git_path` from YAML.
+            goal_path: Optional path to the goal root. If provided, overrides `goal_root_path` from YAML.
 
         Returns:
             An instance of AppConfig.
@@ -48,6 +50,16 @@ class AppConfig(BaseModel):
             raw_config = OmegaConf.load(config_path)
 
             config_dict = OmegaConf.to_container(raw_config, resolve=True)
+
+            # Override with provided arguments if they exist
+            if root_git_path is not None:
+                config_dict['goal_git_path'] = root_git_path
+                logger.debug(f"Overriding goal_git_path with provided argument: {root_git_path}")
+
+            if goal_path is not None:
+                config_dict['goal_root_path'] = goal_path
+                logger.debug(f"Overriding goal_root_path with provided argument: {goal_path}")
+
             app_config = cls(**config_dict)
             logger.debug("Application configuration loaded successfully.")
             return app_config

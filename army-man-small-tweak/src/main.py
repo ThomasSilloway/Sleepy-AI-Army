@@ -1,4 +1,5 @@
 """Main application entry point for the PoC7 Orchestrator."""
+import argparse
 import logging
 import traceback
 
@@ -29,8 +30,14 @@ def main():
     logger = logging.getLogger(__name__) # Define logger early for initialization errors
 
     try:
+        # Set up argument parsing
+        parser = argparse.ArgumentParser(description="PoC7 LangGraph Orchestrator")
+        parser.add_argument("--root_git_path", type=str, help="Override the goal_git_path from the config YAML.")
+        parser.add_argument("--goal_path", type=str, help="Override the goal_root_path from the config YAML.")
+        args = parser.parse_args()
+
         # Load configuration using the AppConfig class method
-        app_config = AppConfig.load_from_yaml()
+        app_config = AppConfig.load_from_yaml(root_git_path=args.root_git_path, goal_path=args.goal_path)
 
         setup_logging(app_config=app_config)
         # You can now use app_config throughout your application
