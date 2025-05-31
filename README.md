@@ -110,7 +110,5 @@ There may be an issue with context switching especially if it's only going to be
 Each component below was directly taken from a proof of concept, so the code is very messy. We wanted to bring the project to a useful state as fast as possible though, so this is sufficient for now. Subsequent updates will clean up the code and make it more maintainable.
 
 - `Army Man` - Capable of making a small tweak to a file based on a prompt on a single file. The file must contain the relative path to the file from the root of the git repository.
-
-### TODO:
 - `Secretary` - Converts the backlog into new ai-goals folders and records the folder names for the General that should be operated on
 - `General` - Initiates the Secretary, upon completion, reads the folder names to operate on and starts a new Army Man for each folder
