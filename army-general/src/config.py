@@ -98,7 +98,5 @@ class AppConfig:
         # Validate all paths
         if not os.path.isdir(self.root_git_path):
             raise ValueError(f"root_git_path '{self.root_git_path}' set in config.yaml is not a valid directory.")
-        if not os.path.isfile(self.secretary_output_file_path):
-            raise ValueError(f"secretary_output_file_path '{self.secretary_output_file_path}' (from config.yaml) does not exist or is not a file.")
 
 logger = logging.getLogger(__name__)
