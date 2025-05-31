@@ -1,5 +1,6 @@
 """Pydantic model for application configuration."""
 import logging
+import os
 from pydantic import BaseModel, ValidationError
 from typing import List, Optional # List will be replaced by list if used
 from omegaconf import OmegaConf, MissingMandatoryValue
@@ -7,7 +8,6 @@ from omegaconf import OmegaConf, MissingMandatoryValue
 logger = logging.getLogger(__name__)
 
 class AppConfig(BaseModel):
-    workspace_root_path: str
     goal_root_path: str
     goal_git_path: str # Path to the root of the Git repo that contains the goal_root_path
     task_description_filename: str
@@ -24,6 +24,17 @@ class AppConfig(BaseModel):
     aider_code_model: str
     aider_summary_model: str
     gemini_weak_model_name: str
+
+    @property
+    def workspace_root_path(self) -> str:
+        # Assuming this config.py file is at src/config.py
+        # then __file__ is .../src/config.py
+        # os.path.abspath(__file__) gives the absolute path to this file
+        # os.path.dirname(...) once gives .../src/
+        # os.path.dirname(...) twice gives .../ (the workspace root)
+        # Wait, the file is at army-man-small-tweak/src/config.py
+        # So, os.path.dirname() three times is needed.
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     @classmethod
     def load_from_yaml(cls, config_path: str = "config.yml", root_git_path: Optional[str] = None, goal_path: Optional[str] = None) -> "AppConfig":
