@@ -189,6 +189,7 @@ async def run() -> None:
         logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
         if not os.path.exists(secretary_output_file):
             logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
+            logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
             return # Exits run(), 'finally' block will execute.
 
         # Parse the folders from the file
@@ -203,7 +204,7 @@ async def run() -> None:
 
         if not folders:
             logger.warning("No folders found in Secretary output. No Army Man tasks to perform.")
-            # No need to return; processing will naturally finish, then cleanup.
+            return # Exits run(), 'finally' block will execute.
 
         num_goals_worked_on = 0
         for folder_index, folder in enumerate(folders):
