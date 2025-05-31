@@ -16,6 +16,13 @@ When those are completed, assume the role of a critical CTO for the company and 
 When the spec is completed, assume the role of a software engineer that has a single job:
 1. Implement the changes described in the new spec file
 
+When the spec is implemented, assume the role of the CTO again and do the following:
+1. Follow the same CTO process to critique the code.
+2. Add your critique to a file called `ai-docs/planning/<insert-appropriate-folder-name>/critique-code.md`
+
+When the code critique is completed, assume the role of a software engineer again that has a single job:
+1. Implement the changes suggested by the CTO.
+
 Here's the problem we are trying to solve:
 
 ```
