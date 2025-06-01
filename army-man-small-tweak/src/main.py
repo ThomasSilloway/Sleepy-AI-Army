@@ -89,9 +89,6 @@ def main():
         "error_message": None,
         "is_manifest_generated": False,
         "is_changelog_entry_added": False,
-        "is_code_change_committed": False, # Ensure all fields are initialized
-        "last_change_commit_hash": None,
-        "last_change_commit_summary": None,
     }
 
     # Prepare RunnableConfig

@@ -26,12 +26,6 @@ class WorkflowState(TypedDict):
     is_manifest_generated: bool
     is_changelog_entry_added: bool
 
-    # Fields for "Small Tweak" execution
-    is_code_change_committed: bool
-    last_change_commit_hash: Optional[str]
-    last_change_commit_summary: Optional[str]
-    # Add other state fields as they become necessary
-
     small_tweak_file_path: Optional[str]  # Path to the file to be tweaked
 
     # Data for goal-manifest.md, managed by manifest_create and manifest_update nodes

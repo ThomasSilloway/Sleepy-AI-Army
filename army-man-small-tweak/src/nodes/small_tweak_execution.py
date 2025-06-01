@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Optional
 
 from src.config import AppConfig
-from src.services.aider_service import AiderService, AiderExecutionResult
-from src.services.changelog_service import ChangelogService
-from src.services.llm_prompt_service import LlmPromptService
 from src.models.aider_summary import AiderRunSummary
+from src.services.aider_service import AiderExecutionResult, AiderService
+from src.services.changelog_service import ChangelogService
 from src.state import WorkflowState
 
 logger = logging.getLogger(__name__)
@@ -24,9 +23,6 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
 
     # Initialize state fields for this run
     state['aider_last_exit_code'] = None
-    state['last_change_commit_hash'] = None
-    state['last_change_commit_summary'] = None
-    state['is_code_change_committed'] = False
     state['error_message'] = None
     state['last_event_summary'] = "Small Tweak execution started."
     state['aider_run_summary'] = None # To store the AiderRunSummary object
@@ -46,21 +42,20 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: Missing task_description_path for Small Tweak."
-            return state # is_code_change_committed already False
+            return state
 
         if not os.path.exists(task_description_path_str):
             error_msg = f"[SmallTweakExecution] Task description file not found at: {task_description_path_str}"
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = f"Error: Task description file missing at {task_description_path_str}."
-            return state # is_code_change_committed already False
+            return state
 
         if not small_tweak_file_path:
             error_msg = "[SmallTweakExecution] Critical information missing: small_tweak_file_path not found in state."
             logger.error(error_msg)
             state['error_message'] = error_msg
             state['last_event_summary'] = "Error: Missing small_tweak_file_path for Small Tweak."
-            state['is_code_change_committed'] = False
             return state
 
         task_desc_filename = Path(task_description_path_str).name
@@ -203,21 +198,15 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             state['error_message'] = detailed_error_msg
             state['last_event_summary'] = detailed_error_msg
             # Clear git info fields on failure
-            state['last_change_commit_hash'] = None
-            state['last_change_commit_summary'] = None
             state['is_changelog_entry_added'] = False
-
 
     except Exception as e:
         error_msg = f"[SmallTweakExecution] Unexpected error during small tweak execution: {e}"
         logger.error(error_msg, exc_info=True)
-        state['is_code_change_committed'] = False # Ensure this is false on unexpected error
         state['error_message'] = error_msg
         state['last_event_summary'] = f"Unexpected error during Small Tweak: {type(e).__name__} - {e}"
         if state.get('aider_last_exit_code') is None: # If aider didn't even run
             state['aider_last_exit_code'] = -1 
-        state['last_change_commit_hash'] = None
-        state['last_change_commit_summary'] = None
         state['is_changelog_entry_added'] = False
 
 
