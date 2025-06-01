@@ -21,10 +21,9 @@ class AppConfig(BaseModel):
     # aider_model: Optional[str] = None 
     manifest_template_filename: str
 
-    changelog_aider_model: str
     aider_code_model: str
     aider_summary_model: str
-    gemini_weak_model_name: str
+    task_description_extraction_model: str
 
     @property
     def workspace_root_path(self) -> str:

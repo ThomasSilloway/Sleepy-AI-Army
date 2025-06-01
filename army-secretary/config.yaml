@@ -1,14 +1,20 @@
+# project path - overridden by General if run from the General
 project_git_path: "C:\\GithubRepos\\Project-Elder"
-backlog_file_name: "BACKLOG.md"
-ai_goals_directory_name: "ai-goals"
-default_llm_model_name: "gemini-2.0-flash-exp"
 
-# Task description file name (used by BacklogProcessor)
+# Filenames (relative to paths above)
+backlog_file_name: "BACKLOG.md"
+
+ai_goals_directory_name: "ai-goals"
 task_description_filename: "task-description.md"
 
-# Default logging configuration (used by LoggingSetup via AppConfig)
+# Default logging configuration
 default_log_directory: "logs"
 default_log_filename: "backlog-to-goals.log"
 
-# File to write new goal folders to (used by main.py)
+# File to write new goal folders to - Used by general to know which goals to work on
 new_goal_folders_filename: "new-goal-folders.txt"
+
+########################
+#     LLM MODELS
+########################
+default_llm_model_name: "gemini-2.0-flash-exp"

@@ -37,9 +37,9 @@ async def run_llm_service_tests(app_config: AppConfig, llm_service: LlmPromptSer
 
     # Get the model name from AppConfig
     # The LlmPromptService itself requires the model name to be passed to get_structured_output
-    llm_model_to_use = app_config.gemini_weak_model_name
+    llm_model_to_use = app_config.task_description_extraction_model
     if not llm_model_to_use:
-        logger.error("`gemini_weak_model_name` is not configured in AppConfig. Cannot run LLM test.")
+        logger.error("`task_description_extraction_model` is not configured in AppConfig. Cannot run LLM test.")
         logger.overview("--- LlmPromptService Method Execution Test Aborted ---")
         return
 

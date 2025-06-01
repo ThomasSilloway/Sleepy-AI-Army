@@ -71,7 +71,7 @@ From the user's task description, extract:
             manifest_config_llm = asyncio.run(llm_prompt_service.get_structured_output(
                 messages=messages,
                 output_pydantic_model_type=ManifestConfigLLM,
-                llm_model_name=app_config.gemini_weak_model_name
+                llm_model_name=app_config.task_description_extraction_model
             ))
         except Exception as e:
             error_msg = f"[ManifestCreate] Error during LLM call: {e}"

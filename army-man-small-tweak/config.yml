@@ -1,6 +1,6 @@
 # Configuration for Army Man (Small Tweak)
 
-# Paths
+# Paths - overridden by General if run from the General
 goal_root_path: "C:\\GithubRepos\\Project-Elder\\projects\\isometric_2d_prototype\\ai-goals\\SmallTweak_001_Document_Function_01"
 goal_git_path: "C:\\GithubRepos\\Project-Elder"
 
@@ -17,10 +17,14 @@ detailed_log_filename: "detailed.log"
 # Template names
 manifest_template_filename: "src\\templates\\goal-manifest.j2"
 
-changelog_aider_model: "gemini/gemini-2.0-flash-exp"
+########################
+#     LLM MODELS
+########################
 
-# aider_code_model: "gemini/gemini-2.5-pro-preview-03-25"
-aider_code_model: "gemini/gemini-2.0-flash-exp"
+aider_code_model: "gemini/gemini-2.5-pro-preview-03-25"
+
+# For testing AI Army Functionality - Use 2.0 flash exp since it's free
+# aider_code_model: "gemini/gemini-2.0-flash-exp" 
+
 aider_summary_model: "gemini-2.0-flash-exp"
-
-gemini_weak_model_name: "gemini-2.0-flash-exp"
+task_description_extraction_model: "gemini-2.0-flash-exp"

@@ -1,5 +1,93 @@
 # Sleepy AI Army
 
+See `The Grand Vision` section below to get an idea of the end goal of this project.
+
+## Current Status - v0.1
+
+The Sleepy AI Army is currently in a weakened state, but it is functional for limited use cases. 
+
+Let's say you have a bunch of small polish tasks or bugs to fix in your backlog. Sleepy AI Army can help you work through those automatically when you are ready to take a break and be AFK for a while. Right now it can only perform `small tweaks` to single files, but you can specify many of these small tweaks in your `BACKLOG.md` file in your own project and it will work on all of them while you are AFK.
+
+### Details
+
+- It can perform small single file changes that you specify in your `BACKLOG.md` in your own project.
+- It can perform multiple of these changes in a single run, but they each need to be specified as their own task in the `BACKLOG.md` and each task can only operate on a single file.
+- For each task, it will create a new folder in `ai-goals` and perform the work in that folder.
+- File Created 
+  - `task-description.md` - The original task description from the `BACKLOG.md`
+  - `goal-manifest.md` - Current status of the task.
+  - `changelog.md` - A list of changes made to the repo
+  - `logs/`
+    - `overview.log` - A high level log of the task
+    - `detailed.log` - A detailed log of the task - You can see the aider output here
+
+### Important Limitations
+
+There is currently no support for:
+- Testing
+- Branching
+- Review Process
+- Task Prioritization
+- Task Dependencies
+- Conflict Resolution
+- API cost tracking (search the logs for Aider output on cost)
+
+### Current Frameworks
+
+- Coding - Aider 
+  - Note: Currently using Gemini 2.5 Pro, but this can be any model that Aider supports
+- Document Generation - Gemini models 
+  - Note: Currently uses `gemini-2.0-flash-exp`
+  - Note: Only Gemini can be specified right now. Also, it's using the general gemini servers, does not support Vertex.
+
+### Components
+
+Each component below was directly taken from a proof of concept, so the code is very messy. We wanted to bring the project to a useful state as fast as possible though, so this is sufficient for now. Subsequent updates will clean up the code and make it more maintainable.
+
+- `Army Man` - Capable of making a small tweak to a file based on a prompt on a single file. The file must contain the relative path to the file from the root of the git repository.
+- `Secretary` - Converts the `BACKLOG.md` into new ai-goals folders and records the folder names for the General that should be operated on
+- `General` - Initiates the Secretary, upon completion, reads the folder names to operate on and starts a new Army Man for each folder
+
+Each component is capable of running separately with their own configurations for testing and development. For normal usage, only the General needs to be run.
+
+### Setup
+
+- Clone this project
+- Install `uv` if you haven't already
+- Create your Gemini API Key in `Google AI Studio`
+- Create a `.env` file in `army-man-small-tweak` and `army-secretary` folders with your Gemini API Key
+  - See `.env.example` in each component for the format
+- Update `config.yml` in each of the three main components with your preferred LLM models and any other settings you want to change. 
+  - Importantly update `root_git_path` in `army-general\config.yml` to the project folder you want the Sleepy AI Army to modify code in.
+- Add `.aider.conf.yml` to both this project and the project you want the Sleepy AI Army to modify code in. 
+  - See `aider.conf.yml.example` in this project for the format
+  - Important: Make sure `auto-commits: true` in the `aider.conf.yml` file in the project you want the Sleepy AI Army to modify code in. 
+    - We rely on Aider to make its own commits for error handling.
+
+### Usage
+
+- Update `BACKLOG.md` in the project you want to the Sleepy AI Army to code in. 
+  - Each task should specify a short title, a single file to operate on relative to the root of the git repository, and a description of the work/change that needs to occur in that file.
+  - See `BACKLOG.md.example` in this project for an example.
+- Use `run-general.bat` in the root directory of this project.
+
+
+### Important Considerations
+
+- Don't use `gemini-2.0-flash-exp` for projects that require confidential information. It's free, but it's not private.
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+---
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+# The Grand Vision
+
 ## The AI Agent Coding Problem
 
 Picture this: you're deep in development on your passion project – maybe a game in Godot. You're excitedly building a new weapon system, pouring all your focus into it.
@@ -27,7 +115,7 @@ Sleepy AI Army is your **AI-powered assistant crew**, designed to help you make 
 Think of it as a team diligently chipping away at your to-do list while you're occupied, ensuring slow but steady progress across your entire project.
 
 <center>
-  <img src="army.png" alt="AI Army icon">
+  <img src="docs/army.png" alt="AI Army icon">
 </center>
 
 ## What Sleepy AI Army Doesn't Do
@@ -105,10 +193,3 @@ There may be an issue with context switching especially if it's only going to be
    - The review process would be to see if the full process accomplished the goal, if not, look at the single step.
    - The single step may be the same as the first step in the full process, so it may be better to do the full process and then the user flow would be to revert back to whichever commit was the most correct that they want to operate on.
    - This will cost significantly more money to run, so maybe the option to specify which steps to take would be good
-
-## Current Status
-Each component below was directly taken from a proof of concept, so the code is very messy. We wanted to bring the project to a useful state as fast as possible though, so this is sufficient for now. Subsequent updates will clean up the code and make it more maintainable.
-
-- `Army Man` - Capable of making a small tweak to a file based on a prompt on a single file. The file must contain the relative path to the file from the root of the git repository.
-- `Secretary` - Converts the backlog into new ai-goals folders and records the folder names for the General that should be operated on
-- `General` - Initiates the Secretary, upon completion, reads the folder names to operate on and starts a new Army Man for each folder
