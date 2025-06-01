@@ -79,7 +79,7 @@ def manifest_update_node(state: WorkflowState, config) -> WorkflowState:
         # Update AI questions
         if small_tweak_had_error:
             error_details = original_error_message_from_tweak
-            ai_question = f"Error occurred during the automated task for '{small_tweak_file_path}'. Can you review it please?\nError details: {error_details}"
+            ai_question = f"Error occurred during the automated task for '{small_tweak_file_path}'. Can you review it please?\n - Error details: {error_details}"
             if not manifest_data.ai_questions_list: # Ensure list exists
                 manifest_data.ai_questions_list = []
             manifest_data.ai_questions_list.append(ai_question)

@@ -172,15 +172,15 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
             raw_summary = ""
             if aider_run_summary_obj:
                 if aider_run_summary_obj.errors_reported:
-                    extracted_errors = "\n - ".join(aider_run_summary_obj.errors_reported)
+                    extracted_errors = "\n   - ".join(aider_run_summary_obj.errors_reported)
                     logger.info(f"Extracted errors from Aider output: {extracted_errors}")
                 raw_summary = aider_run_summary_obj.raw_output_summary or ""
 
             detailed_error_msg = f"{error_msg_prefix}"
             if extracted_errors:
-                detailed_error_msg += f"\nExtracted Errors:\n - {extracted_errors}"
+                detailed_error_msg += f"\n - Extracted Errors:\n - {extracted_errors}"
             elif raw_summary:
-                 detailed_error_msg += f"\nAider Output Summary: {raw_summary}"
+                 detailed_error_msg += f"\n - Aider Output Summary: {raw_summary}"
             else:
                 # Fallback if LLM provides nothing useful or failed
                 stderr_snippet = (aider_result.stderr[:500] + '...' if len(aider_result.stderr) > 500 else aider_result.stderr)
