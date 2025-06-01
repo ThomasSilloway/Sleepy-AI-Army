@@ -4,9 +4,9 @@ from datetime import datetime
 
 from src.pydantic_models.core_schemas import ManifestData
 from src.services.changelog_service import ChangelogService
+from src.services.git_service import GitService
 from src.services.write_file_from_template_service import WriteFileFromTemplateService
 from src.state import WorkflowState
-from src.services.git_service import GitService
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 """Defines the AiderRunSummary Pydantic model."""
 
-from typing import List, Optional # Use List for compatibility if needed, but prefer list per CONVENTIONS.md
+from typing import List, Optional  # Use List for compatibility if needed, but prefer list per CONVENTIONS.md
 
 from pydantic import BaseModel, Field
 

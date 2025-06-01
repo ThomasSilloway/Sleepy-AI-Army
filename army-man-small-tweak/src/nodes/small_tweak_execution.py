@@ -133,23 +133,18 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         aider_run_summary_obj: Optional[AiderRunSummary] = aider_service.get_summary(aider_result)
         state['aider_run_summary'] = aider_run_summary_obj.model_dump() if aider_run_summary_obj else None
 
-        if aider_result.exit_code == 0:
-            logger.info("Aider executed successfully (exit code 0).")
-            if aider_run_summary_obj:
-                state['is_code_change_committed'] = bool(aider_run_summary_obj.commit_hash)
-                state['last_change_commit_hash'] = aider_run_summary_obj.commit_hash
-                state['last_change_commit_summary'] = aider_run_summary_obj.commit_message or "Commit message not extracted."
+        event_summary = ""
+        error_message = ""
 
+        if aider_run_summary_obj:
+            is_code_change_committed = bool(aider_run_summary_obj.commit_hash)
+
+            # If the code change was committed by aider, then it's considered a success and we record it in the changelog
+            if is_code_change_committed:
                 changes_str = "\n  - ".join(aider_run_summary_obj.changes_made) if aider_run_summary_obj.changes_made else aider_run_summary_obj.raw_output_summary
-
                 event_summary = f"{changes_str}\n\n"
-                if aider_run_summary_obj.commit_hash:
-                    event_summary += f"  - Commit: {aider_run_summary_obj.commit_hash or 'N/A'} - {aider_run_summary_obj.commit_message or 'N/A'}\n"
-                else:
-                    event_summary += "  - No commit made by aider."
-
+                event_summary += f"  - Commit: {aider_run_summary_obj.commit_hash or 'N/A'} - {aider_run_summary_obj.commit_message or 'N/A'}\n"
                 state['last_event_summary'] = event_summary
-                state['error_message'] = None # Clear previous errors if any
 
                 logger.info("Attempting to record small tweak event in changelog.")
                 changelog_success = changelog_service.record_event_in_changelog(
@@ -162,21 +157,17 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
                 else:
                     logger.warning("Failed to add changelog entry for small tweak.")
             else:
-                # Aider success, but LLM summary failed
-                logger.warning("Aider executed successfully, but LLM summary extraction failed.")
-                state['is_code_change_committed'] = False # Cannot confirm commit without summary
-                state['last_event_summary'] = "Aider ran successfully, but summary extraction failed. Raw Aider output logged."
-                # No commit hash or summary known
-                state['last_change_commit_hash'] = None
-                state['last_change_commit_summary'] = "Summary extraction failed."
-                # Optionally, log to changelog with generic message or skip. For now, skipping.
-                state['is_changelog_entry_added'] = False
+                error_message = "Error: No commit made by aider."
+        else:
+            error_message = "Error: Failed to parse aider summary"
 
-        else: # Aider failed (exit_code != 0)
-            error_msg_prefix = f"Failed to apply Small Tweak. Aider exit code: {aider_result.exit_code}."
+        if aider_result.exit_code != 0:
+            error_message = f"Error: Failed to apply Small Tweak. Aider exit code: {aider_result.exit_code}."
+
+        if error_message:
+            error_msg_prefix = f"[SmallTweakExecution] {error_message}"
             logger.error(error_msg_prefix)
-            state['is_code_change_committed'] = False
-            
+
             extracted_errors = ""
             raw_summary = ""
             if aider_run_summary_obj:
