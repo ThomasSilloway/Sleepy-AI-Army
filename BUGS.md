@@ -8,7 +8,7 @@ List of changes we want to make, but haven't put into the automated backlog or J
 
 # BUGS
 
-## Failed to parse aider output
+## Failed to parse aider output - fixed root cause, but improvement could be made
 
 ### Logs
 
@@ -43,7 +43,7 @@ changes_made
 
 ### Questions
 
-- Why did it fail? The output looks like valid json to me.  Oh maybe bc it didn't include the total cost yet?
+- Why did it fail? The output looks like valid json to me.  Oh maybe bc it didn't include the total cost yet? Confirmed - total cost wasn't there, it works now though.  Still should do this below:
 - Even if it fails to parse in the correct format, we should consider making our own and set the raw output summary to the entire output of response from the LLM.
 
 ## When a commit isn't made, sometimes the STDERR is not helpful
