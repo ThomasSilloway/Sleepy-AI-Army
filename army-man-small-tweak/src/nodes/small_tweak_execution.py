@@ -115,7 +115,10 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         command_args = [
             "-m", aider_prompt,
             "--read", task_description_path_str,
-            "--model", app_config.aider_code_model
+            "--read", "ai-docs/CONVENTIONS.md",
+            "--model", app_config.aider_code_model,
+            "--auto-commits",
+            "--config", ".aider.sleepy.conf.yml"
         ]
 
         logger.info("Invoking AiderService to execute small tweak.")
