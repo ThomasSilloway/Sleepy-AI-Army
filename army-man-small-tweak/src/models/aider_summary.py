@@ -1,6 +1,6 @@
 """Defines the AiderRunSummary Pydantic model."""
 
-from typing import Optional # Use list instead of List per CONVENTIONS.md
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -40,7 +40,7 @@ class AiderRunSummary(BaseModel):
     )
     total_cost: Optional[float] = Field(
         default=None,
-        description="The total estimated cost of the Aider run in USD, if available." # 80 char max
+        description="The total estimated cost of the Aider run in USD, if available."
     )
 
     class Config:

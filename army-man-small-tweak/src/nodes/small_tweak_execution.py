@@ -136,6 +136,15 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
         aider_run_summary_obj: Optional[AiderRunSummary] = aider_service.get_summary(aider_result)
         state['aider_run_summary'] = aider_run_summary_obj.model_dump() if aider_run_summary_obj else None
 
+        # Update total_aider_cost with cumulative cost from Aider runs.
+        if aider_run_summary_obj and aider_run_summary_obj.total_cost is not None:
+            new_run_cost = aider_run_summary_obj.total_cost
+            current_cumulative_cost = state.get('total_aider_cost') or 0.0
+
+            state['total_aider_cost'] = current_cumulative_cost + new_run_cost
+            logger.info(f"Aider run cost: {new_run_cost:.4f}. Cumulative cost: {state['total_aider_cost']:.4f}.")
+
+
         event_summary = ""
         error_message = ""
 
@@ -144,9 +153,13 @@ def execute_small_tweak_node(state: WorkflowState, config) -> WorkflowState:
 
             # If the code change was committed by aider, then it's considered a success and we record it in the changelog
             if is_code_change_committed:
+
+                cumulative_cost = state.get('total_aider_cost') or 0.0
+
                 changes_str = "\n  - ".join(aider_run_summary_obj.changes_made) if aider_run_summary_obj.changes_made else aider_run_summary_obj.raw_output_summary
                 event_summary = f"{changes_str}\n\n"
                 event_summary += f"  - Commit: {aider_run_summary_obj.commit_hash or 'N/A'} - {aider_run_summary_obj.commit_message or 'N/A'}\n"
+                event_summary += f"  - Aider Cost: ${cumulative_cost:.4f}\n"
                 state['last_event_summary'] = event_summary
 
                 logger.info("Attempting to record small tweak event in changelog.")

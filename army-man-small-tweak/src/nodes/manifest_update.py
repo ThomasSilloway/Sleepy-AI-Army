@@ -131,15 +131,30 @@ def manifest_update_node(state: WorkflowState, config) -> WorkflowState:
             if small_tweak_had_error:
                 tweak_error_summary = (original_error_message_from_tweak or "Unknown error in previous step").splitlines()[0]
                 changelog_summary += f" (reflecting error in previous step: {tweak_error_summary})"
+            else: # Aider run was successful
+                # Log aider run cost if available
+                total_aider_cost = state.get('total_aider_cost')
+                if total_aider_cost is not None:
+                    changelog_summary += "\n  - "
+                    try:
+                        cost_value = float(total_aider_cost)
+                        changelog_summary += f"Aider run cost: ${cost_value:.4f}."
+                    except (ValueError, TypeError):
+                        logger.warning(f"Could not format total_aider_cost '{total_aider_cost}' for changelog. Logging as is.")
+                        changelog_summary += f"Aider run cost: {total_aider_cost}."
 
             try:
                 success_changelog = changelog_service.record_event_in_changelog(
-                    current_workflow_state=state, # state contains original error if tweak failed
+                    current_workflow_state=state, # state contains original error if tweak failed, or cost info if successful
                     preceding_event_summary=changelog_summary
                 )
                 if success_changelog:
                     logger.info("Successfully recorded manifest update in changelog.")
-                    state['last_event_summary'] = "Goal Manifest updated (re-rendered) and changelog entry added."
+                    # Update last_event_summary based on whether cost was included
+                    event_summary_changelog_suffix = " and changelog entry added."
+                    if not small_tweak_had_error and state.get('total_aider_cost') is not None:
+                        event_summary_changelog_suffix += " (including aider cost)."
+                    state['last_event_summary'] = "Goal Manifest updated (re-rendered)" + event_summary_changelog_suffix
                     # state['error_message'] already holds original_error_message_from_tweak if any
                 else:
                     error_msg_changelog = "[ManifestUpdate][ChangelogError] ChangelogService failed to record manifest update event."

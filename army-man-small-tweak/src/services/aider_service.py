@@ -121,6 +121,7 @@ The AiderRunSummary model includes the following fields:
 - errors_reported: (Optional[list[str]]) Any error messages or significant warnings reported by aider.
 - raw_output_summary: (Optional[str]) A brief, general summary of what aider did or reported, especially if specific details aren't available or applicable from its output.
 - commit_message: (Optional[str]) The full commit message if aider made a commit. If no commit was made, this should be null.
+- total_cost: (Optional[float]) The total session cost of the Aider run in USD. Formatted as a float. Default to 0.0 if not found. Cost will be near the end of the Aider STDOUT. Ex. `Tokens: 8.0k sent, 374 received. Cost: $0.01 message, $0.04 session.` - total_cost = 0.04, the session cost. If there are multiple lines with this information, choose the one with the highest session cost.
 
 Analyze the provided stdout and stderr from an aider execution.
 Extract the information to populate these fields accurately.
