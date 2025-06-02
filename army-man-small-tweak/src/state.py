@@ -30,3 +30,6 @@ class WorkflowState(TypedDict):
 
     # Data for goal-manifest.md, managed by manifest_create and manifest_update nodes
     manifest_data: Optional[ManifestData]
+
+    # Cost tracking
+    total_aider_cost: Optional[float]  # Cumulative cost of aider runs, typically in USD

@@ -1,6 +1,6 @@
 """Defines the AiderRunSummary Pydantic model."""
 
-from typing import List, Optional  # Use List for compatibility if needed, but prefer list per CONVENTIONS.md
+from typing import Optional # Use list instead of List per CONVENTIONS.md
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +10,7 @@ class AiderRunSummary(BaseModel):
     Summarizes the outcome of an Aider execution run.
     This model captures details about changes made, files affected, and any errors.
     """
-    changes_made: List[str] = Field(
+    changes_made: list[str] = Field(
         default_factory=list,
         description="Bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change."
     )
@@ -18,15 +18,15 @@ class AiderRunSummary(BaseModel):
         default=None,
         description="The git commit hash if aider made a commit during this run."
     )
-    files_modified: Optional[List[str]] = Field(
+    files_modified: Optional[list[str]] = Field(
         default_factory=list,
         description="List of file paths that were modified by aider."
     )
-    files_created: Optional[List[str]] = Field(
+    files_created: Optional[list[str]] = Field(
         default_factory=list,
         description="List of file paths that were newly created by aider."
     )
-    errors_reported: Optional[List[str]] = Field(
+    errors_reported: Optional[list[str]] = Field(
         default_factory=list,
         description="Any error messages or significant warnings reported by aider."
     )
@@ -37,6 +37,10 @@ class AiderRunSummary(BaseModel):
     commit_message: Optional[str] = Field(
         default=None,
         description="The commit message if aider made a commit."
+    )
+    total_cost: Optional[float] = Field(
+        default=None,
+        description="The total estimated cost of the Aider run in USD, if available." # 80 char max
     )
 
     class Config:
@@ -52,6 +56,7 @@ class AiderRunSummary(BaseModel):
                 "files_created": [],
                 "errors_reported": [],
                 "raw_output_summary": "Aider refactored one function and added tests. Committed changes.",
-                "commit_message": "Refactor: Improve clarity of process_data and add tests"
+                "commit_message": "Refactor: Improve clarity of process_data and add tests",
+                "total_cost": 0.025
             }
         }
