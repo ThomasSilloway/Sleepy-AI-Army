@@ -1,0 +1,58 @@
+[project]
+name = "army-infantry"
+version = "0.1.0"
+description = "Infantry agent for Sleepy AI Army."
+authors = [
+  { name = "Thomas Silloway", email = "tcsillow@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GNU3" } 
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "langgraph",
+    "pydantic",
+    "omegaconf",
+    "python-dotenv",
+    "pydantic_ai",
+    "Jinja2",
+    "nest_asyncio"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+backend-path = ["."] # Specifies that pyproject.toml is at the root
+
+[tool.ruff] # Global settings can remain, or be moved to specific sections
+line-length = 144 # This is often also respected by the formatter
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+]
+
+# Add or modify the 'ignore' list to include "W291"
+ignore = [
+    "W291", # This will disable the trailing whitespace check
+    # Add any other rules you wish to ignore here, e.g., "N803"
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+# It's also good practice to have an explicit formatter section,
+# even if you're using defaults, to make its presence clear.
+# [tool.ruff.format]
+# # You can specify options like 'quote-style', 'indent-style', etc.
+# # If this section is absent, ruff format uses its defaults.

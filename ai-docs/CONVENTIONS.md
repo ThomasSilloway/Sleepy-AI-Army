@@ -5,4 +5,6 @@ ALWAYS FOLLOW THESE CONVENTIONS:
  - `typing.Dict` is deprecated, use `dict` instead
  - `typing.List` is deprecated, use `list` instead
  - `typing.Type` is deprecated, use `type` instead
+ - Use solid object oriented coding practices
+ - Do not duplicate code, prefer to use functions and classes that re-use code
 
