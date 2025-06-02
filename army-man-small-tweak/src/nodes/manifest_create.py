@@ -183,7 +183,7 @@ From the user's task description, extract:
                 state['last_event_summary'] = f"Manifest '{manifest_data_instance.goal_title}' generated, but changelog update failed (service reported failure)."
 
             # Attempt to commit changes
-            commit_message = f"AI Army Man - Created goal manifest for: {manifest_data_instance.goal_title}"
+            commit_message = f"AI Army Man - Start - {manifest_data_instance.goal_title}"
             logger.info(f"Attempting to commit changes with message: '{commit_message}'")
             try:
                 commit_success = git_service.commit_changes(commit_message)

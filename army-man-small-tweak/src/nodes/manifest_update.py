@@ -156,7 +156,7 @@ def manifest_update_node(state: WorkflowState, config) -> WorkflowState:
                 state['last_event_summary'] = "Goal Manifest updated (re-rendered), but changelog recording failed with an exception."
 
             # Attempt to commit changes
-            commit_message = f"AI Army Man - Updated goal manifest for: {manifest_data.goal_title}"
+            commit_message = f"AI Army Man - Task {manifest_data.overall_status}" # Updated commit message based on overall_status
             logger.info(f"Attempting to commit changes with message: '{commit_message}'")
             try:
                 commit_success = git_service.commit_changes(commit_message)
