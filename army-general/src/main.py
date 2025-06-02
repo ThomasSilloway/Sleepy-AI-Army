@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import AppConfig
+from services.git_service import GitService
 from utils.logging_setup import LoggingSetup
 
 # 1. Initialize AppConfig first
@@ -195,7 +196,7 @@ async def run() -> None:
         # Parse the folders from the file
         folders = []
         try: # Nested try for file reading
-            with open(secretary_output_file, 'r') as file:
+            with open(secretary_output_file) as file:
                 folders = [line.strip() for line in file if line.strip()]
             logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} folders.")
         except Exception as e: # Catch any exception during file open/read
@@ -225,6 +226,12 @@ async def run() -> None:
             try:
                 os.remove(secretary_output_file)
                 logger.info(f"Successfully cleaned up Secretary output file: {secretary_output_file}")
+                git_service = GitService(app_config.root_git_path)
+                commit_message = "AI Army General - Work Completed"
+                if git_service.commit_changes(commit_message):
+                    logger.info(f"Committed changes to git with message: {commit_message}")
+                else:
+                    logger.warning("Failed to commit changes to git.")
             except OSError as e:
                 logger.error(f"Error deleting Secretary output file {secretary_output_file}: {e}. Manual cleanup might be required.")
         else:
