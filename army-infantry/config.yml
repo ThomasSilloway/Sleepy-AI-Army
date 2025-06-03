@@ -26,3 +26,5 @@ mission_report_template_filename: "src\\templates\\mission-report.j2"
 aider_code_model: "gemini/gemini-2.0-flash-exp" 
 
 aider_summary_model: "gemini-2.0-flash-exp"
+
+mission_title_extraction_model: "gemini-2.0-flash-exp"

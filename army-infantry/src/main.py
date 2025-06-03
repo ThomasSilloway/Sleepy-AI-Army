@@ -13,6 +13,10 @@ import logging
 # Project-specific imports
 from src.app_config import AppConfig
 from src.graph_builder import build_graph
+from src.services.llm_prompt_service import LlmPromptService
+from src.services.aider_service import AiderService
+from src.services.git_service import GitService
+from src.services.write_file_from_template_service import WriteFileFromTemplateService
 from src.graph_state import MissionContext, WorkflowState
 from src.utils.logging_setup import setup_logging
 
@@ -55,6 +59,15 @@ async def run() -> None:
     logger.info("Starting Army Infantry: Coding Mission Executor.")
     try:
         logger.info(f"Mission Folder Path: {app_config.mission_folder_path_absolute}")
+
+        # Instantiate services
+        logger.debug("Instantiating services...")
+        llm_prompt_service = LlmPromptService(app_config=app_config)
+        aider_service = AiderService(app_config=app_config, llm_prompt_service=llm_prompt_service)
+        git_service = GitService(app_config.root_git_path)
+        write_file_from_template_service = WriteFileFromTemplateService() # Does not require app_config
+        logger.info("Services instantiated.")
+
         # Define LangGraph graph
         app_graph = build_graph()
 
@@ -69,9 +82,13 @@ async def run() -> None:
         runnable_config = {
             "configurable": {
                 "app_config": app_config,
+                "llm_prompt_service": llm_prompt_service,
+                "aider_service": aider_service,
+                "git_service": git_service,
+                "write_file_from_template_service": write_file_from_template_service,
             }
         }
-        logger.debug("RunnableConfig prepared.")
+        logger.debug("RunnableConfig prepared with services.")
 
         # Invoke graph execution
         logger.overview("Invoking graph execution...")

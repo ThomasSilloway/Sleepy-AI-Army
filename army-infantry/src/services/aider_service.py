@@ -34,7 +34,7 @@ def stream_output(pipe, log_func, output_lines_list: list[str]):
 class AiderService:
     def __init__(self, app_config: AppConfig, llm_prompt_service: LlmPromptService):
         self.app_config = app_config
-        self.workspace_path = app_config.goal_git_path
+        self.workspace_path = app_config.root_git_path
         self.llm_prompt_service = llm_prompt_service
 
     def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> AiderExecutionResult:
