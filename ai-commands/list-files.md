@@ -1,1 +1,1 @@
-git ls-files ai-docs army-man-small-tweak | ForEach-Object { "/read-only $_" } | Set-Clipboard
+git ls-files ai-docs army-infantry | ForEach-Object { "/read-only $_" } | Set-Clipboard

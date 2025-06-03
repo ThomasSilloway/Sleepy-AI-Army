@@ -1,5 +1,5 @@
 [project]
-name = "army-infantry"
+name = "src"
 version = "0.1.0"
 description = "Infantry agent for Sleepy AI Army."
 authors = [

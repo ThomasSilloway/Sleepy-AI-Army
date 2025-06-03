@@ -15,7 +15,7 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.models import ModelRequestParameters  # For temperature, etc.
 
-from src.config import AppConfig
+from src.app_config import AppConfig
 
 logger = logging.getLogger(__name__)
 

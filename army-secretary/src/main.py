@@ -1,6 +1,5 @@
-# poc-8-backlog-to-goals/src/main.py
 """
-Main execution script for the PoC 8 application.
+Main execution script for the Secretary
 
 This script initializes the application configuration, sets up logging,
 instantiates necessary services (like LlmPromptService and BacklogProcessor),

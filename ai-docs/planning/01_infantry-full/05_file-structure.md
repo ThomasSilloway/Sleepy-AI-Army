@@ -1,3 +1,5 @@
+## Proposed
+
 ```
 army-infantry/
 ├── .env.example                 # Example environment variables (e.g., API keys for LLMs)
@@ -52,3 +54,45 @@ army-infantry/
     └── templates/               # Directory for Jinja2 templates
         └── mission_report_template.md.j2 # Jinja2 template for the `mission-report.md`
 ```
+
+## Final
+
+/read-only ai-docs/CONVENTIONS.md
+/read-only ai-docs/planning/01_infantry-full/01_vision-statement.md
+/read-only ai-docs/planning/01_infantry-full/02_objective-list.md
+/read-only ai-docs/planning/01_infantry-full/03_tech-design-considerations.md
+/read-only ai-docs/planning/01_infantry-full/04_feature-list.md
+/read-only ai-docs/planning/01_infantry-full/05_file-structure.md
+/read-only ai-docs/spec.md.example
+/read-only army-infantry/.env.example
+/read-only army-infantry/pyproject.toml
+/read-only army-infantry/src/__init__.py
+/read-only army-infantry/src/app_config.py
+/read-only army-infantry/src/graph_builder.py
+/read-only army-infantry/src/graph_state.py
+/read-only army-infantry/src/main.py
+/read-only army-infantry/src/models/__init__.py
+/read-only army-infantry/src/models/aider_summary.py
+/read-only army-infantry/src/nodes/__init__.py
+/read-only army-infantry/src/nodes/code-modification/__init__.py
+/read-only army-infantry/src/nodes/code-modification/node.py
+/read-only army-infantry/src/nodes/code-modification/prompts.py
+/read-only army-infantry/src/nodes/git-branch/__init__.py
+/read-only army-infantry/src/nodes/git-branch/node.py
+/read-only army-infantry/src/nodes/git-branch/prompts.py
+/read-only army-infantry/src/nodes/git-checkout-original-branch/__init__.py
+/read-only army-infantry/src/nodes/git-checkout-original-branch/node.py
+/read-only army-infantry/src/nodes/initialize-mission/__init__.py
+/read-only army-infantry/src/nodes/initialize-mission/node.py
+/read-only army-infantry/src/nodes/initialize-mission/prompts.py
+/read-only army-infantry/src/nodes/mission-reporting/__init__.py
+/read-only army-infantry/src/nodes/mission-reporting/node.py
+/read-only army-infantry/src/nodes/mission-reporting/prompts.py
+/read-only army-infantry/src/services/__init__.py
+/read-only army-infantry/src/services/aider_service.py
+/read-only army-infantry/src/services/git_service.py
+/read-only army-infantry/src/services/llm_prompt_service.py
+/read-only army-infantry/src/services/write_file_from_template_service.py
+/read-only army-infantry/src/templates/mission_report_template.md.j2
+/read-only army-infantry/src/utils/__init__.py
+/read-only army-infantry/src/utils/logging_setup.py

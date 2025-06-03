@@ -25,8 +25,8 @@ class LowercaseLevelnameFormatter(logging.Formatter):
 def setup_logging(app_config, log_level=logging.INFO):
     """Configures logging for the application with console and file outputs."""
 
-    goal_root_path = Path(app_config.goal_root_path).resolve()
-    log_subdirectory = goal_root_path / app_config.log_subdirectory_name
+    mission_folder = Path(app_config.mission_folder_path_absolute).resolve()
+    log_subdirectory = mission_folder / app_config.log_subdirectory_name
     os.makedirs(log_subdirectory, exist_ok=True)
 
     overview_log_file_path = str(log_subdirectory / app_config.overview_log_filename)
