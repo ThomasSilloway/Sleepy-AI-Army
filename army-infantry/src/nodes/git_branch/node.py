@@ -32,6 +32,5 @@ async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowS
     logger.info(f"Executing {state['current_step_name']}._git_branch")
 
     # TODO: Implement the actual git branching logic here
-    # This may involve creating a new branch, switching to an existing branch, etc.
 
     return state

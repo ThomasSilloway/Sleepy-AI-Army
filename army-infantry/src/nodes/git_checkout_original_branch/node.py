@@ -32,15 +32,5 @@ async def _git_checkout_original_branch(state: WorkflowState, config: dict[str, 
     logger.info(f"Executing {state['current_step_name']}._git_checkout_original_branch")
 
     # TODO: Implement the actual git checkout logic here
-    # This typically involves retrieving the original branch name from mission_context
-    # and using a Git library or command to perform the checkout.
-    # Example:
-    # original_branch = state.get('mission_context', {}).get('original_branch_name')
-    # if original_branch:
-    #   logger.info(f"Checking out original branch: {original_branch}")
-    #   # Perform git checkout operation
-    # else:
-    #   logger.warning("Original branch name not found in mission context.")
-    #   # Potentially raise an error or handle as a non-critical issue
 
     return state
