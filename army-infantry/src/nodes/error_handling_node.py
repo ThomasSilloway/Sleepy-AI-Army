@@ -1,4 +1,5 @@
 import logging
+
 from ..graph_state import WorkflowState
 
 logger = logging.getLogger(__name__)
@@ -6,7 +7,7 @@ logger = logging.getLogger(__name__)
 async def error_handling_node(state: WorkflowState) -> WorkflowState:
     error_message = state.get("critical_error_message")
     logger.error(f"Critical error encountered in workflow: {error_message}")
-    
+
     # Potentially update mission_context to reflect failure status
     # mission_context = state['mission_context']
     # updated_mission_context = mission_context.copy(

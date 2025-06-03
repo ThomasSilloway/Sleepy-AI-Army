@@ -1,6 +1,7 @@
 import logging
+
 # Adjust import as per final structure, assuming graph_state is two levels up
-from ...graph_state import WorkflowState, MissionContext 
+from ...graph_state import WorkflowState
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ async def initialize_mission_node(state: WorkflowState) -> WorkflowState:
     # and returning the rest of the state as is.
     # The spec example showed {**state, "current_step_name": "..."}
     # which is a good way to do it.
-    
+
     # Example of how to access mission_context if needed for future expansion:
     # mission_context = state['mission_context']
     # logger.info(f"Mission ID: {mission_context.mission_id}")

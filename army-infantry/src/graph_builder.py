@@ -1,14 +1,14 @@
 import logging
-from langgraph.graph import StateGraph, END
+
+from langgraph.graph import END, StateGraph
+
 from .graph_state import WorkflowState
-from .nodes import (
-    initialize_mission_node,
-    code_modification_node,
-    git_branch_node,
-    git_checkout_original_branch_node,
-    mission_reporting_node,
-    error_handling_node 
-)
+from .nodes import error_handling_node
+from .nodes.code_modification import code_modification_node
+from .nodes.git_branch import git_branch_node
+from .nodes.git_checkout_original_branch import git_checkout_original_branch_node
+from .nodes.initialize_mission import initialize_mission_node
+from .nodes.mission_reporting import mission_reporting_node
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +43,9 @@ class RoutingLogic:
     def after_mission_reporting(self, state: WorkflowState):
         # This is the last main step in the happy path before cleanup or end
         return self._route_conditional(state, GIT_CHECKOUT_ORIGINAL_BRANCH)
-        
+
     def after_git_checkout_original_branch(self, state: WorkflowState):
-        # If there was an error during checkout, it should have set critical_error_message
-        if state.get("critical_error_message"):
-             logger.error(f"Routing to {ERROR_HANDLER} due to critical_error_message from git_checkout_original_branch")
-             return ERROR_HANDLER
-        logger.info(f"Workflow happy path completed. Routing from {GIT_CHECKOUT_ORIGINAL_BRANCH} to END.")
-        return END
+        return self._route_conditional(state, END)
 
 
 def build_graph() -> StateGraph:
@@ -76,24 +71,9 @@ def build_graph() -> StateGraph:
     graph_builder.add_conditional_edges(GIT_BRANCH, routing_logic.after_git_branch)
     graph_builder.add_conditional_edges(CODE_MODIFICATION, routing_logic.after_code_modification)
     graph_builder.add_conditional_edges(MISSION_REPORTING, routing_logic.after_mission_reporting)
-    
-    # For git_checkout_original_branch, it can go to END or ERROR_HANDLER
-    graph_builder.add_conditional_edges(
-        GIT_CHECKOUT_ORIGINAL_BRANCH,
-        routing_logic.after_git_checkout_original_branch,
-        {
-            END: END, # Explicitly map END to END
-            ERROR_HANDLER: ERROR_HANDLER
-        }
-    )
+    graph_builder.add_conditional_edges(GIT_CHECKOUT_ORIGINAL_BRANCH, routing_logic.after_git_checkout_original_branch)
 
     # Add edge from terminal error node to END
     graph_builder.add_edge(ERROR_HANDLER, END)
-
-    # The spec also implies a direct edge from mission_reporting_node to END in some cases,
-    # but the linear flow specified is initialize_mission -> git_branch -> code_modification -> 
-    # mission_reporting -> git_checkout_original_branch -> END.
-    # The current routing logic handles this: after_mission_reporting routes to git_checkout_original_branch,
-    # and after_git_checkout_original_branch routes to END.
 
     return graph_builder.compile()
