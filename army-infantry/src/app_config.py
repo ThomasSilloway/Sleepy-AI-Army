@@ -31,6 +31,8 @@ class AppConfig:
     aider_code_model: str
     aider_summary_model: str
 
+    mission_title_extraction_model: str
+
     log_subdirectory_name: str
     overview_log_filename: str
     detailed_log_filename: str
@@ -78,6 +80,7 @@ class AppConfig:
 
         self.aider_code_model = yml_config.get("aider_code_model")
         self.aider_summary_model = yml_config.get("aider_summary_model")
+        self.mission_title_extraction_model = yml_config.get("mission_title_extraction_model")
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -103,7 +106,7 @@ class AppConfig:
         if not self.mission_folder_path or not self.mission_report_filename:
             return ""
         return os.path.join(self.mission_folder_path_absolute, self.mission_report_filename)
-    
+
     @property
     def mission_description_path(self) -> str:
         """
@@ -139,6 +142,8 @@ class AppConfig:
             raise ValueError("aider_code_model is not set in config.yml.")
         if not self.aider_summary_model:
             raise ValueError("aider_summary_model is not set in config.yml.")
+        if not self.mission_title_extraction_model:
+            raise ValueError("mission_title_extraction_model is not set in config.yml.")
 
         if not self.log_subdirectory_name:
             raise ValueError("log_subdirectory_name is not set in config.yml.")
