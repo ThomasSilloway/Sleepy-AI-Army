@@ -7,7 +7,7 @@ from typing import Optional  # Use List instead of list for older Python compati
 
 from pydantic import BaseModel
 
-from src.config import AppConfig
+from src.app_config import AppConfig
 from src.models.aider_summary import AiderRunSummary
 from src.services.llm_prompt_service import LlmPromptService
 
