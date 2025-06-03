@@ -9,12 +9,11 @@ and then starts working on the mission
 import argparse  # Added for command-line argument parsing
 import asyncio
 import logging
-from datetime import datetime
 
 # Project-specific imports
-from app_config import AppConfig
-from services.git_service import GitService
-from services.llm_prompt_service import LlmPromptService
+from src.app_config import AppConfig
+from src.graph_builder import build_graph
+from src.graph_state import MissionContext, WorkflowState
 from src.utils.logging_setup import setup_logging
 
 # 1. Initialize ArgumentParser
@@ -56,6 +55,29 @@ async def run() -> None:
     logger.info("Starting Army Infantry: Coding Mission Executor.")
     try:
         logger.info(f"Mission Folder Path: {app_config.mission_folder_path_absolute}")
+        # Define LangGraph graph
+        app_graph = build_graph()
+
+        # Prepare initial WorkflowState
+        initial_state: WorkflowState = {
+            "mission_context": MissionContext(),
+            "current_step_name": None,
+            "critical_error_message": None
+        }
+
+        # Prepare RunnableConfig
+        runnable_config = {
+            "configurable": {
+                "app_config": app_config,
+            }
+        }
+        logger.debug("RunnableConfig prepared.")
+
+        # Invoke graph execution
+        logger.overview("Invoking graph execution...")
+        final_state = await app_graph.ainvoke(initial_state, config=runnable_config)
+        logger.overview(f"  - Final Step Name: {final_state.get('current_step_name', 'N/A')}")
+
         logger.info("Army Infantry Mission Complete")
     except ValueError as ve:
         logger.critical(f"Configuration error: {ve}. Please check your .env, config.yaml files, or command line arguments. Exiting.", exc_info=False)
