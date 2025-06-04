@@ -1,10 +1,9 @@
 import logging
-
-# No longer importing datetime or StructuredError here as this node's top-level error handler is simplified
+import os
 from typing import Any
 
 from ...app_config import AppConfig
-from ...graph_state import MissionContext, WorkflowState  # StructuredError removed
+from ...graph_state import MissionContext, WorkflowState
 from ...services.git_service import GitService
 from ...services.llm_prompt_service import LlmPromptService
 from .models import MissionData
@@ -47,13 +46,16 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     # Perform LLM call to get MissionData (title and git_branch_base_name)
     mission_data = await _extract_mission_data(llm_service, app_config, mission_spec_content)
 
+    # Verify files and prepare for Aider
+    files_to_edit = await _verify_and_prepare_aider_files(app_config, mission_data)
+
     # Update mission context
     mission_context = state['mission_context']
     mission_context.mission_spec_content = mission_spec_content
     mission_context.mission_title = mission_data.mission_title
     mission_context.original_branch_name = original_branch_name
     mission_context.generated_branch_name = mission_data.git_branch_name
-    mission_context.aider_editable_files = mission_data.editable_files # Store editable files
+    mission_context.aider_editable_files = files_to_edit
     mission_context.status = "IN_PROGRESS"
 
     logger.overview(f"""
@@ -99,3 +101,43 @@ async def _extract_mission_data(llm_service: LlmPromptService, app_config: AppCo
     except Exception as e:
         logger.error(f"Failed to extract mission data from mission spec: {e}", exc_info=True)
         raise RuntimeError(f"Failed to extract mission data from mission spec: {e}")
+
+
+async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: MissionData) -> list[str]:
+    """
+    Verifies file existence for 'files_to_edit' and creates 'files_to_create' (or confirms existence).
+    Raises RuntimeError if validation fails for files_to_edit or if creation fails for new files_to_create.
+    """
+    project_git_root = app_config.project_git_root
+    verified_files_to_edit = []
+    prepared_files_to_create = []
+
+    # Process mission_data.files_to_edit
+    for file_path in mission_data.files_to_edit:
+        full_path = os.path.join(project_git_root, file_path)
+        if not os.path.exists(full_path):
+            logger.error(f"File specified for editing does not exist: {file_path}")
+            raise RuntimeError(f"File specified for editing does not exist: {file_path}")
+        verified_files_to_edit.append(file_path)
+
+    # Process mission_data.files_to_create
+    for file_path in mission_data.files_to_create:
+        full_path = os.path.join(project_git_root, file_path)
+        if os.path.exists(full_path):
+            logger.debug(f"File specified for creation '{file_path}' already exists, proceeding with existing file.")
+        else:
+            logger.info(f"Creating empty file as placeholder: {file_path}")
+            parent_dir = os.path.dirname(full_path)
+            if parent_dir: 
+                os.makedirs(parent_dir, exist_ok=True)
+            try:
+                with open(full_path, "w") as f:
+                    pass 
+            except OSError as e_create: # Catch specific errors
+                logger.error(f"IOError/OSError creating file {file_path}: {e_create}", exc_info=True)
+                raise RuntimeError(
+                    f"Failed to create placeholder file {file_path} due to an IO/OS error: {e_create}"
+                )
+        prepared_files_to_create.append(file_path) # Add to list if it exists or was successfully created
+
+    return verified_files_to_edit + prepared_files_to_create
