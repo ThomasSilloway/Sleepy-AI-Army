@@ -23,13 +23,13 @@ class AppConfig:
     """
     project_git_path: Optional[str]
     backlog_file_name: Optional[str]
-    ai_goals_directory_name: Optional[str]
+    ai_missions_directory_name: Optional[str] # Renamed
     default_llm_model_name: str
     gemini_api_key: Optional[str]
-    task_description_filename: str
+    mission_spec_filename: str # Renamed from task_description_filename
     default_log_directory: str
     default_log_filename: str
-    new_goal_folders_filename: str
+    new_mission_folders_filename: str # Renamed
 
     def __init__(self, command_line_git_path: Optional[str] = None) -> None:
         """
@@ -57,12 +57,12 @@ class AppConfig:
             self.project_git_path = yaml_config.get("project_git_path")
 
         self.backlog_file_name = yaml_config.get("backlog_file_name")
-        self.ai_goals_directory_name = yaml_config.get("ai_goals_directory_name")
+        self.ai_missions_directory_name = yaml_config.get("ai_missions_directory_name") # Renamed field, will read new key from YAML
         self.default_llm_model_name = yaml_config.get("default_llm_model_name")
-        self.task_description_filename = yaml_config.get("task_description_filename")
-        self.default_log_directory = yaml_config.get("default_log_directory") 
-        self.default_log_filename = yaml_config.get("default_log_filename") 
-        self.new_goal_folders_filename = yaml_config.get("new_goal_folders_filename")
+        self.mission_spec_filename = yaml_config.get("mission_spec_filename") # Renamed field
+        self.default_log_directory = yaml_config.get("default_log_directory")
+        self.default_log_filename = yaml_config.get("default_log_filename") # This will read the new default log filename from YAML
+        self.new_mission_folders_filename = yaml_config.get("new_mission_folders_filename") # Renamed field, will read new key from YAML
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -80,26 +80,26 @@ class AppConfig:
         return os.path.join(self.project_git_path, self.backlog_file_name)
 
     @property
-    def goals_output_directory(self) -> str:
+    def missions_output_directory(self) -> str: # Renamed property
         """
-        Constructs the full path to the AI goals output directory.
+        Constructs the full path to the AI missions output directory.
         Returns an empty string if components are missing.
         """
-        if not self.project_git_path or not self.ai_goals_directory_name:
+        if not self.project_git_path or not self.ai_missions_directory_name: # Logic uses renamed field
             return ""
-        return os.path.join(self.project_git_path, self.ai_goals_directory_name)
+        return os.path.join(self.project_git_path, self.ai_missions_directory_name) # Logic uses renamed field
 
     @property
-    def new_goal_folders_file_path(self) -> str:
+    def new_mission_folders_file_path(self) -> str: # Renamed property
         """
-        Constructs the full path to the file that will contain the list of new goal folders.
+        Constructs the full path to the file that will contain the list of new mission folders.
         Returns an empty string if components are missing.
         """
         if not self.project_git_path:
             return ""
-        if not self.goals_output_directory or not self.new_goal_folders_filename:
+        if not self.missions_output_directory or not self.new_mission_folders_filename: # Logic uses renamed property and field
              return ""
-        return os.path.join(self.goals_output_directory, self.new_goal_folders_filename)
+        return os.path.join(self.missions_output_directory, self.new_mission_folders_filename) # Logic uses renamed property and field
 
     def validate(self) -> None:
         """
@@ -116,16 +116,16 @@ class AppConfig:
             raise ValueError(f"project_git_path '{self.project_git_path}' is not a valid directory.")
         if not self.backlog_file_name:
             raise ValueError("backlog_file_name is not set in config.yaml.")
-        if not self.ai_goals_directory_name:
-            raise ValueError("ai_goals_directory_name is not set in config.yaml.")
+        if not self.ai_missions_directory_name: # Validates renamed field
+            raise ValueError("ai_missions_directory_name is not set in config.yaml.") # Updated error message
         if not self.default_llm_model_name or not isinstance(self.default_llm_model_name, str):
             raise ValueError("default_llm_model_name must be a non-empty string in config.yaml or defaults will apply.")
-        if not self.task_description_filename or not isinstance(self.task_description_filename, str):
-            raise ValueError("task_description_filename must be a non-empty string in config.yaml or use the default value.")
+        if not self.mission_spec_filename or not isinstance(self.mission_spec_filename, str): # Renamed field
+            raise ValueError("mission_spec_filename must be a non-empty string in config.yaml.") # Updated error message
         if not self.default_log_directory or not isinstance(self.default_log_directory, str):
             raise ValueError("default_log_directory must be a non-empty string in config.yaml or use the default value 'logs'.")
         if not self.default_log_filename or not isinstance(self.default_log_filename, str):
-            raise ValueError("default_log_filename must be a non-empty string in config.yaml or use the default value 'backlog-to-goals.log'.")
+            raise ValueError("default_log_filename must be a non-empty string in config.yaml or use the default value 'backlog-to-missions.log'.") # Updated example log name
 
         # Validate constructed paths
         if not self.backlog_file_path:
@@ -133,5 +133,5 @@ class AppConfig:
         if not os.path.isfile(self.backlog_file_path):
             raise ValueError(f"backlog_file_path '{self.backlog_file_path}' (from config.yaml) does not exist or is not a file.")
 
-        if not self.goals_output_directory:
-            raise ValueError("Could not construct goals_output_directory. Ensure project_git_path (command-line or config) and ai_goals_directory_name are valid in config.yaml.")
+        if not self.missions_output_directory: # Validates renamed property
+            raise ValueError("Could not construct missions_output_directory. Ensure project_git_path (command-line or config) and ai_missions_directory_name are valid in config.yaml.") # Updated error message
