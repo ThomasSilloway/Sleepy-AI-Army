@@ -39,6 +39,8 @@ async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowS
     try:
         logger.info(f"Attempting to create and checkout branch: {generated_branch_name}")
 
+        # TODO: Check if branch name exists already, if it does add some kind of hash after to make it unique
+
         # Attempt to create and checkout the new branch using 'git checkout -b'
         await git_service.checkout_branch(generated_branch_name, create_new=True)
         logger.overview(f"Checked out branch: {generated_branch_name}")

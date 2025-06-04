@@ -1,0 +1,46 @@
+# Mission Report
+
+{{ mission_title | default('N/A') }}
+
+## Status
+
+{{ status | default('Unknown') }}
+
+## Execution Summary
+{{ execution_summary | default('No summary provided.') }}
+
+## Files Modified
+{% if files_modified %}
+{% for file in files_modified %}
+- `{{ file }}`
+{% endfor %}
+{% else %}No files modified.{% endif %}
+
+## Files Created
+{% if files_created %}
+{% for file in files_created %}
+- `{{ file }}`
+{% endfor %}
+{% else %}No files created.{% endif %}
+
+## Git Branch
+{{ generated_branch_name | default('N/A') }}
+
+## Git Commits
+{% if git_summary %}
+{% for commit_msg in git_summary %}
+- {{ commit_msg }}
+{% endfor %}
+{% else %}No Git summary available.{% endif %}
+
+## LLM Usage Cost
+Total Cost: ${{ "%.2f" | format(total_cost_usd | default(0.0) | float) }}
+
+## Errors and Issues
+{% if mission_errors %}
+{% for error in mission_errors %}- {{ error }}{% endfor %}
+{% else %}No errors reported.{% endif %}
+
+
+## Last Update
+{{ report_timestamp }}

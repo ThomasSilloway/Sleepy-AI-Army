@@ -13,6 +13,8 @@ from .prompts import get_aider_prompt_template
 
 logger = logging.getLogger(__name__)
 
+MOCK_AIDER = False
+
 
 async def code_modification_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
     """
@@ -39,9 +41,12 @@ async def _code_modification(state: WorkflowState, config: dict[str, Any]) -> Wo
     app_config: AppConfig = config["configurable"]["app_config"]
     aider_service: AiderService = config["configurable"]["aider_service"]
 
-    aider_result: AiderExecutionResult = await _call_aider_service(app_config, aider_service, mission_context)
+    if not MOCK_AIDER:
+        aider_result: AiderExecutionResult = await _call_aider_service(app_config, aider_service, mission_context)
 
-    aider_summary: AiderRunSummary = await _get_aider_summary(aider_service, aider_result)
+        aider_summary: AiderRunSummary = await _get_aider_summary(aider_service, aider_result)
+    else:
+        aider_summary: AiderRunSummary = _get_mocked_aider_summary()
 
     _update_mission_context_from_aider_summary(mission_context, aider_summary, state)
 
@@ -126,3 +131,12 @@ def _update_mission_context_from_aider_summary(mission_context: MissionContext, 
 
     # If we made it this far, then the mission was successful
     mission_context.status = "SUCCESS"
+
+def _get_mocked_aider_summary() -> AiderRunSummary:
+    return AiderRunSummary(
+        changes_made=["Mocked change 1", "Mocked change 2"],
+        files_modified=["file1.py", "file2.py"],
+        files_created=["file3.py"],
+        commits=["commit1", "commit2"],
+        total_cost=0.05
+    )
