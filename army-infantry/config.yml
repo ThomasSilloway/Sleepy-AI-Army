@@ -28,3 +28,20 @@ aider_code_model: "gemini/gemini-2.0-flash-exp"
 aider_summary_model: "gemini-2.0-flash-exp"
 
 mission_title_extraction_model: "gemini-2.0-flash-exp"
+
+########################
+#  GIT CONFIGURATION
+########################
+
+branch_naming:
+  default_branch_prefix: "ai-mission/"
+  max_branch_name_length: 60 # Max total length of the generated branch name
+  max_branch_description_length: 40 # Max length for the descriptive part of the branch name (after type prefix, before hash suffix)
+  valid_branch_types:
+    - "feature"
+    - "fix"
+    - "polish"
+    - "docs"
+    - "refactor"
+    - "chore"
+  branch_hash_length: 7 # Length of the unique hash suffix

@@ -37,6 +37,12 @@ class AppConfig:
     overview_log_filename: str
     detailed_log_filename: str
 
+    # Branch naming configuration
+    default_branch_prefix: str
+    max_branch_name_length: int
+    max_branch_description_length: int
+    valid_branch_types: list[str]
+    branch_hash_length: int # For the suffix
 
     def __init__(self, command_line_git_path: Optional[str] = None, command_line_mission_folder_path: Optional[str] = None) -> None:
         """
@@ -81,6 +87,14 @@ class AppConfig:
         self.aider_code_model = yml_config.get("aider_code_model")
         self.aider_summary_model = yml_config.get("aider_summary_model")
         self.mission_title_extraction_model = yml_config.get("mission_title_extraction_model")
+
+        # Load branch naming config
+        branch_config = yml_config.get("branch_naming", {})
+        self.default_branch_prefix = branch_config.get("default_branch_prefix", "ai-mission/")
+        self.max_branch_name_length = branch_config.get("max_branch_name_length", 60)
+        self.max_branch_description_length = branch_config.get("max_branch_description_length", 40)
+        self.valid_branch_types = branch_config.get("valid_branch_types", ["feature", "fix", "polish", "docs", "refactor", "chore"])
+        self.branch_hash_length = branch_config.get("branch_hash_length", 7)
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -129,7 +143,7 @@ class AppConfig:
         if not self.root_git_path:
             raise ValueError("root_git_path is not set in config.yml and not provided via command line.")
         if not os.path.isdir(self.root_git_path):
-            raise ValueError(f"project_root_git_pathgit_path '{self.root_git_path}' is not a valid directory.")
+            raise ValueError(f"root_git_path '{self.root_git_path}' is not a valid directory.")
 
         if not self.mission_folder_path:
             raise ValueError("mission_folder_path is not set in config.yml and not provided via command line.")
@@ -151,6 +165,20 @@ class AppConfig:
             raise ValueError("overview_log_filename is not set in config.yml.")
         if not self.detailed_log_filename:
             raise ValueError("detailed_log_filename is not set in config.yml.")
+
+        # Validate branch naming config
+        if not self.default_branch_prefix:
+            raise ValueError("branch_naming.default_branch_prefix is not set in config.yml.")
+        if not isinstance(self.max_branch_name_length, int) or self.max_branch_name_length <= 0:
+            raise ValueError("branch_naming.max_branch_name_length must be a positive integer.")
+        if not isinstance(self.max_branch_description_length, int) or self.max_branch_description_length <= 0:
+            raise ValueError("branch_naming.max_branch_description_length must be a positive integer.")
+        if not isinstance(self.valid_branch_types, list) or not all(isinstance(item, str) for item in self.valid_branch_types):
+            raise ValueError("branch_naming.valid_branch_types must be a list of strings.")
+        if not self.valid_branch_types: # Must not be empty
+            raise ValueError("branch_naming.valid_branch_types cannot be empty.")
+        if not isinstance(self.branch_hash_length, int) or self.branch_hash_length <= 0:
+            raise ValueError("branch_naming.branch_hash_length must be a positive integer.")
 
         # Validate constructed paths
         if not os.path.isdir(self.mission_folder_path_absolute):
