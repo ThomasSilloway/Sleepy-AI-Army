@@ -228,7 +228,7 @@ async def run() -> None:
                 logger.info(f"Successfully cleaned up Secretary output file: {secretary_output_file}")
                 git_service = GitService(app_config.root_git_path)
                 commit_message = "AI Army General - Work Completed"
-                if git_service.commit_changes(commit_message):
+                if await git_service.commit_changes(commit_message):
                     logger.info(f"Committed changes to git with message: {commit_message}")
                 else:
                     logger.warning("Failed to commit changes to git.")
