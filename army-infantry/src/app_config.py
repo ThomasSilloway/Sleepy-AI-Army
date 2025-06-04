@@ -26,7 +26,7 @@ class AppConfig:
 
     mission_description_filename: str
     mission_report_filename: str
-    mission_report_template_filename: str
+    mission_report_template_filename: str # Just the filename.ext
 
     aider_code_model: str
     aider_summary_model: str
@@ -139,6 +139,19 @@ class AppConfig:
             return ""
         return os.path.join(self.mission_folder_path_absolute, self.mission_description_filename)
 
+    @property
+    def mission_report_template_abs_path(self) -> str:
+        """
+        Constructs the full absolute path to the mission report template file.
+        Returns an empty string if components are missing.
+        """
+        # Create variable with current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        templates_base_dir = current_dir + "/templates"
+
+        return os.path.join(templates_base_dir, self.mission_report_template_filename)
+
     def validate(self) -> None:
         """
         Validates the loaded configuration settings.
@@ -157,8 +170,8 @@ class AppConfig:
             raise ValueError("mission_folder_path is not set in config.yml and not provided via command line.")
         if not self.mission_report_filename:
             raise ValueError("mission_report_filename is not set in config.yml.")
-        if not self.mission_report_template_filename:
-            raise ValueError("mission_report_template_filename is not set in config.yml.")
+        if not self.mission_report_template_filename: # Check for the filename itself
+            raise ValueError("mission_report_template_filename (the filename part) is not set in config.yml.")
 
         if not self.aider_code_model:
             raise ValueError("aider_code_model is not set in config.yml.")
@@ -198,4 +211,8 @@ class AppConfig:
             raise ValueError(f"mission_folder_path '{self.mission_folder_path_absolute}' is not a valid directory.")
 
         if not os.path.isfile(self.mission_description_path):
-            raise ValueError(f"mission_description_path '{self.mission_description_path}' (from config.yml) does not exist or is not a file.")
+            raise ValueError(f"mission_description_path '{self.mission_description_path}' does not exist or is not a file.")
+
+        if not os.path.isfile(self.mission_report_template_abs_path):
+            raise ValueError(f"mission_report_template_path '{self.mission_report_template_abs_path}' does not exist or is not a file.")
+
