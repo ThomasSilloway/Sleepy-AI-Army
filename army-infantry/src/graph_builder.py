@@ -38,14 +38,15 @@ class RoutingLogic:
         return self._route_conditional(state, CODE_MODIFICATION)
 
     def after_code_modification(self, state: WorkflowState):
-        return self._route_conditional(state, MISSION_REPORTING)
-
-    def after_mission_reporting(self, state: WorkflowState):
-        # This is the last main step in the happy path before cleanup or end
-        return self._route_conditional(state, GIT_CHECKOUT_ORIGINAL_BRANCH)
+        # Always goto Checkout original branch because we need to reset the state
+        return GIT_CHECKOUT_ORIGINAL_BRANCH
 
     def after_git_checkout_original_branch(self, state: WorkflowState):
-        return self._route_conditional(state, END)
+        # Always goto Mission reporting bc if there were any errors we need to report them
+        return MISSION_REPORTING
+
+    def after_mission_reporting(self, state: WorkflowState):
+        return END
 
 
 def build_graph() -> StateGraph:
@@ -59,8 +60,8 @@ def build_graph() -> StateGraph:
     graph_builder.add_node(INITIALIZE_MISSION, initialize_mission_node)
     graph_builder.add_node(GIT_BRANCH, git_branch_node)
     graph_builder.add_node(CODE_MODIFICATION, code_modification_node)
-    graph_builder.add_node(MISSION_REPORTING, mission_reporting_node)
     graph_builder.add_node(GIT_CHECKOUT_ORIGINAL_BRANCH, git_checkout_original_branch_node)
+    graph_builder.add_node(MISSION_REPORTING, mission_reporting_node)
     graph_builder.add_node(ERROR_HANDLER, error_handling_node)
 
     # Set entry point
@@ -73,7 +74,7 @@ def build_graph() -> StateGraph:
     graph_builder.add_conditional_edges(MISSION_REPORTING, routing_logic.after_mission_reporting)
     graph_builder.add_conditional_edges(GIT_CHECKOUT_ORIGINAL_BRANCH, routing_logic.after_git_checkout_original_branch)
 
-    # Add edge from terminal error node to END
+    # Add edge from error handler to our new cleanup node, then to END
     graph_builder.add_edge(ERROR_HANDLER, END)
 
     return graph_builder.compile()
