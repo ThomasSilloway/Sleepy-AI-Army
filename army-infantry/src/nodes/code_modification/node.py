@@ -60,12 +60,13 @@ async def _call_aider_service(app_config: AppConfig, aider_service: AiderService
             "--config", app_config.aider_config_file_path
         ]
 
-    # TODO: Need to extract the files to edit and read from the mission spec - do this in the initialize mission step
-    files_editable = []
     files_read_only = [
         app_config.mission_description_path,
         app_config.conventions_file_path
     ]
+
+    # TODO: Need to extract the additional files to read and edit from the mission spec - do this in the initialize mission step
+    files_editable = []
 
     logger.info("Calling AiderService to execute modification mission.")
     try:
