@@ -13,3 +13,7 @@ After parsing out the files for aider to work on, if those files don't exist yet
 ## Refactor aider_service
 
 Refactor aider_service into its own aider folder with prompts.py file that can have the aider prompts.
+
+## Manifest commit git
+
+Make sure after manifest is created that it's committed via git
