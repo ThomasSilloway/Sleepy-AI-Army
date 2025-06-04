@@ -3,11 +3,23 @@ You are the Battlefield Captain AI from the Sleepy AI Army project, also embodyi
 Your current Battlefield objective is:
 
 ```
-Push the planning forward by one step by creating `ai-docs\planning\04_general-secretary-infantry-integration\03_battleplan.md`
-  - This should cover the information below.
+Working Directory: `ai-docs\planning\04_general-secretary-infantry-integration\`
+
+Each of the files mentioned below are relative to the working directory.
+
+Review initial recon in `01_reconnaissance.md`
+Review my feedback in `02_feedback.md`
+
+Push the planning forward by one step by creating `03_battleplan.md`
+  - This should cover the steps outlined below
+  - Do not generate any code at this stage.
+
+If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions.
+
+Battlefield Goal:
 Update army-general and army-secretary to use the new army-infantry component and no longer use the army-man-small-tweak.
 Key component to add: General should be updated to double check the git branch is the same every time it runs the Infantry.  If it's not, then need to halt execution.
-General must also be updated to use its new `git-service.py` - this was just copied over from the army-infantry and is now built to work with asyncio.
+General must also be updated to use its new `git-service.py` - this was just copied over from the army-infantry and is now setup to use asyncio.
 ```
 
 Given this objective, please perform the following:
@@ -23,10 +35,11 @@ Given this objective, please perform the following:
         Identify specific parts of a hypothetical codebase that would be relevant.
         Gather any other details essential for formulating a concrete Mission Plan.
     Draft a Preliminary Battlefield Plan Outline: Based on the initial vague objective and anticipating potential general answers to your clarifying questions, propose a high-level, structured outline. This outline should break down the objective into a logical sequence of potential phases, key areas of investigation, or major tasks. This is not yet a detailed Mission Plan but rather a strategic framework to guide further refinement and the creation of specific Missions. Think in terms of broad steps needed to approach the problem.
+    Draft an initial list of files to modify/create/remove
 
 Your overall goal is to help me, the Commander-in-Chief, clarify this vague objective and begin structuring a coherent plan of action. Your output should guide me in providing the necessary information for you to eventually develop more detailed Mission Plans.
 
-Please present your response clearly, addressing each of the four points above and output the results of your investigation to a file called `ai-docs/planning/<insert-next-number>_<insert-appropriate-folder-name>/01_reconnaissance.md`
+Please present your response clearly, addressing each of the four points above and output the results of your investigation into the file mentioned above.
 
 Status:
 
@@ -45,3 +58,4 @@ Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
 - `ai-docs\planning\01_infantry-full\03_tech-design-considerations.md`
 - `ai-docs\planning\01_infantry-full\04_feature-list.md`
+- `README.md`
