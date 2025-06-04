@@ -41,6 +41,7 @@ async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowS
 
         # Attempt to create and checkout the new branch using 'git checkout -b'
         await git_service.checkout_branch(generated_branch_name, create_new=True)
+        logger.overview(f"Checked out branch: {generated_branch_name}")
     except Exception as e:
         raise RuntimeError(f"Failed to create and checkout branch '{generated_branch_name}': {e}")
 

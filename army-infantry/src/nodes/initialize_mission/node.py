@@ -26,9 +26,6 @@ async def initialize_mission_node(state: WorkflowState, config: dict[str, Any]) 
         logger.error(error_message, exc_info=True)
 
         mission_context.status = "ERROR"
-        # As per simplification, not adding StructuredError to mission_context.mission_errors here.
-        # That detail would be lost unless _initialize_mission itself adds it,
-        # or a downstream error handling node inspects critical_error_message.
 
         state["critical_error_message"] = error_message # Use the more concise error_message
 
