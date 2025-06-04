@@ -10,7 +10,7 @@ async def mission_reporting_node(state: WorkflowState, config: dict[str, Any]) -
     Generates and potentially sends a mission report.
     """
     state['current_step_name'] = mission_reporting_node.__name__
-    logger.info(f"Executing {state['current_step_name']}")
+    logger.overview(f"Executing {state['current_step_name']}")
 
     try:
         state = await _mission_reporting(state, config)

@@ -1,7 +1,13 @@
 """GCR-engineered prompts to guide Aider's code generation."""
 
-# TODO: Cleanup this example prompt and call it via function like get_aider_prompt(vars)
-aider_prompt = f"""
+def get_aider_prompt_template(mission_spec_filename: str) -> str:
+    """
+    Returns the structured prompt template for guiding Aider in code modification tasks.
+
+    The template includes a placeholder {task_desc_filename} which should be formatted
+    with the actual name of the task description file.
+    """
+    return f"""
 
 # File Update Task
 
@@ -9,14 +15,14 @@ aider_prompt = f"""
 
 ## Objectives
 
- - Implement the changes described in the file '{task_desc_filename}'.
+ - Implement the changes described in the file '{mission_spec_filename}'.
 
 ## Low-Level Tasks
 > Ordered from start to finish. Implement the described functionality, using standard features in the given language, error handling, and logging as appropriate.
 
 ### Task 1: Analyze the changes
 ```
- - ANALYZE the changes requested as described in the file '{task_desc_filename}'.
+ - ANALYZE the changes requested as described in the file '{mission_spec_filename}'.
 ```
 
 ### Task 2: Brainstorm how to apply changes
@@ -32,7 +38,7 @@ aider_prompt = f"""
 
 ### Task 4: Apply the changes
 ```
- - EXECUTE the plan formulated in the previous task to implement the changes specified in the file '{task_desc_filename}'.
+ - EXECUTE the plan formulated in the previous task to implement the changes specified in the file '{mission_spec_filename}'.
 ```
 
 ### Task 5: Critique the changes
