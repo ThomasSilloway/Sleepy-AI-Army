@@ -33,4 +33,16 @@ async def _code_modification(state: WorkflowState, config: dict[str, Any]) -> Wo
 
     # TODO: Implement the actual code modification logic here
 
+    # Use army-infantry\src\models\aider_summary.py to get the summary via the aider_service
+
+    # Use the below commandline flags for aider from this sample code, except aider_service should be updated to accept a list of files to read as well as add
+    # command_args = [
+    #         "-m", aider_prompt,
+    #         "--read", task_description_path_str,
+    #         "--read", "ai-docs/CONVENTIONS.md",
+    #         "--model", app_config.aider_code_model,
+    #         "--auto-commits",
+    #         "--config", ".aider.sleepy.conf.yml"
+    #     ]
+
     return state

@@ -8,8 +8,16 @@ ALWAYS FOLLOW THESE CONVENTIONS:
  - Use solid object oriented coding practices
  - Do not duplicate code, prefer to use functions and classes that re-use code
  - Prefer simple, elegant code with less lines rather than duplicated, complex code that maybe has one or two differences.
-   - Example BAD: 
-     ```
+
+ - File Structure:
+    - Always put paths and other hardcoded strings into `config.py` and update `config.yml` appropriately
+    - Always put prompts in the correct `prompt.py` instead of inlining them in the code
+
+  - If unsure about code to write, implement to the best of your ability making assumptions where necessary. There is no need to add comments with different implementation options, I am going to delete them anyways.
+
+## Code Examples
+### Example BAD
+```
 	try:
         state = await _initialize_mission(state, config)
     except GitServiceError as e:
@@ -52,10 +60,10 @@ ALWAYS FOLLOW THESE CONVENTIONS:
             timestamp=timestamp
         ))
         state["critical_error_message"] = _message
-		``` 
+``` 
 
-   - Example GOOD:
-   ```
+### Example GOOD
+```
     try:
         state = await _initialize_mission(state, config)
     except Exception as e:
@@ -63,13 +71,166 @@ ALWAYS FOLLOW THESE CONVENTIONS:
         state["critical_error_message"] = f"Error in initialize_mission_node: {e}"
         state['mission_context'].status = "ERROR"
         return state
-	```
+```
 
-  - File Structure:
-    - Always put paths and other hardcoded strings into `config.py` and update `config.yml` appropriately
-    - Always put prompts in the correct `prompt.py` instead of inlining them in the code
+### Example BAD #2
+```
+# army-infantry/src/nodes/git_branch/node.py
+import logging
+from typing import Any
+import datetime # For timestamping errors (used in preliminary checks)
 
-  - If unsure about code to write, implement to the best of your ability making assumptions where necessary. There is no need to add comments with different implementation options, I am going to delete them anyways.
+from ...app_config import AppConfig
+from ...graph_state import WorkflowState, MissionContext, StructuredError # Used in preliminary checks
+from ...services.git_service import GitService, GitServiceError # Used in core logic
+
+logger = logging.getLogger(__name__)
+
+async def git_branch_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
+    """
+    Creates and checks out a new Git branch based on the generated_branch_name
+    stored in the mission_context.
+    """
+    state['current_step_name'] = git_branch_node.__name__
+    node_function_name = state['current_step_name'] # For error messages
+    logger.info(f"Executing {node_function_name}")
+    
+    mission_context: MissionContext = state['mission_context']
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat() # For preliminary checks
+
+    # Preliminary checks - these can remain specific as they are preconditions
+    # and StructuredError is already imported and used for them.
+    configurable = config["configurable"]
+    app_config: AppConfig = configurable["app_config"]
+    
+    if not hasattr(app_config, 'repo_path') or not app_config.repo_path:
+        _message = f"Repository path 'repo_path' not configured in AppConfig for {node_function_name}."
+        logger.error(_message)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=node_function_name, message=_message, details=None, timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+        return state
+    
+    # GitService can be instantiated here or passed if already available in config
+    git_service: GitService = configurable.get("git_service")
+    if not git_service:
+        logger.info(f"GitService not found in configurable for {node_function_name}, creating new instance.")
+        git_service = GitService(repo_path=app_config.repo_path)
+    
+    generated_branch_name = mission_context.generated_branch_name
+
+    if not generated_branch_name:
+        _message = f"Generated branch name is not set in mission_context for {node_function_name}."
+        logger.error(_message)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=node_function_name, message=_message, details=None, timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+        return state
+
+    # Core logic for Git operations with simplified top-level error handling
+    try:
+        logger.info(f"Attempting to create and checkout branch: {generated_branch_name}")
+        
+        try:
+            # Attempt to create and checkout the new branch using 'git checkout -b'
+            await git_service.checkout_branch(generated_branch_name, create_new=True)
+            logger.info(f"Successfully created and checked out new branch: {generated_branch_name}")
+        except GitServiceError as e_create:
+            # Idempotency check: if 'checkout -b' failed because branch already exists
+            already_exists_indicators = ["a branch named", "already exists"] # Case-insensitive check
+            error_text_lower = (e_create.stderr or str(e_create)).lower()
+            is_already_exists_error = any(indicator in error_text_lower for indicator in already_exists_indicators)
+
+            if is_already_exists_error:
+                logger.warning(
+                    f"Branch '{generated_branch_name}' already exists (create_new=True failed). Attempting to checkout existing branch."
+                )
+                # Attempt to checkout the existing branch without create_new flag
+                await git_service.checkout_branch(generated_branch_name, create_new=False)
+                current_branch_checkout = await git_service.get_current_branch() # Verify current branch
+                if current_branch_checkout == generated_branch_name:
+                    logger.info(f"Successfully checked out existing branch: {generated_branch_name}")
+                else:
+                    # This is an unexpected state if checkout was supposed to succeed
+                    raise GitServiceError(
+                        f"Verification failed: Expected to be on branch '{generated_branch_name}' after checkout, but on '{current_branch_checkout}'.",
+                        stderr="Post-checkout branch mismatch" 
+                    ) # This will be caught by the outer generic Exception handler
+            else:
+                # If it's a GitServiceError but not "already exists", re-raise to be caught by outer handler
+                raise
+        
+        # If all successful, mission_context.status remains as is (e.g., IN_PROGRESS)
+
+    except Exception as e: # Single generic exception handler for the core Git logic block
+        error_message = f"Error in {node_function_name}: {str(e)}"
+        logger.error(error_message, exc_info=True)
+        
+        mission_context.status = "ERROR"
+        # As per simplified pattern, do not add StructuredError to mission_context.mission_errors here for this main block.
+        
+        state["critical_error_message"] = error_message
+        
+    return state
+
+```
+
+### Example Good #2
+```
+import logging
+from typing import Any
+
+from ...graph_state import MissionContext, WorkflowState
+from ...services.git_service import GitService
+
+logger = logging.getLogger(__name__)
+
+async def git_branch_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
+    state['current_step_name'] = git_branch_node.__name__
+    logger.info(f"Executing {state['current_step_name']}")
+
+    mission_context: MissionContext = state['mission_context']
+
+    try:
+        state = await _git_branch(state, config)
+    except Exception as e:
+        error_message = f"Error in {state['current_step_name']}: {str(e)}"
+        logger.error(error_message, exc_info=True)
+
+        mission_context.status = "ERROR"
+        state["critical_error_message"] = error_message
+
+    return state
+
+async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
+    """
+    Creates and checks out a new Git branch based on the generated_branch_name
+    stored in the mission_context.
+    """
+    mission_context: MissionContext = state['mission_context']
+
+    configurable = config["configurable"]
+    git_service: GitService = configurable.get("git_service")
+
+    generated_branch_name = mission_context.generated_branch_name
+
+    # Core logic for Git operations with simplified top-level error handling
+    try:
+        logger.info(f"Attempting to create and checkout branch: {generated_branch_name}")
+
+        # Attempt to create and checkout the new branch using 'git checkout -b'
+        await git_service.checkout_branch(generated_branch_name, create_new=True)
+        logger.overview(f"Checked out branch: {generated_branch_name}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to create and checkout branch '{generated_branch_name}': {e}")
+
+    return state
+
+```
 
 ## Task Instructions
 
@@ -108,16 +269,13 @@ Status:
 - Added the file scaffolding for the army-infantry folder. 
 - Implemented - Graph builder and graph state
 - Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
+- Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
+- Implemented - `army-infantry\src\nodes\git_branch\node.py`
 
 Task to Implement:
 
-1. Update `army-infantry\src\nodes\initialize_mission\node.py` to also extract a branch name. The prompt, model, node, graph_state and possibly more code will need to be updated for this.
-2. Implement the `git_branch` and `git_checkout_original_branch` nodes. Make sure to utilize the correct set of files with node.py, prompts.py, config.py, config.yml, etc. Make sure to use the branch name extracted in the `initialize_mission` node that should be passed via the graph_state.
-
-Here's guidance on how to construct branch names:
-
-Use the format `<type>/<description-with-dashes>`. Use these for <type>: fix, feature, polish. Ensure the branch name - Starts with the appropriate prefix. - Is in the imperative mood (e.g., \"add-feature\" not \"added-feature\" or \"adding-feature\"). - Does not exceed 50 characters.
-
+Implement - `army-infantry\src\nodes\code_modification\node.py`
+ - Important: Follow the TODOs in that file and the prompts.py file to guide you along with the docs below
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
