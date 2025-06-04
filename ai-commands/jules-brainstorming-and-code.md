@@ -281,12 +281,11 @@ Status:
 - Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
 - Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
 - Implemented - `army-infantry\src\nodes\git_branch\node.py`
-- Implemented First pass - `army-infantry\src\nodes\code_modification\node.py`
+- Implemented - `army-infantry\src\nodes\code_modification\node.py`
 
 Task to Implement:
 
-`army-infantry\src\nodes\code_modification\node.py` has an issue where it's missing the files it should be editing and reading via aider.
-This list of files should be extracted from the mission description during the `army-infantry\src\nodes\initialize_mission\node.py` phase.
+- Implement `army-infantry\src\nodes\mission_reporting\node.py`
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
