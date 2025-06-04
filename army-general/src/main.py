@@ -119,54 +119,48 @@ def _run_secretary() -> bool:
         logger.error(f"Run Secretary command not found: {command_to_run}")
         return False
 
-def _run_army_man(folder: str) -> bool:
+async def _run_infantry_mission(mission_folder_path: str, root_git_path: str) -> bool:
     """
-    Run the Army Man to work on a goal in the folder provided.  Implemented similar to _run_secretary
+    Runs army-infantry for a single mission folder.
     """
-    command_to_run = app_config.army_man_run_command_template.format(
-        target_folder=app_config.root_git_path,
-        goal_path=folder
-    )
-    logger.info(f"Constructed Army Man run command: {command_to_run}")
-    logger.info("Executing Army Man...")
-
-    # Current project root directory
     current_root_directory = Path(__file__).resolve().parent.parent.parent
-    army_man_directory = os.path.join(current_root_directory, "army-man-small-tweak")
-    logger.info(f"Army Man directory: {army_man_directory}")
+    infantry_directory = current_root_directory / "army-infantry"
 
-    # Run Secretary
+    command = [
+        "uv", "run", "src/main.py",
+        "--root_git_path", root_git_path,
+        "--mission_folder_path", mission_folder_path
+    ]
+    logger.info(f"Constructed army-infantry run command: {' '.join(command)}")
+    logger.info(f"Executing army-infantry from directory: {infantry_directory}")
+
     try:
-        logger.info("Running Army Man...")
-        process = subprocess.run(
-            command_to_run,
-            cwd=army_man_directory,
-            capture_output=True,
-            text=True,        # Ensure text=True
-            check=True,       # Ensure check=True
-            encoding='utf-8'
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=str(infantry_directory),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        if app_config.log_army_man_output:
+        stdout, stderr = await process.communicate()
+
+        if app_config.log_army_man_output: # Reusing old flag for infantry output
             _log_subprocess_details(
-                process_name="Army Man",
-                stdout_content=process.stdout,
-                stderr_content=process.stderr,
-                return_code=process.returncode
+                process_name="army-infantry",
+                stdout_content=stdout,
+                stderr_content=stderr,
+                return_code=process.returncode if process.returncode is not None else -1
             )
-        logger.info("Army Man completed successfully.")
+
+        if process.returncode != 0:
+            logger.error(f"army-infantry execution failed for mission {mission_folder_path} with return code {process.returncode}.")
+            return False
+        logger.info(f"army-infantry completed successfully for mission {mission_folder_path}.")
         return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Run Army Man failed with CalledProcessError: {e.returncode} - {e}")
-        if app_config.log_army_man_output:
-            _log_subprocess_details(
-                process_name="Army Man",
-                stdout_content=e.stdout,
-                stderr_content=e.stderr,
-                return_code=e.returncode
-            )
-        return False
     except FileNotFoundError:
-        logger.error(f"Run Army Man command not found: {command_to_run}")
+        logger.error(f"Failed to run army-infantry: 'uv' command not found or army-infantry src not found at {infantry_directory / 'src/main.py'}. Ensure uv is installed and paths are correct.")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while running army-infantry for {mission_folder_path}: {e}", exc_info=True)
         return False
 
 async def run() -> None:

@@ -10,7 +10,6 @@ secretary_output_file: "ai-goals\\new-mission-folders.txt"
 # Command templates for running Secretary and Army Man
 # The Python code will format these strings.
 secretary_run_command_template: "uv run .\\src\\main.py --root_git_path \"{target_folder}\""
-army_man_run_command_template: "uv run .\\src\\main.py --root_git_path \"{target_folder}\" --goal_path \"{goal_path}"
 
 # Logging level for the General application
 # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
