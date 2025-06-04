@@ -163,77 +163,112 @@ async def _run_infantry_mission(mission_folder_path: str, root_git_path: str) ->
         logger.error(f"An unexpected error occurred while running army-infantry for {mission_folder_path}: {e}", exc_info=True)
         return False
 
+
+async def _ensure_git_repo_state(
+    git_service: GitService,
+    original_branch: str,
+    context_message_prefix: str,
+    mission_folder_path: str | None = None
+) -> None:
+    """
+    Ensures the Git repository is in a consistent state.
+    Checks branch, stages, commits changes, and checks out the original branch.
+    """
 async def run() -> None:
     logger.info("Army General orchestration started.")
-
-    secretary_output_file = app_config.secretary_output_file_path
-    secretary_executed_successfully = False 
+    git_service = GitService(app_config.root_git_path)
+    original_branch = None
 
     try:
+        # Get the original branch before running Secretary
+        original_branch = await git_service.get_current_branch()
+        if not original_branch:
+            logger.error("Failed to determine the original Git branch. Aborting.")
+            return
+        logger.info(f"Original Git branch: {original_branch}")
+
+        # Run Secretary to generate the missions and the output file
+        secretary_output_file = app_config.secretary_output_file_path
+
         logger.info("Attempting to run Secretary...")
         if not _run_secretary():
             logger.error("Secretary execution failed. Further processing of its output will be skipped.")
-        else:
-            secretary_executed_successfully = True
-
-        # Proceed only if Secretary was successful
-        if not secretary_executed_successfully:
-            logger.warning("Skipping processing of Secretary's output file due to earlier errors.")
-            return # Exits run(), 'finally' block will execute.
+            return
 
         logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
         if not os.path.exists(secretary_output_file):
             logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
             logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
-            return # Exits run(), 'finally' block will execute.
+            return
 
-        # Parse the folders from the file
+        # Get the mission folders to run the Infantry on
         folders = []
-        try: # Nested try for file reading
+        try:
             with open(secretary_output_file) as file:
                 folders = [line.strip() for line in file if line.strip()]
-            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} folders.")
-        except Exception as e: # Catch any exception during file open/read
+            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} mission folders.")
+        except Exception as e:
             logger.error(f"Failed to read or parse secretary output file {secretary_output_file}: {e}")
-            return # Exits run(), 'finally' block will execute.
+            return
 
         if not folders:
-            logger.warning("No folders found in Secretary output. No Army Man tasks to perform.")
-            return # Exits run(), 'finally' block will execute.
+            logger.warning("No mission folders found in Secretary output. No Infantry tasks to perform.")
+            return
 
-        num_goals_worked_on = 0
-        for folder_index, folder in enumerate(folders):
-            logger.info(f"Processing folder {folder_index + 1}/{len(folders)}: {folder}")
-            if _run_army_man(folder): # Assumes _run_army_man() returns bool
-                num_goals_worked_on += 1
-                logger.info(f"Successfully completed Army Man task for folder: {folder}")
+        # For each folder, run an infantry mission
+        num_missions_worked_on = 0
+        for folder_index, mission_folder_path_from_secretary in enumerate(folders):
+            logger.info(f"Processing mission folder {folder_index + 1}/{len(folders)}: {mission_folder_path_from_secretary}")
+
+            infantry_success = await _run_infantry_mission(mission_folder_path_from_secretary, app_config.root_git_path)
+
+            if infantry_success:
+                logger.info(f"army-infantry successfully processed mission: {mission_folder_path_from_secretary}")
             else:
-                logger.warning(f"Army Man task failed for folder: {folder}. Continuing with next folder if any.")
+                logger.warning(f"army-infantry failed to process mission: {mission_folder_path_from_secretary}. Continuing with cleanup.")
 
-        logger.info(f"Completed processing all folders. Total goals worked on: {num_goals_worked_on}/{len(folders)}.")
+            # Ensure Git repo state after each infantry mission
+            await _ensure_git_repo_state(
+                git_service=git_service,
+                original_branch=original_branch,
+                context_message_prefix="Post-Infantry Cleanup",
+                mission_folder_path=mission_folder_path_from_secretary
+            )
 
+            if infantry_success:
+                 num_missions_worked_on +=1
+
+        logger.info(f"Completed processing all mission folders. Total missions successfully processed by Infantry: {num_missions_worked_on}/{len(folders)}.")
+
+    except Exception as e:
+        logger.critical(f"An unhandled exception occurred in the main run loop: {e}", exc_info=True)
     finally:
-        # Cleanup: Attempt to delete the secretary_output_file.
-        # This block executes regardless of exceptions or return statements in the try block.
-        logger.info(f"Initiating cleanup of Secretary output file: {secretary_output_file}")
-        if os.path.exists(secretary_output_file):
-            try:
-                os.remove(secretary_output_file)
-                logger.info(f"Successfully cleaned up Secretary output file: {secretary_output_file}")
-                git_service = GitService(app_config.root_git_path)
-                commit_message = "AI Army General - Work Completed"
-                if await git_service.commit_changes(commit_message):
-                    logger.info(f"Committed changes to git with message: {commit_message}")
-                else:
-                    logger.warning("Failed to commit changes to git.")
-            except OSError as e:
-                logger.error(f"Error deleting Secretary output file {secretary_output_file}: {e}. Manual cleanup might be required.")
-        else:
-            # This is not necessarily an error condition.
-            # It could mean Secretary failed before creating it, or it was (unexpectedly) already cleaned.
-            logger.info(f"Secretary output file {secretary_output_file} was not found during cleanup. This may be normal if Secretary did not produce it or if it was already handled.")
+        logger.info("Initiating cleanup procedures in the 'finally' block.")
 
-    logger.info("Army General finished all operations.") # This is after the try-finally structure.
+        # Delete Secretary output file first, so its deletion can be part of the final commit
+        secretary_file_to_delete = app_config.secretary_output_file_path
+        logger.info(f"Attempting to delete Secretary output file: {secretary_file_to_delete}")
+        if os.path.exists(secretary_file_to_delete):
+            try:
+                os.remove(secretary_file_to_delete)
+                logger.info(f"Successfully deleted Secretary output file: {secretary_file_to_delete}")
+            except OSError as e:
+                logger.error(f"Error deleting Secretary output file {secretary_file_to_delete}: {e}. Manual cleanup might be required.")
+        else:
+            logger.info(f"Secretary output file {secretary_file_to_delete} was not found during cleanup; no deletion needed.")
+
+        # Perform final Git cleanup and state check
+        if original_branch and git_service:
+            logger.info("Performing Army General final Git cleanup and state check.")
+            await _ensure_git_repo_state(
+                git_service=git_service,
+                original_branch=original_branch,
+                context_message_prefix="Army General Final Cleanup"
+            )
+        elif not original_branch:
+            logger.info("Final cleanup: Original branch was not determined, skipping Git state check.")
+
+    logger.info("Army General finished all operations.")
 
 if __name__ == "__main__":
     # Python 3.7+
