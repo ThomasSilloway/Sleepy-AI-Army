@@ -20,7 +20,7 @@ from services.llm_prompt_service import LlmPromptService
 from utils.logging_setup import LoggingSetup
 
 # 1. Initialize ArgumentParser
-parser = argparse.ArgumentParser(description="Army Secretary - Backlog to Goals Processor")
+parser = argparse.ArgumentParser(description="Army Secretary - Backlog to Missions Processor") # Updated description
 parser.add_argument(
     "--root_git_path",
     type=str,
@@ -48,17 +48,17 @@ logger.debug("Debug level test message for detailed log from main.py.")
 
 async def run() -> None:
     """
-    Main asynchronous function to run the PoC 8 backlog processing.
+    Main asynchronous function to run the Army Secretary backlog processing.
     Initializes services and processes the backlog file.
     """
-    logger.info("Starting PoC 8: Backlog to Goals Processor.")
+    logger.info("Starting Army Secretary: Backlog to Missions Processor.") # Updated log
     try:
 
         # Get paths from AppConfig
         backlog_file_path: str = app_config.backlog_file_path
-        goals_output_directory: str = app_config.goals_output_directory
+        missions_output_directory: str = app_config.missions_output_directory # Renamed variable
         logger.info(f"Using backlog file path: {backlog_file_path}")
-        logger.info(f"Using goals output directory: {goals_output_directory}")
+        logger.info(f"Using missions output directory: {missions_output_directory}") # Updated log and variable
 
         # 2. Initialize LlmPromptService
         llm_service = LlmPromptService(app_config=app_config)
@@ -67,10 +67,10 @@ async def run() -> None:
         # 3. Initialize BacklogProcessor
         backlog_processor = BacklogProcessor(
             llm_service=llm_service,
-            output_dir=goals_output_directory,
+            output_dir=missions_output_directory, # Use renamed variable
             app_config=app_config 
         )
-        logger.info(f"BacklogProcessor initialized. Output will be in: {goals_output_directory}")
+        logger.info(f"BacklogProcessor initialized. Output will be in: {missions_output_directory}") # Updated log and variable
 
         # 4. Process the backlog file
         logger.info(f"Attempting to process backlog file: {backlog_file_path}")
@@ -78,27 +78,27 @@ async def run() -> None:
 
         created_folders = backlog_processor.created_folders
         if created_folders:
-            logger.info(f"Created folders: {created_folders}")
+            logger.info(f"Created mission folders: {created_folders}") # Updated log
 
-            # Write new folders to a file specified in appconfig in the variable: new_goal_folders_file_path
-            new_goal_folders_file_path: str = app_config.new_goal_folders_file_path
-            if new_goal_folders_file_path:
-                with open(new_goal_folders_file_path, 'w', encoding='utf-8') as f:
+            # Write new folders to a file specified in appconfig in the variable: new_mission_folders_file_path
+            new_mission_folders_file_path: str = app_config.new_mission_folders_file_path # Renamed variable
+            if new_mission_folders_file_path:
+                with open(new_mission_folders_file_path, 'w', encoding='utf-8') as f:
                     f.write('\n'.join(created_folders) + "\n")
-                logger.info(f"Wrote created folders to file: {new_goal_folders_file_path}")
+                logger.info(f"Wrote created mission folders to file: {new_mission_folders_file_path}") # Updated log and variable
 
             git_service = GitService(repo_path=app_config.project_git_path)
-            commit_message = "AI Army Secretary - Added new goals"
+            commit_message = "AI Army Secretary - Added new missions" # Updated commit message
             if git_service.commit_changes(commit_message):
                 logger.info(f"Committed changes to git with message: {commit_message}")
             else:
                 logger.warning("Failed to commit changes to git.")
 
-        logger.info("PoC 8 processing finished successfully.")
+        logger.info("Army Secretary processing finished successfully.") # Updated log
     except ValueError as ve:
         logger.critical(f"Configuration error: {ve}. Please check your .env, config.yaml files, or command line arguments. Exiting.", exc_info=False)
     except Exception:
-        logger.error("An unhandled error occurred during PoC 8 execution:", exc_info=True)
+        logger.error("An unhandled error occurred during Army Secretary execution:", exc_info=True) # Updated log
 
 if __name__ == "__main__":
     asyncio.run(run())

@@ -11,7 +11,7 @@ from typing import Optional, Tuple, List # Added List for parsing_errors
 from datetime import datetime
 
 from config import AppConfig
-from models.goal_models import SanitizedGoalInfo
+from models.mission_models import SanitizedMissionFolderInfo # Updated import
 from .llm_prompt_service import LlmPromptService
 import prompts
 
@@ -20,7 +20,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class BacklogProcessor:
     """
     Processes a backlog file, extracts tasks, and creates a structured
-    directory of goal description files, using an LLM for folder name generation.
+    directory of mission description files, using an LLM for folder name generation.
     """
 
     def __init__(self, llm_service: LlmPromptService, output_dir: str, app_config: AppConfig) -> None:
@@ -29,7 +29,7 @@ class BacklogProcessor:
 
         Args:
             llm_service: An instance of LlmPromptService.
-            output_dir: The root directory where goal folders will be created.
+            output_dir: The root directory where mission folders will be created.
             app_config: The application configuration.
         """
         self.llm_service: LlmPromptService = llm_service
@@ -56,39 +56,39 @@ class BacklogProcessor:
             A sanitized folder name string.
         """
         # Use externalized prompts
-        prompt_content: str = prompts.get_sanitize_folder_name_user_prompt(task_description, task_title)
+        prompt_content: str = prompts.get_sanitize_mission_folder_name_user_prompt(task_description, task_title) # Updated function call
         messages: List[dict[str, str]] = [
-            {"role": "system", "content": prompts.SANITIZE_FOLDER_NAME_SYSTEM_PROMPT},
+            {"role": "system", "content": prompts.SANITIZE_MISSION_FOLDER_NAME_SYSTEM_PROMPT}, # Updated prompt variable
             {"role": "user", "content": prompt_content}
         ]
 
         llm_model_name: str = self.app_config.default_llm_model_name
 
-        structured_output: Optional[SanitizedGoalInfo] = await self.llm_service.get_structured_output(
+        structured_output: Optional[SanitizedMissionFolderInfo] = await self.llm_service.get_structured_output( # Updated type hint
             messages=messages,
-            output_pydantic_model_type=SanitizedGoalInfo,
+            output_pydantic_model_type=SanitizedMissionFolderInfo, # Updated class name
             llm_model_name=llm_model_name
         )
 
         folder_name: str = ""
         if structured_output and structured_output.folder_name and structured_output.folder_name.strip():
-            logger.info(f"LLM generated folder name: '{structured_output.folder_name}' for task: '{task_title[:50]}...'")
+            logger.info(f"LLM generated mission folder name: '{structured_output.folder_name}' for task: '{task_title[:50]}...'") # Updated log
             # Apply basic sanitization even to LLM output for safety
             folder_name = re.sub(r'[^\w\-]+', '', structured_output.folder_name.lower().replace(' ', '-'))
             if folder_name.strip(): # Ensure not empty after sanitization
                  return folder_name
             else:
-                 logger.warning(f"LLM generated folder name became empty after sanitization for task: '{task_title[:50]}...'. Using fallback.")
+                 logger.warning(f"LLM generated mission folder name became empty after sanitization for task: '{task_title[:50]}...'. Using fallback.") # Updated log
         
         # Fallback logic
         if not (structured_output and structured_output.folder_name and structured_output.folder_name.strip()): # Log error only if LLM didn't provide a usable name
-            logger.error(f"Failed to generate a valid folder name from LLM for task: '{task_title[:50]}...'. Using timestamped fallback.")
+            logger.error(f"Failed to generate a valid mission folder name from LLM for task: '{task_title[:50]}...'. Using timestamped fallback.") # Updated log
         
-        base_name_sanitized: str = re.sub(r'\s+', '-', task_title.lower() if task_title else "untitled-task")
+        base_name_sanitized: str = re.sub(r'\s+', '-', task_title.lower() if task_title else "untitled-mission") # Updated fallback
         base_name_sanitized = re.sub(r'[^a-z0-9\-]', '', base_name_sanitized)
         base_name_sanitized = base_name_sanitized[:50] # Truncate
         if not base_name_sanitized: # Handle cases where title had only special chars or was empty
-            base_name_sanitized = "untitled-task"
+            base_name_sanitized = "untitled-mission" # Updated fallback
         
         timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3] # Format: YYYY-MM-DD_HH-MM-SS-mmm
         return f"{base_name_sanitized}_{timestamp}"
@@ -189,10 +189,11 @@ class BacklogProcessor:
 
             self.created_folders.append(task_folder_path)
 
-            description_filepath: str = os.path.join(task_folder_path, self.app_config.task_description_filename)
-            with open(description_filepath, 'w', encoding='utf-8') as f:
-                f.write(task_description + "\n")
-            logger.info(f"Wrote task description to: {description_filepath}")
+            # Use the new mission_spec_filename from AppConfig
+            mission_spec_filepath: str = os.path.join(task_folder_path, self.app_config.mission_spec_filename)
+            with open(mission_spec_filepath, 'w', encoding='utf-8') as f:
+                f.write(task_description + "\n") # Content remains the task description
+            logger.info(f"Wrote mission specification to: {mission_spec_filepath}") # Updated log message
             return True
         except Exception as e:
             logger.error(f"Error creating folder or file for task '{task_title}': {e}", exc_info=True)
