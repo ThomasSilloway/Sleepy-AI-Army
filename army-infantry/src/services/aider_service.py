@@ -1,9 +1,8 @@
 """Defines the AiderService class."""
-import asyncio
 import logging
 import subprocess
 import threading
-from typing import Optional  # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -37,7 +36,7 @@ class AiderService:
         self.workspace_path = app_config.root_git_path
         self.llm_prompt_service = llm_prompt_service
 
-    def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> AiderExecutionResult:
+    def execute(self, command_args: list[str], files_editable: Optional[list[str]] = None, files_read_only: Optional[list[str]] = None) -> AiderExecutionResult:
         """
         Executes an aider command as a subprocess, streams its output, captures stdout and stderr,
         and returns an AiderExecutionResult.
@@ -49,13 +48,22 @@ class AiderService:
         Returns:
             An AiderExecutionResult object containing the exit code, stdout, and stderr.
         """
-        if files_to_add is None:
-            files_to_add = []
+        if files_editable is None:
+            files_editable = []
+
+        if files_read_only is None:
+            files_read_only = []
+
+        for file_path in files_editable:
+            command_args.append(f" {file_path}")
+
+        for file_path in files_read_only:
+            command_args.append(f" --read {file_path}")
 
         stdout_lines: list[str] = []
         stderr_lines: list[str] = []
 
-        full_command = ["aider"] + files_to_add + command_args + [
+        full_command = ["aider"] + command_args + [
             "--yes-always",
             "--no-fancy-input",
             "--no-pretty",
@@ -107,21 +115,14 @@ class AiderService:
             logger.critical(error_msg, exc_info=True)
             return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
 
-    def get_summary(self, result: AiderExecutionResult) -> AiderRunSummary:
-        system_prompt = """
+    async def get_summary(self, result: AiderExecutionResult) -> Optional[AiderRunSummary]:
+        system_prompt = f"""
 You are an expert at analyzing the output of the 'aider' command-line tool.
 Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
 that matches the AiderRunSummary Pydantic model.
 
-The AiderRunSummary model includes the following fields:
-- changes_made: (list[str]) A bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change (e.g., "Added function `foo` to `bar.py`", "Modified `baz.py` to handle new error condition").
-- commit_hash: (Optional[str]) The full git commit hash if aider made a commit *during this specific run*. If no commit was made by aider, this should be null.
-- files_modified: (Optional[list[str]]) List of file paths that were modified by aider.
-- files_created: (Optional[list[str]]) List of file paths that were newly created by aider.
-- errors_reported: (Optional[list[str]]) Any error messages or significant warnings reported by aider.
-- raw_output_summary: (Optional[str]) A brief, general summary of what aider did or reported, especially if specific details aren't available or applicable from its output.
-- commit_message: (Optional[str]) The full commit message if aider made a commit. If no commit was made, this should be null.
-- total_cost: (Optional[float]) The total session cost of the Aider run in USD. Formatted as a float. Default to 0.0 if not found. Cost will be near the end of the Aider STDOUT. Ex. `Tokens: 8.0k sent, 374 received. Cost: $0.01 message, $0.04 session.` - total_cost = 0.04, the session cost. If there are multiple lines with this information, choose the one with the highest session cost.
+The JSON schema to use for your response is:
+    {AiderRunSummary.model_json_schema()}
 
 Analyze the provided stdout and stderr from an aider execution.
 Extract the information to populate these fields accurately.
@@ -152,13 +153,12 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")
 
-            # Note: Using a placeholder for llm_model_name. This should come from app_config.
             # e.g., app_config.llm_model_for_summaries
-            aider_run_summary_obj = asyncio.run(self.llm_prompt_service.get_structured_output(
+            aider_run_summary_obj = await self.llm_prompt_service.get_structured_output(
                 messages=llm_messages,
                 output_pydantic_model_type=AiderRunSummary,
-                llm_model_name=self.app_config.aider_summary_model
-            ))
+                llm_model_name=self.app_config.aider_summary_model # This should exist in AppConfig
+            )
 
             if aider_run_summary_obj:
                 logger.info("Successfully extracted Aider run summary.")
@@ -166,7 +166,9 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
                 return aider_run_summary_obj
             else:
                 logger.warning("LLM did not return a valid AiderRunSummary object.")
+                return None
         except Exception as llm_exc:
             logger.error(f"Error during LLM summary extraction: {llm_exc}", exc_info=True)
+            return None
 
         return None

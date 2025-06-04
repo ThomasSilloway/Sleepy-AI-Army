@@ -1,13 +1,7 @@
-from typing import Any, Optional, TypedDict
+from typing import Optional, TypedDict
 
 from pydantic import BaseModel, Field
 
-
-class StructuredError(BaseModel):
-    node_name: str
-    message: str
-    details: Optional[dict[str, Any]] = None
-    timestamp: str # ISO format timestamp
 
 class MissionContext(BaseModel):
     # Loaded from mission-spec.md
@@ -19,13 +13,14 @@ class MissionContext(BaseModel):
     generated_branch_name: Optional[str] = None
     status: Optional[str] = None # IN_PROGRESS, SUCCESS, FAILURE, BLOCKED
     execution_summary: Optional[str] = None
-    files_modified_created: list[str] = Field(default_factory=list)
+    files_modified: list[str] = Field(default_factory=list)
+    files_created: list[str] = Field(default_factory=list)
     git_summary: list[str] = Field(default_factory=list) # list of "hash - message"
     total_cost_usd: float = 0.0
     report_timestamp: Optional[str] = None # Timestamp for the report generation
 
     # Operational data & structured errors
-    mission_errors: list[StructuredError] = Field(default_factory=list)
+    mission_errors: list[str] = Field(default_factory=list)
 
 class WorkflowState(TypedDict):
     mission_context: MissionContext 

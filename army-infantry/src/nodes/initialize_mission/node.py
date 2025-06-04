@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 async def initialize_mission_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
     state['current_step_name'] = initialize_mission_node.__name__
-    logger.info(f"Executing {state['current_step_name']}")
+    logger.overview(f"Executing {state['current_step_name']}")
 
     # mission_context is guaranteed to be in state by the graph runner
     mission_context: MissionContext = state['mission_context']

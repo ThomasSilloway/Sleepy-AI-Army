@@ -16,6 +16,10 @@ detailed_log_filename: "detailed.log"
 # Template names
 mission_report_template_filename: "src\\templates\\mission-report.j2"
 
+# File paths for code modification node
+conventions_file_path: "ai-docs/CONVENTIONS.md" # Path relative to root_git_path
+aider_config_file_path: ".aider.sleepy.conf.yml" # Path relative to root_git_path
+
 ########################
 #     LLM MODELS
 ########################

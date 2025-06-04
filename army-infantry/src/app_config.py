@@ -33,6 +33,10 @@ class AppConfig:
 
     mission_title_extraction_model: str
 
+    # Paths for code modification node
+    conventions_file_path: str
+    aider_config_file_path: str
+
     log_subdirectory_name: str
     overview_log_filename: str
     detailed_log_filename: str
@@ -87,6 +91,10 @@ class AppConfig:
         self.aider_code_model = yml_config.get("aider_code_model")
         self.aider_summary_model = yml_config.get("aider_summary_model")
         self.mission_title_extraction_model = yml_config.get("mission_title_extraction_model")
+
+        # Load paths for code modification
+        self.conventions_file_path = yml_config.get("conventions_file_path", "ai-docs/CONVENTIONS.md")
+        self.aider_config_file_path = yml_config.get("aider_config_file_path", ".aider.sleepy.conf.yml")
 
         # Load branch naming config
         branch_config = yml_config.get("branch_naming", {})
@@ -158,6 +166,11 @@ class AppConfig:
             raise ValueError("aider_summary_model is not set in config.yml.")
         if not self.mission_title_extraction_model:
             raise ValueError("mission_title_extraction_model is not set in config.yml.")
+
+        if not self.conventions_file_path:
+            raise ValueError("conventions_file_path is not set in config.yml.")
+        if not self.aider_config_file_path:
+            raise ValueError("aider_config_file_path is not set in config.yml.")
 
         if not self.log_subdirectory_name:
             raise ValueError("log_subdirectory_name is not set in config.yml.")

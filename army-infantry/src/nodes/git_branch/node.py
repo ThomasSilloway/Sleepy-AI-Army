@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 async def git_branch_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
     state['current_step_name'] = git_branch_node.__name__
-    logger.info(f"Executing {state['current_step_name']}")
+    logger.overview(f"Executing {state['current_step_name']}")
 
     mission_context: MissionContext = state['mission_context']
 

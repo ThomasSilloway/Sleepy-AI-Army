@@ -12,11 +12,8 @@ class AiderRunSummary(BaseModel):
     """
     changes_made: list[str] = Field(
         default_factory=list,
-        description="Bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change."
-    )
-    commit_hash: Optional[str] = Field(
-        default=None,
-        description="The git commit hash if aider made a commit during this run."
+        description="Bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change."\
+                    "(e.g., \"Added function `foo` to `bar.py`\", \"Modified `baz.py` to handle new error condition\""
     )
     files_modified: Optional[list[str]] = Field(
         default_factory=list,
@@ -34,29 +31,16 @@ class AiderRunSummary(BaseModel):
         default=None,
         description="A brief, general summary of what aider did or reported, especially if specific details aren't available or applicable."
     )
-    commit_message: Optional[str] = Field(
+    commits: Optional[list[str]] = Field(
         default=None,
-        description="The commit message if aider made a commit."
+        description="list of \"hash - message\" strings for each commit made by aider. If no commit was made by aider, this should be []"
     )
     total_cost: Optional[float] = Field(
         default=None,
-        description="The total estimated cost of the Aider run in USD, if available."
+        description="""
+        The total session cost of the Aider run in USD. Formatted as a float. Default to 0.0 if not found.
+        Cost will be near the end of the Aider STDOUT. 
+        Ex. `Tokens: 8.0k sent, 374 received. Cost: $0.01 message, $0.04 session.` - total_cost = 0.04, the session cost. 
+        If there are multiple lines with this information, choose the one with the highest session cost.
+        """
     )
-
-    class Config:
-        # Example of how to add example data for schema generation (optional)
-        json_schema_extra = {
-            "example": {
-                "changes_made": [
-                    "Refactored `process_data` function in `utils.py` for clarity.",
-                    "Added new unit tests for `process_data`."
-                ],
-                "commit_hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
-                "files_modified": ["src/utils.py", "tests/test_utils.py"],
-                "files_created": [],
-                "errors_reported": [],
-                "raw_output_summary": "Aider refactored one function and added tests. Committed changes.",
-                "commit_message": "Refactor: Improve clarity of process_data and add tests",
-                "total_cost": 0.025
-            }
-        }
