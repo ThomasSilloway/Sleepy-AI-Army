@@ -58,12 +58,16 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     mission_context.aider_editable_files = files_to_edit
     mission_context.status = "IN_PROGRESS"
 
+    debug_files_to_edit: list[str] = [" "]
+    debug_files_to_edit.extend(mission_context.aider_editable_files) if mission_context.aider_editable_files else ["None identified"]
+
+    # TODO: Change editable files to a file tree visual
     logger.overview(f"""
         Mission initialized:
             - Title: '{mission_data.mission_title}'
             - Branch to be created: '{mission_context.generated_branch_name}'
             - Original branch: '{original_branch_name}'
-            - Editable files: {mission_context.aider_editable_files if mission_context.aider_editable_files else "None identified"}
+            - Editable files: {"\n                   -".join(debug_files_to_edit)}
             - Mission spec: '{mission_spec_content}'
     """)
 
@@ -108,7 +112,7 @@ async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: M
     Verifies file existence for 'files_to_edit' and creates 'files_to_create' (or confirms existence).
     Raises RuntimeError if validation fails for files_to_edit or if creation fails for new files_to_create.
     """
-    project_git_root = app_config.project_git_root
+    project_git_root = app_config.root_git_path
     verified_files_to_edit = []
     prepared_files_to_create = []
 
