@@ -37,7 +37,7 @@ class AiderService:
         self.workspace_path = app_config.root_git_path
         self.llm_prompt_service = llm_prompt_service
 
-    def execute(self, command_args: list[str], files_to_add: Optional[list[str]] = None) -> AiderExecutionResult:
+    def execute(self, command_args: list[str], files_editable: Optional[list[str]] = None, files_read_only: Optional[list[str]] = None) -> AiderExecutionResult:
         """
         Executes an aider command as a subprocess, streams its output, captures stdout and stderr,
         and returns an AiderExecutionResult.
@@ -49,13 +49,22 @@ class AiderService:
         Returns:
             An AiderExecutionResult object containing the exit code, stdout, and stderr.
         """
-        if files_to_add is None:
-            files_to_add = []
+        if files_editable is None:
+            files_editable = []
+
+        if files_read_only is None:
+            files_read_only = []
+
+        for file_path in files_editable:
+            command_args.append(f" {file_path}")
+
+        for file_path in files_read_only:
+            command_args.append(f" --read {file_path}")
 
         stdout_lines: list[str] = []
         stderr_lines: list[str] = []
 
-        full_command = ["aider"] + files_to_add + command_args + [
+        full_command = ["aider"] + command_args + [
             "--yes-always",
             "--no-fancy-input",
             "--no-pretty",
