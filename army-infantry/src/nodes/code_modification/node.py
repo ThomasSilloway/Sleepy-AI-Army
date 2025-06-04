@@ -39,7 +39,7 @@ async def _code_modification(state: WorkflowState, config: dict[str, Any]) -> Wo
     app_config: AppConfig = config["configurable"]["app_config"]
     aider_service: AiderService = config["configurable"]["aider_service"]
 
-    aider_result: AiderExecutionResult = await _call_aider_service(app_config, aider_service)
+    aider_result: AiderExecutionResult = await _call_aider_service(app_config, aider_service, mission_context)
 
     aider_summary: AiderRunSummary = await _get_aider_summary(aider_service, aider_result)
 
@@ -47,7 +47,7 @@ async def _code_modification(state: WorkflowState, config: dict[str, Any]) -> Wo
 
     return state
 
-async def _call_aider_service(app_config: AppConfig, aider_service: AiderService) -> AiderExecutionResult:
+async def _call_aider_service(app_config: AppConfig, aider_service: AiderService, mission_context: MissionContext) -> AiderExecutionResult:
 
     # Get prompt template
     mission_spec_filename = app_config.mission_description_filename
@@ -65,8 +65,8 @@ async def _call_aider_service(app_config: AppConfig, aider_service: AiderService
         app_config.conventions_file_path
     ]
 
-    # TODO: Need to extract the additional files to read and edit from the mission spec - do this in the initialize mission step
-    files_editable = []
+    files_editable = mission_context.aider_editable_files
+    logger.info(f"Aider will attempt to edit the following files: {files_editable}")
 
     logger.info("Calling AiderService to execute modification mission.")
     try:

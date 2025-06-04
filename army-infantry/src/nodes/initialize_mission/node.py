@@ -53,6 +53,7 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     mission_context.mission_title = mission_data.mission_title
     mission_context.original_branch_name = original_branch_name
     mission_context.generated_branch_name = mission_data.git_branch_name
+    mission_context.aider_editable_files = mission_data.editable_files # Store editable files
     mission_context.status = "IN_PROGRESS"
 
     logger.overview(f"""
@@ -60,6 +61,7 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
             - Title: '{mission_data.mission_title}'
             - Branch to be created: '{mission_context.generated_branch_name}'
             - Original branch: '{original_branch_name}'
+            - Editable files: {mission_context.aider_editable_files if mission_context.aider_editable_files else "None identified"}
             - Mission spec: '{mission_spec_content}'
     """)
 
