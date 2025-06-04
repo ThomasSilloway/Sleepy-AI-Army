@@ -92,7 +92,6 @@ async def _get_aider_summary(aider_service: AiderService, aider_result: AiderExe
     return aider_summary
 
 def _update_mission_context_from_aider_summary(mission_context: MissionContext, aider_summary: AiderRunSummary, state: WorkflowState):
-    logger.debug(f"Aider Summary: \n{aider_summary.model_dump_json(indent=2)}")
 
     # Update execution summary
     if aider_summary.changes_made:
@@ -105,13 +104,16 @@ def _update_mission_context_from_aider_summary(mission_context: MissionContext, 
     mission_context.files_modified = aider_summary.files_modified
 
     mission_context.git_summary = aider_summary.commits
-    mission_context.total_cost_usd += aider_summary.total_cost
+
+    if aider_summary.total_cost is not None:
+        mission_context.total_cost_usd += aider_summary.total_cost
 
     # Update mission status and errors if any
     if aider_summary.errors_reported:
 
         for error in aider_summary.errors_reported:
             mission_context.mission_errors.append(error)
+            logger.error(f"Aider ERROR: {error}")
 
         raise RuntimeError(f"Aider reported {len(aider_summary.errors_reported)} errors during its execution.")
 

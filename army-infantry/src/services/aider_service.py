@@ -68,7 +68,8 @@ class AiderService:
 
         # Update command arguments
         for file_path in files_read_only:
-            command_args.append(f" --read {file_path}")
+            command_args.append("--read")
+            command_args.append(file_path)
 
         for file_path in files_editable:
             command_args.append(file_path)
