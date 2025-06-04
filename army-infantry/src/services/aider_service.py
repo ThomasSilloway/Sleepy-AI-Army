@@ -1,9 +1,8 @@
 """Defines the AiderService class."""
-import asyncio
 import logging
 import subprocess
 import threading
-from typing import Optional  # Use List instead of list for older Python compatibility if needed, but stick to list per CONVENTIONS.md
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -116,7 +115,7 @@ class AiderService:
             logger.critical(error_msg, exc_info=True)
             return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
 
-    def get_summary(self, result: AiderExecutionResult) -> AiderRunSummary:
+    async def get_summary(self, result: AiderExecutionResult) -> Optional[AiderRunSummary]:
         system_prompt = """
 You are an expert at analyzing the output of the 'aider' command-line tool.
 Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
@@ -161,13 +160,12 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")
 
-            # Note: Using a placeholder for llm_model_name. This should come from app_config.
             # e.g., app_config.llm_model_for_summaries
-            aider_run_summary_obj = asyncio.run(self.llm_prompt_service.get_structured_output(
+            aider_run_summary_obj = await self.llm_prompt_service.get_structured_output(
                 messages=llm_messages,
                 output_pydantic_model_type=AiderRunSummary,
-                llm_model_name=self.app_config.aider_summary_model
-            ))
+                llm_model_name=self.app_config.aider_summary_model # This should exist in AppConfig
+            )
 
             if aider_run_summary_obj:
                 logger.info("Successfully extracted Aider run summary.")
@@ -175,7 +173,9 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
                 return aider_run_summary_obj
             else:
                 logger.warning("LLM did not return a valid AiderRunSummary object.")
+                return None
         except Exception as llm_exc:
             logger.error(f"Error during LLM summary extraction: {llm_exc}", exc_info=True)
+            return None
 
         return None
