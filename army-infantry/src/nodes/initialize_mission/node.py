@@ -58,11 +58,12 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     mission_context.generated_branch_name = mission_data.git_branch_name
     mission_context.status = "IN_PROGRESS"
 
-    logger.info(f"""
+    logger.overview(f"""
         Mission initialized:
             - Title: '{mission_data.mission_title}'
             - Branch to be created: '{mission_context.generated_branch_name}'
             - Original branch: '{original_branch_name}'
+            - Mission spec: '{mission_spec_content}'
     """)
 
     return state
@@ -91,7 +92,6 @@ async def _extract_mission_data(llm_service: LlmPromptService, app_config: AppCo
             llm_model_name=app_config.mission_title_extraction_model # Assuming same model is used
         )
         if extracted_data and extracted_data.mission_title and extracted_data.git_branch_name:
-            logger.info(f"Successfully extracted mission data. Title: {extracted_data.mission_title}, Branch Base: {extracted_data.git_branch_name}")
             extracted_data.sanitize()
             return extracted_data
         else:
