@@ -1,4 +1,77 @@
-Make sure during each step you adhere to the coding conventions in `ai-docs\CONVENTIONS.md`
+## General Instructions:
+ALWAYS FOLLOW THESE CONVENTIONS:
+ - When adding comments - Single lines of code should get no comments
+ - When adding comments - Multiple lines of code should be Concise, Minimal only - 1 line max, 80 characters max 
+ - `typing.Dict` is deprecated, use `dict` instead
+ - `typing.List` is deprecated, use `list` instead
+ - `typing.Type` is deprecated, use `type` instead
+ - Use solid object oriented coding practices
+ - Do not duplicate code, prefer to use functions and classes that re-use code
+ - Prefer simple, elegant code with less lines rather than duplicated, complex code that maybe has one or two differences.
+   - Example BAD: 
+     ```
+	try:
+        state = await _initialize_mission(state, config)
+    except GitServiceError as e:
+        _message = f"GitService error: {e.stderr or str(e)}"
+        logger.error(f"Error in {state['current_step_name']}: {_message}", exc_info=True)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=state['current_step_name'], message=_message,
+            details={"error_type": "GitServiceError", "stderr": e.stderr}, 
+            timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+    except ValueError as e: # Catch config errors like missing repo_path from _initialize_mission
+        _message = f"Configuration or value error: {str(e)}"
+        logger.error(f"Error in {state['current_step_name']}: {_message}", exc_info=True)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=state['current_step_name'], message=_message,
+            details={"error_type": "ValueError"}, 
+            timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+    except RuntimeError as e: # Catch runtime errors from _extract_mission_data or _load_mission_spec
+        _message = f"Runtime error: {str(e)}"
+        logger.error(f"Error in {state['current_step_name']}: {_message}", exc_info=True)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=state['current_step_name'], message=_message,
+            details={"error_type": "RuntimeError"}, 
+            timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+    except Exception as e: # Catch-all for any other unexpected errors
+        _message = f"An unexpected error occurred: {str(e)}"
+        logger.error(f"Error in {state['current_step_name']}: {_message}", exc_info=True)
+        mission_context.status = "ERROR"
+        mission_context.mission_errors.append(StructuredError(
+            node_name=state['current_step_name'], message=_message,
+            details={"error_type": type(e).__name__}, 
+            timestamp=timestamp
+        ))
+        state["critical_error_message"] = _message
+		``` 
+
+   - Example GOOD:
+   ```
+    try:
+        state = await _initialize_mission(state, config)
+    except Exception as e:
+        logger.error(f"Error in initialize_mission_node: {e}", exc_info=True)
+        state["critical_error_message"] = f"Error in initialize_mission_node: {e}"
+        state['mission_context'].status = "ERROR"
+        return state
+	```
+
+  - File Structure:
+    - Always put paths and other hardcoded strings into `config.py` and update `config.yml` appropriately
+    - Always put prompts in the correct `prompt.py` instead of inlining them in the code
+
+  - If unsure about code to write, implement to the best of your ability making assumptions where necessary. There is no need to add comments with different implementation options, I am going to delete them anyways.
+
+## Task Instructions
 
 You are an expert software architect. You have a couple of jobs:
 
@@ -28,24 +101,26 @@ When the code critique is completed, assume the role of a software engineer agai
 Here's the problem we are trying to solve:
 
 ```
+Working Directory: `army-infantry`
+
 Status:
 
-We just added the file scaffolding for the army-infantry folder. We also built out the scaffolding for graph builder and graph state.
+- Added the file scaffolding for the army-infantry folder. 
+- Implemented - Graph builder and graph state
+- Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
 
-Problem:
+Task to Implement:
 
-`army-infantry\src\nodes\initialize_mission\node.py` was just updated with a TODO that needs to be implemented.
+1. Update `army-infantry\src\nodes\initialize_mission\node.py` to also extract a branch name. The prompt, model, node, graph_state and possibly more code will need to be updated for this.
+2. Implement the `git_branch` and `git_checkout_original_branch` nodes. Make sure to utilize the correct set of files with node.py, prompts.py, config.py, config.yml, etc. Make sure to use the branch name extracted in the `initialize_mission` node that should be passed via the graph_state.
 
-The llm prompt service will need to be added to the config in main.py, while you're at it, add the remaining services as well. they can be found in the services folder.
+Here's guidance on how to construct branch names:
 
-Look at how `army-secretary\src\services\backlog_processor.py` builds the prompt for `_sanitize_title_with_llm` as an example of how to build the prompt.
+Use the format `<type>/<description-with-dashes>`. Use these for <type>: fix, feature, polish. Ensure the branch name - Starts with the appropriate prefix. - Is in the imperative mood (e.g., \"add-feature\" not \"added-feature\" or \"adding-feature\"). - Does not exceed 50 characters.
+
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
 - `ai-docs\planning\01_infantry-full\03_tech-design-considerations.md`
 - `ai-docs\planning\01_infantry-full\04_feature-list.md`
-
-You should be working on these files:
-- `army-infantry\src\nodes\initialize-mission\node.py`
-- the main file in that folder
 ```

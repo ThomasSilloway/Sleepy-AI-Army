@@ -15,6 +15,8 @@ class MissionContext(BaseModel):
 
     # Fields directly mapping to mission-report.md sections
     mission_title: Optional[str] = None
+    original_branch_name: Optional[str] = None
+    generated_branch_name: Optional[str] = None
     status: Optional[str] = None # IN_PROGRESS, SUCCESS, FAILURE, BLOCKED
     execution_summary: Optional[str] = None
     files_modified_created: list[str] = Field(default_factory=list)
