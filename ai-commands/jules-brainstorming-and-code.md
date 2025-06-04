@@ -272,23 +272,9 @@ When the code critique is completed, assume the role of a software engineer agai
 Here's the problem we are trying to solve:
 
 ```
-Working Directory: `army-infantry`
+Working Directory: `army-general`
 
-Status:
-
-- Added the file scaffolding for the army-infantry folder. 
-- Implemented - Graph builder and graph state
-- Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
-- Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
-- Implemented - `army-infantry\src\nodes\git_branch\node.py`
-- Implemented - `army-infantry\src\nodes\code_modification\node.py`
-
-Task to Implement:
-
-- Implement `army-infantry\src\nodes\mission_reporting\node.py`
-
-Refer to the following planning files for more context:
-- `ai-docs\planning\01_infantry-full\01_vision-statement.md`
-- `ai-docs\planning\01_infantry-full\03_tech-design-considerations.md`
-- `ai-docs\planning\01_infantry-full\04_feature-list.md`
+general was recently updated to add support for validating the branch after infantry runs and resetting it if necessary.
+I noticed there's some compile errors, plz fix those
+Also, the run() function is too long. Move the branch related functionality into its own private function, following the standards from the rest of the file.
 ```

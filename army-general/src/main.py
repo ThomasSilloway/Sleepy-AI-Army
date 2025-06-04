@@ -167,13 +167,42 @@ async def _run_infantry_mission(mission_folder_path: str, root_git_path: str) ->
 async def _ensure_git_repo_state(
     git_service: GitService,
     original_branch: str,
-    context_message_prefix: str,
+    commit_message: str,
     mission_folder_path: str | None = None
 ) -> None:
     """
     Ensures the Git repository is in a consistent state.
     Checks branch, stages, commits changes, and checks out the original branch.
     """
+    try:
+        current_branch = await git_service.get_current_branch()
+        if not current_branch:
+            error_message = f"{commit_message}: Failed to determine current branch. Unable to proceed with Git state management."
+            raise RuntimeError(error_message)
+
+        # If the current branch matches the original branch, then all is good, infantry ran correctly
+        if mission_folder_path and current_branch == original_branch:
+            logger.info(f"{commit_message}: Current branch '{current_branch}' is the original '{original_branch}'. No checkout needed.")
+            return
+
+        if await git_service.has_unstaged_changes():
+            logger.info(f"{commit_message}: Unstaged changes found. Staging and committing.")
+
+            if await git_service.commit_changes(commit_message):
+                logger.info(f"{commit_message}: Successfully committed")
+            else:
+                logger.error(f"{commit_message}: Failed to commit changes")
+        else:
+            logger.info(f"{commit_message}: No unstaged changes to commit.")
+
+        if await git_service.checkout_branch(original_branch):
+            logger.info(f"{commit_message}: Successfully checked out original branch: {original_branch}")
+        else:
+            raise RuntimeError(f"{commit_message}: Failed to checkout original branch: {original_branch}. Manual intervention likely required.")
+
+    except Exception as e: # Catching generic Exception to include GitServiceError if it's raised
+        raise RuntimeError(f"{commit_message}: An error occurred while ensuring Git repository state: {e}")
+
 async def run() -> None:
     logger.info("Army General orchestration started.")
     git_service = GitService(app_config.root_git_path)
@@ -231,7 +260,7 @@ async def run() -> None:
             await _ensure_git_repo_state(
                 git_service=git_service,
                 original_branch=original_branch,
-                context_message_prefix="Post-Infantry Cleanup",
+                commit_message="General fixing Infantry Git state",
                 mission_folder_path=mission_folder_path_from_secretary
             )
 
@@ -263,7 +292,7 @@ async def run() -> None:
             await _ensure_git_repo_state(
                 git_service=git_service,
                 original_branch=original_branch,
-                context_message_prefix="Army General Final Cleanup"
+                commit_message="Army General Final Cleanup"
             )
         elif not original_branch:
             logger.info("Final cleanup: Original branch was not determined, skipping Git state check.")
