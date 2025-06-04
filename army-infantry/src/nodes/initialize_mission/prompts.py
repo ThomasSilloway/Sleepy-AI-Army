@@ -12,13 +12,16 @@ def get_system_prompt(possible_git_branch_base_names: list[str]) -> str:
 
     Your tasks are:
     1. Extract the mission title from the provided mission specification content. The title should be concise and human-readable.
-    2. Generate a 'git_branch_base_name' based on the mission's purpose or core task. This name **must** follow the format 'type/description'.
-        - The 'type' must be one of the following: {", ".join(possible_git_branch_base_names)}. 
+    2. Generate a 'git_branch_name' (referred to as 'git_branch_base_name' in some contexts) based on the mission's purpose or core task. This name **must** follow the format 'type/description'.
+        - The 'type' must be one of the following: {", ".join(possible_git_branch_base_names)}.
         - The 'description' part should be in kebab-case (e.g., "update-user-profile", "fix-authentication-bug", "add-new-dashboard").
-        - Example of a complete 'git_branch_base_name': "feature/add-user-login" or "fix/incorrect-calculation-logic" or "docs/update-readme".
+        - Example of a complete 'git_branch_name': "feature/add-user-login" or "fix/incorrect-calculation-logic" or "docs/update-readme".
         - The description should be short and descriptive.
+    3. Identify all file paths that are explicitly mentioned in the mission specification as needing modification. These should be listed in the 'editable_files' field.
+        - File paths should be relative to the project root (e.g., "src/module/file.py").
+        - If no files are explicitly mentioned for modification, the 'editable_files' field should be an empty list (`[]`).
 
-    Adhere strictly to the JSON schema for your output, ensuring 'git_branch_base_name' matches this 'type/description' format.
+    Adhere strictly to the JSON schema for your output, ensuring 'git_branch_name' matches this 'type/description' format and 'editable_files' is a list of strings.
 """
 
 def get_user_prompt(mission_spec_content: str) -> str:

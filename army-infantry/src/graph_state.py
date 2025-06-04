@@ -18,6 +18,7 @@ class MissionContext(BaseModel):
     git_summary: list[str] = Field(default_factory=list) # list of "hash - message"
     total_cost_usd: float = 0.0
     report_timestamp: Optional[str] = None # Timestamp for the report generation
+    aider_editable_files: list[str] = Field(default_factory=list)
 
     # Operational data & structured errors
     mission_errors: list[str] = Field(default_factory=list)

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 class MissionData(BaseModel):
     mission_title: str = Field(..., description="The concise and human-readable title of the mission.")
     git_branch_name: str = Field(..., description="The base name for the git branch, extracted from the mission spec. Should be short, descriptive, and dash-separated (e.g., update-user-profile).")
+    editable_files: list[str] = Field(default_factory=list, description="List of files that can be edited by the AI.")
 
     def sanitize(self):
         # Make sure git_branch_name is in kebab-case
@@ -16,3 +17,8 @@ class MissionData(BaseModel):
 
         if not self.git_branch_name:
             raise ValueError("git_branch_name is empty after sanitization.")
+
+        # Sanitize editable_files: strip whitespace and remove empty strings
+        if self.editable_files is None: # Should not happen with default_factory
+            self.editable_files = []
+        self.editable_files = [f.strip() for f in self.editable_files if f.strip()]

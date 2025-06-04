@@ -240,6 +240,8 @@ You are an expert software architect. You have a couple of jobs:
 2. Brainstorm 2-3 solutions to the problem below. After that, brainstorm 2 radically different approaches.
 3. Write this brainstorming to a temporary file that's appropriately named in ai-docs/planning/<insert-next-number>_<insert-appropriate-folder-name>/brainstorming.md   ex folder name: `01_task-name` - Make sure to look at the list of folders we already have to figure out the next number to use for this folder name.
   IMPORTANT - Do not brainstorm any tests, tests are not needed for this project
+  IMPORTANT - Follow the guidelines and examples above
+  IMPORTANT - Follow coding conventions that are used throughout the existing working directory
 
 When those are completed, assume the role of a critical CTO for the company and critique the brainstorming options. You have a couple different jobs:
 
@@ -248,16 +250,24 @@ When those are completed, assume the role of a critical CTO for the company and 
 3. Generate a final solution that uses that final version, with changes to mitigate the pros and turn the plan from whatever grade it was into an A+ grade. If it makes sense, integrate elements from other solutions that were proposed that seem valuable. Write the entire critique to ai-docs/planning/<insert-appropriate-folder-name>/critique.md
 4. Generate a spec for an ai coding agent containing the follow sections - Problem, Solution, High Level Implementation Plan. Use Sparse Priming Representation for this spec. Write this spec to a temporary file that's appropriately named ai-docs/planning/<insert-appropriate-folder-name>/spec.md
   IMPORTANT - Do not include testing in your critique, tests are not needed for this project
+  IMPORTANT - Follow the guidelines and examples above
+  IMPORTANT - Follow coding conventions that are used throughout the existing working directory
 
 When the spec is completed, assume the role of a software engineer that has a single job:
 1. Implement the changes described in the new spec file
+  IMPORTANT - Follow the guidelines and examples above
+  IMPORTANT - Follow coding conventions that are used throughout the existing working directory
 
 When the spec is implemented, assume the role of the CTO again and do the following:
 1. Follow the same CTO process to critique the code.
 2. Add your critique to a file called `ai-docs/planning/<insert-appropriate-folder-name>/critique-code.md`
+  IMPORTANT - Follow the guidelines and examples above
+  IMPORTANT - Follow coding conventions that are used throughout the existing working directory
 
 When the code critique is completed, assume the role of a software engineer again that has a single job:
 1. Implement the changes suggested by the CTO.
+  IMPORTANT - Follow the guidelines and examples above
+  IMPORTANT - Follow coding conventions that are used throughout the existing working directory
 
 Here's the problem we are trying to solve:
 
@@ -271,11 +281,12 @@ Status:
 - Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
 - Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
 - Implemented - `army-infantry\src\nodes\git_branch\node.py`
+- Implemented First pass - `army-infantry\src\nodes\code_modification\node.py`
 
 Task to Implement:
 
-Implement - `army-infantry\src\nodes\code_modification\node.py`
- - Important: Follow the TODOs in that file and the prompts.py file to guide you along with the docs below
+`army-infantry\src\nodes\code_modification\node.py` has an issue where it's missing the files it should be editing and reading via aider.
+This list of files should be extracted from the mission description during the `army-infantry\src\nodes\initialize_mission\node.py` phase.
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
