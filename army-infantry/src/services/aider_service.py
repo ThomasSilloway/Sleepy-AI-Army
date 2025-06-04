@@ -1,7 +1,6 @@
 """Defines the AiderService class."""
+import asyncio
 import logging
-import subprocess
-import threading
 from typing import Optional
 
 from pydantic import BaseModel
@@ -20,15 +19,23 @@ class AiderExecutionResult(BaseModel):
     stderr: str
 
 
-def stream_output(pipe, log_func, output_lines_list: list[str]):
-    """Reads lines from a pipe, logs them, and appends them to a list."""
-    try:
-        for line in iter(pipe.readline, ''):
-            stripped_line = line.strip()
-            log_func(stripped_line)
-            output_lines_list.append(stripped_line)
-    finally:
-        pipe.close()
+async def stream_output(
+    pipe: asyncio.StreamReader, log_func, output_lines_list: list[str]
+):
+    """Reads lines from an asyncio StreamReader, logs them, and appends them to a list."""
+    while True:
+        try:
+            line_bytes = await pipe.readline()
+            if not line_bytes:  # EOF
+                break
+            line = line_bytes.decode('utf-8').strip()
+            log_func(line)
+            output_lines_list.append(line)
+        except Exception as e:
+            # Log errors during streaming, e.g., if the pipe breaks unexpectedly
+            logger.error(f"Error reading stream: {e}")
+            break
+
 
 class AiderService:
     def __init__(self, app_config: AppConfig, llm_prompt_service: LlmPromptService):
@@ -36,32 +43,35 @@ class AiderService:
         self.workspace_path = app_config.root_git_path
         self.llm_prompt_service = llm_prompt_service
 
-    def execute(self, command_args: list[str], files_editable: Optional[list[str]] = None, files_read_only: Optional[list[str]] = None) -> AiderExecutionResult:
+    async def execute(
+        self,
+        command_args: list[str],
+        files_editable: Optional[list[str]] = None,
+        files_read_only: Optional[list[str]] = None,
+    ) -> AiderExecutionResult:
         """
-        Executes an aider command as a subprocess, streams its output, captures stdout and stderr,
-        and returns an AiderExecutionResult.
+        Executes an aider command as an asyncio subprocess, streams its output,
+        captures stdout and stderr, and returns an AiderExecutionResult.
 
         Args:
             command_args: A list of arguments to pass to the aider CLI.
-            files_to_add: An optional list of file paths to be included in the aider command execution context.
+            files_editable: An optional list of file paths to be added to aider.
+            files_read_only: An optional list of file paths for aider to read.
 
         Returns:
             An AiderExecutionResult object containing the exit code, stdout, and stderr.
         """
         if files_editable is None:
             files_editable = []
-
         if files_read_only is None:
             files_read_only = []
 
-        for file_path in files_editable:
-            command_args.append(f" {file_path}")
-
+        # Update command arguments
         for file_path in files_read_only:
             command_args.append(f" --read {file_path}")
 
-        stdout_lines: list[str] = []
-        stderr_lines: list[str] = []
+        for file_path in files_editable:
+            command_args.append(file_path)
 
         full_command = ["aider"] + command_args + [
             "--yes-always",
@@ -69,42 +79,38 @@ class AiderService:
             "--no-pretty",
         ]
 
+        # Execute the aider command
         logger.info(f"Executing aider command: {' '.join(full_command)}")
 
+        stdout_lines: list[str] = []
+        stderr_lines: list[str] = []
+
         try:
-            # Start the subprocess
-            # Use text=True for easier handling of stdout/stderr as strings
-            # Use bufsize=1 for line buffering
-            process = subprocess.Popen(
-                full_command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1,
-                encoding='utf-8',
+            process = await asyncio.create_subprocess_exec(
+                *full_command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 cwd=self.workspace_path,
             )
 
-            # Create threads to stream stdout and stderr
-            stdout_thread = threading.Thread(target=stream_output, args=(process.stdout, logger.info, stdout_lines))
-            stderr_thread = threading.Thread(target=stream_output, args=(process.stderr, logger.error, stderr_lines))
-
-            # Start the threads
-            stdout_thread.start()
-            stderr_thread.start()
-
-            # Wait for the threads to finish (which they will when the streams close)
-            stdout_thread.join()
-            stderr_thread.join()
+            # Concurrently stream stdout and stderr
+            # process.stdout and process.stderr are asserted to be non-None
+            # because we passed PIPE to create_subprocess_exec.
+            await asyncio.gather(
+                stream_output(process.stdout, logger.info, stdout_lines),
+                stream_output(process.stderr, logger.error, stderr_lines),
+            )
 
             # Wait for the subprocess to terminate and get the exit code
-            exit_code = process.wait()
+            exit_code = await process.wait()
             logger.info(f"Aider command finished with exit code: {exit_code}")
 
             stdout_str = "\n".join(stdout_lines)
             stderr_str = "\n".join(stderr_lines)
 
-            return AiderExecutionResult(exit_code=exit_code, stdout=stdout_str, stderr=stderr_str)
+            return AiderExecutionResult(
+                exit_code=exit_code, stdout=stdout_str, stderr=stderr_str
+            )
 
         except FileNotFoundError:
             error_msg = "Error: 'aider' command not found. Is aider installed and in the system PATH?"
@@ -116,6 +122,11 @@ class AiderService:
             return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
 
     async def get_summary(self, result: AiderExecutionResult) -> Optional[AiderRunSummary]:
+        """
+        Analyzes AiderExecutionResult using an LLM to produce an AiderRunSummary.
+        (This method was already async and is largely unchanged functionally,
+         but it will now be called with the result of an async `execute` method).
+        """
         system_prompt = f"""
 You are an expert at analyzing the output of the 'aider' command-line tool.
 Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
@@ -153,7 +164,6 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")
 
-            # e.g., app_config.llm_model_for_summaries
             aider_run_summary_obj = await self.llm_prompt_service.get_structured_output(
                 messages=llm_messages,
                 output_pydantic_model_type=AiderRunSummary,
@@ -170,5 +180,3 @@ Based on this output, provide a JSON summary matching the AiderRunSummary model.
         except Exception as llm_exc:
             logger.error(f"Error during LLM summary extraction: {llm_exc}", exc_info=True)
             return None
-
-        return None
