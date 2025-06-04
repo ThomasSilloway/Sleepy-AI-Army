@@ -116,20 +116,13 @@ class AiderService:
             return AiderExecutionResult(exit_code=-1, stdout="", stderr=error_msg)
 
     async def get_summary(self, result: AiderExecutionResult) -> Optional[AiderRunSummary]:
-        system_prompt = """
+        system_prompt = f"""
 You are an expert at analyzing the output of the 'aider' command-line tool.
 Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
 that matches the AiderRunSummary Pydantic model.
 
-The AiderRunSummary model includes the following fields:
-- changes_made: (list[str]) A bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change (e.g., "Added function `foo` to `bar.py`", "Modified `baz.py` to handle new error condition").
-- commit_hash: (Optional[str]) The full git commit hash if aider made a commit *during this specific run*. If no commit was made by aider, this should be null.
-- files_modified: (Optional[list[str]]) List of file paths that were modified by aider.
-- files_created: (Optional[list[str]]) List of file paths that were newly created by aider.
-- errors_reported: (Optional[list[str]]) Any error messages or significant warnings reported by aider.
-- raw_output_summary: (Optional[str]) A brief, general summary of what aider did or reported, especially if specific details aren't available or applicable from its output.
-- commit_message: (Optional[str]) The full commit message if aider made a commit. If no commit was made, this should be null.
-- total_cost: (Optional[float]) The total session cost of the Aider run in USD. Formatted as a float. Default to 0.0 if not found. Cost will be near the end of the Aider STDOUT. Ex. `Tokens: 8.0k sent, 374 received. Cost: $0.01 message, $0.04 session.` - total_cost = 0.04, the session cost. If there are multiple lines with this information, choose the one with the highest session cost.
+The JSON schema to use for your response is:
+    {AiderRunSummary.model_json_schema()}
 
 Analyze the provided stdout and stderr from an aider execution.
 Extract the information to populate these fields accurately.

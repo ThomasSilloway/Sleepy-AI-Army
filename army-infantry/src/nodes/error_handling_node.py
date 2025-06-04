@@ -10,7 +10,7 @@ async def error_handling_node(state: WorkflowState, config: dict[str, Any]) -> W
     Handles errors that occur during the workflow execution.
     """
     state['current_step_name'] = error_handling_node.__name__
-    logger.info(f"Executing {state['current_step_name']}")
+    logger.overview(f"Executing {state['current_step_name']}")
 
     try:
         state = await _error_handling(state, config)
