@@ -3,23 +3,21 @@ You are the Battlefield Captain AI from the Sleepy AI Army project, also embodyi
 Your current Battlefield objective is:
 
 ```
-Working Directory: `ai-docs\planning\04_general-secretary-infantry-integration\`
+Working Directory: `ai-docs\planning\<number>-<name>\`
+
+Create the Working Directory with number that is one higher than the last folder in the `ai-docs\planning\` directory and name is related to the task at hand
 
 Each of the files mentioned below are relative to the working directory.
 
-Review initial recon in `01_reconnaissance.md`
-Review my feedback in `02_feedback.md`
-
-Push the planning forward by one step by creating `03_battleplan.md`
+Push the planning forward by one step by creating `01_reconnaissance.md`
   - This should cover the steps outlined below
   - Do not generate any code at this stage.
 
 If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions.
 
 Battlefield Goal:
-Update army-general and army-secretary to use the new army-infantry component and no longer use the army-man-small-tweak.
-Key component to add: General should be updated to double check the git branch is the same every time it runs the Infantry.  If it's not, then need to halt execution.
-General must also be updated to use its new `git-service.py` - this was just copied over from the army-infantry and is now setup to use asyncio.
+Project: army-infantry
+After parsing out the files for aider to work on, if those files don't exist yet, it should fail. Would need to handle the case where it's meant to be a new file that's getting added tho.
 ```
 
 Given this objective, please perform the following:
