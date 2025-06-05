@@ -1,4 +1,3 @@
-# army-secretary/src/models/mission_models.py
 """
 Defines Pydantic models used for structuring data within the application,
 particularly for interactions with the LLM and representing mission-related information.
@@ -11,7 +10,7 @@ class SanitizedMissionFolderInfo(BaseModel):
     """
     Pydantic model to structure the output from the LLM
     when generating a sanitized folder name for a mission.
-    
+
     Attributes:
         folder_name (str): A filesystem-friendly folder name.
     """
@@ -20,5 +19,5 @@ class SanitizedMissionFolderInfo(BaseModel):
         description="A filesystem-friendly folder name for the mission, derived from the task title or description. "
                     "It should be lowercase, with spaces replaced by hyphens, "
                     "and special characters removed or replaced appropriately. "
-                    "Example: 'mission-implement-user-login'."
+                    "Example: 'implement-user-login'"
     )

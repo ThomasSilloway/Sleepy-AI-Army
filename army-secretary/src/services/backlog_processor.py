@@ -7,13 +7,14 @@ directory names, and creating a structured output of goal description files.
 import logging
 import os
 import re
-from typing import Optional, Tuple, List # Added List for parsing_errors
 from datetime import datetime
+from typing import Optional
 
-from config import AppConfig
-from models.mission_models import SanitizedMissionFolderInfo # Updated import
-from .llm_prompt_service import LlmPromptService
 import prompts
+from config import AppConfig
+from models.mission_models import SanitizedMissionFolderInfo  # Updated import
+
+from .llm_prompt_service import LlmPromptService
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class BacklogProcessor:
         self.output_dir: str = output_dir
         self.app_config: AppConfig = app_config
 
-        self.created_folders: List[str] = []
+        self.created_folders: list[str] = []
 
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -57,7 +58,7 @@ class BacklogProcessor:
         """
         # Use externalized prompts
         prompt_content: str = prompts.get_sanitize_mission_folder_name_user_prompt(task_description, task_title) # Updated function call
-        messages: List[dict[str, str]] = [
+        messages: list[dict[str, str]] = [
             {"role": "system", "content": prompts.SANITIZE_MISSION_FOLDER_NAME_SYSTEM_PROMPT}, # Updated prompt variable
             {"role": "user", "content": prompt_content}
         ]
@@ -79,21 +80,21 @@ class BacklogProcessor:
                  return folder_name
             else:
                  logger.warning(f"LLM generated mission folder name became empty after sanitization for task: '{task_title[:50]}...'. Using fallback.") # Updated log
-        
+
         # Fallback logic
         if not (structured_output and structured_output.folder_name and structured_output.folder_name.strip()): # Log error only if LLM didn't provide a usable name
             logger.error(f"Failed to generate a valid mission folder name from LLM for task: '{task_title[:50]}...'. Using timestamped fallback.") # Updated log
-        
+
         base_name_sanitized: str = re.sub(r'\s+', '-', task_title.lower() if task_title else "untitled-mission") # Updated fallback
         base_name_sanitized = re.sub(r'[^a-z0-9\-]', '', base_name_sanitized)
         base_name_sanitized = base_name_sanitized[:50] # Truncate
         if not base_name_sanitized: # Handle cases where title had only special chars or was empty
             base_name_sanitized = "untitled-mission" # Updated fallback
-        
+
         timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")[:-3] # Format: YYYY-MM-DD_HH-MM-SS-mmm
         return f"{base_name_sanitized}_{timestamp}"
 
-    def _parse_task_from_section(self, task_section_content: str) -> Optional[Tuple[str, str]]:
+    def _parse_task_from_section(self, task_section_content: str) -> Optional[tuple[str, str]]:
         """
         Extracts the title and description from a markdown task section.
         A task section is expected to start with '## ' for the title.
@@ -104,12 +105,12 @@ class BacklogProcessor:
         Returns:
             A tuple (title, description), or None if parsing fails.
         """
-        lines: List[str] = task_section_content.strip().split('\n')
+        lines: list[str] = task_section_content.strip().split('\n')
         if not lines:
             return None
 
         title: str = ""
-        description_lines: List[str] = []
+        description_lines: list[str] = []
 
         if lines[0].startswith("## "):
             title = lines[0][3:].strip()
@@ -164,8 +165,8 @@ class BacklogProcessor:
         Returns:
             True if successful, False otherwise.
         """
-        parsed_info: Optional[Tuple[str, str]] = self._parse_task_from_section(task_section_content)
-        
+        parsed_info: Optional[tuple[str, str]] = self._parse_task_from_section(task_section_content)
+
         if not parsed_info:
             return False
 
@@ -173,7 +174,7 @@ class BacklogProcessor:
         logger.info(f"Processing task (section {section_index + 1}): '{task_title}' (description length: {len(task_description)} chars)")
 
         folder_name: str = await self._sanitize_title_with_llm(task_description, task_title)
-        
+
         if not folder_name: 
              logger.error(f"sanitize_title_with_llm unexpectedly returned empty for task: '{task_title}'. Skipping file creation for this task.")
              return False
@@ -210,14 +211,14 @@ class BacklogProcessor:
         content: Optional[str] = self._read_backlog_content(backlog_filepath)
         if content is None:
             return 
-        
+
         # define task name placeholder string
         task_name_placeholder: str = "Insert Task Name Here"
 
-        task_sections: List[str] = re.split(r'(?=^## )', content, flags=re.MULTILINE)
-        
+        task_sections: list[str] = re.split(r'(?=^## )', content, flags=re.MULTILINE)
+
         processed_tasks_count: int = 0
-        parsing_errors: List[str] = []
+        parsing_errors: list[str] = []
 
         for i, section_content in enumerate(task_sections):
             section_content = section_content.strip()
@@ -235,7 +236,7 @@ class BacklogProcessor:
             if task_name_placeholder in section_content:
                 logger.info(f"Skipping section with placeholder task name: {section_content[:100]}...")
                 continue
-            
+
             if await self._process_single_task_section(section_content, i, content):
                 processed_tasks_count += 1
 
@@ -249,13 +250,13 @@ class BacklogProcessor:
             logger.info(f"Successfully processed {processed_tasks_count} tasks. Output is in '{self.output_dir}'.")
 
             clear_backlog = True
-        
+
         if parsing_errors:
             logger.warning(
                 f"{len(parsing_errors)} task section(s) could not be properly parsed or had issues. \n\n"
                 f"Review backlog file for formatting. First few problematic sections (or contexts): {parsing_errors[:3]}"
             )
-        
+
         if processed_tasks_count == 0 and not parsing_errors:
             if not any(s.strip() for s in task_sections if s.strip()): 
                  logger.info(f"Backlog file '{backlog_filepath}' is empty or contains no processable content.")
