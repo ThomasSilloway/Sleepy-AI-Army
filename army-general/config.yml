@@ -5,7 +5,7 @@ root_git_path: "C:\\GithubRepos\\Project-Elder"
 
 # File where Secretary writes its output (list of folder names)
 # This path should be relative to the `root_git_path`
-secretary_output_file: "ai-goals\\new-mission-folders.txt"
+secretary_output_file: "ai-missions\\new-mission-folders.txt"
 
 # Command templates for running Secretary and Army Man
 # The Python code will format these strings.
@@ -23,4 +23,4 @@ default_log_filename: "backlog-to-missions.log"
 # Set to true to capture and log stdout/stderr from secretary
 log_secretary_output: false
 # Set to true to capture and log stdout/stderr from army-man
-log_army_man_output: false
+log_army_man_output: true

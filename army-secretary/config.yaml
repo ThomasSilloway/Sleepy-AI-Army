@@ -12,7 +12,7 @@ default_log_directory: "logs"
 default_log_filename: "backlog-to-missions.log" # Renamed from backlog-to-goals.log
 
 # File to write new mission folders to - Used by general to know which missions to work on
-new_mission_folders_filename: "new_mission_folders.txt" # Renamed from new_goal_folders_filename
+new_mission_folders_filename: "new-mission-folders.txt" 
 
 ########################
 #     LLM MODELS
