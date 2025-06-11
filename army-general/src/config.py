@@ -25,7 +25,6 @@ class AppConfig:
 
     # Full command templates
     secretary_run_command_template: str
-    army_man_run_command_template: str
 
     # Logging
     default_log_directory: str
@@ -60,7 +59,6 @@ class AppConfig:
         self.root_git_path = yaml_config.get("root_git_path")
         self.secretary_output_file = yaml_config.get("secretary_output_file")
         self.secretary_run_command_template = yaml_config.get("secretary_run_command_template")
-        self.army_man_run_command_template = yaml_config.get("army_man_run_command_template")
         self.default_log_directory = yaml_config.get("default_log_directory")
         self.default_log_filename = yaml_config.get("default_log_filename")
         self.log_level = yaml_config.get("log_level")
@@ -94,8 +92,6 @@ class AppConfig:
             raise ValueError("secretary_output_file is not set in config.yaml.")
         if not self.secretary_run_command_template:
             raise ValueError("secretary_run_command_template is not set in config.yaml.")
-        if not self.army_man_run_command_template:
-            raise ValueError("army_man_run_command_template is not set in config.yaml.")
         if not self.default_log_directory:
             raise ValueError("default_log_directory is not set in config.yaml.")
         if not self.default_log_filename:

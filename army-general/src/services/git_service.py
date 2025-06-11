@@ -171,3 +171,17 @@ class GitService:
             return stdout
         except (GitServiceError, ValueError):
             return None
+
+    async def has_unstaged_changes(self) -> bool:
+        """
+        Checks if there are unstaged changes in the repository.
+        Returns True if there are unstaged changes, False otherwise.
+        """
+        try:
+            stdout, _ = await self._run_git_command("status --porcelain")
+            has_changes = bool(stdout.strip())
+            logger.info(f"Unstaged changes present: {has_changes}")
+            return has_changes
+        except GitServiceError as e:
+            logger.error(f"Error checking for unstaged changes: {e}")
+            raise

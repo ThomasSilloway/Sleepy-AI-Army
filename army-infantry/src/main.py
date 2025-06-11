@@ -14,7 +14,7 @@ import logging
 from src.app_config import AppConfig
 from src.graph_builder import build_graph
 from src.graph_state import MissionContext, WorkflowState
-from src.services.aider_service import AiderService
+from src.services.aider_service.aider_service import AiderService
 from src.services.git_service import GitService
 from src.services.llm_prompt_service import LlmPromptService
 from src.services.write_file_from_template_service import WriteFileFromTemplateService
@@ -38,7 +38,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 2. Initialize AppConfig first, passing the command line argument if provided
-app_config = AppConfig(command_line_git_path=args.root_git_path)
+app_config = AppConfig(command_line_git_path=args.root_git_path, command_line_mission_folder_path=args.mission_folder_path)
 
 # 3. Initialize and setup logging using AppConfig
 setup_logging(app_config)

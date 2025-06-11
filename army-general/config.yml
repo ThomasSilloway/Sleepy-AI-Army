@@ -5,12 +5,11 @@ root_git_path: "C:\\GithubRepos\\Project-Elder"
 
 # File where Secretary writes its output (list of folder names)
 # This path should be relative to the `root_git_path`
-secretary_output_file: "ai-goals\\new-goal-folders.txt"
+secretary_output_file: "ai-missions\\new-mission-folders.txt"
 
 # Command templates for running Secretary and Army Man
 # The Python code will format these strings.
 secretary_run_command_template: "uv run .\\src\\main.py --root_git_path \"{target_folder}\""
-army_man_run_command_template: "uv run .\\src\\main.py --root_git_path \"{target_folder}\" --goal_path \"{goal_path}"
 
 # Logging level for the General application
 # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -18,10 +17,10 @@ log_level: "INFO"
 
 # Default logging configuration (used by LoggingSetup via AppConfig)
 default_log_directory: "logs"
-default_log_filename: "backlog-to-goals.log"
+default_log_filename: "backlog-to-missions.log"
 
 # Optional logging of subprocess output to army-general's logs
 # Set to true to capture and log stdout/stderr from secretary
 log_secretary_output: false
 # Set to true to capture and log stdout/stderr from army-man
-log_army_man_output: false
+log_army_man_output: true

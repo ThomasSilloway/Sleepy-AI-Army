@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from src.config import AppConfig
 from src.models.aider_summary import AiderRunSummary
-from src.services.aider_service import AiderExecutionResult, AiderService
+from src.services.aider_service.aider_service import AiderExecutionResult, AiderService
 from src.services.llm_prompt_service import LlmPromptService
 from src.utils.logging_setup import setup_logging
 

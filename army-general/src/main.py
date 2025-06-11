@@ -119,127 +119,185 @@ def _run_secretary() -> bool:
         logger.error(f"Run Secretary command not found: {command_to_run}")
         return False
 
-def _run_army_man(folder: str) -> bool:
+async def _run_infantry_mission(mission_folder_path: str, root_git_path: str) -> bool:
     """
-    Run the Army Man to work on a goal in the folder provided.  Implemented similar to _run_secretary
+    Runs army-infantry for a single mission folder.
     """
-    command_to_run = app_config.army_man_run_command_template.format(
-        target_folder=app_config.root_git_path,
-        goal_path=folder
-    )
-    logger.info(f"Constructed Army Man run command: {command_to_run}")
-    logger.info("Executing Army Man...")
-
-    # Current project root directory
     current_root_directory = Path(__file__).resolve().parent.parent.parent
-    army_man_directory = os.path.join(current_root_directory, "army-man-small-tweak")
-    logger.info(f"Army Man directory: {army_man_directory}")
+    infantry_directory = current_root_directory / "army-infantry"
 
-    # Run Secretary
+    command = [
+        "uv", "run", "src/main.py",
+        "--root_git_path", root_git_path,
+        "--mission_folder_path", mission_folder_path
+    ]
+    logger.info(f"Constructed army-infantry run command: {' '.join(command)}")
+    logger.info(f"Executing army-infantry from directory: {infantry_directory}")
+
     try:
-        logger.info("Running Army Man...")
-        process = subprocess.run(
-            command_to_run,
-            cwd=army_man_directory,
-            capture_output=True,
-            text=True,        # Ensure text=True
-            check=True,       # Ensure check=True
-            encoding='utf-8'
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=str(infantry_directory),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        if app_config.log_army_man_output:
+        stdout, stderr = await process.communicate()
+
+        if app_config.log_army_man_output: # Reusing old flag for infantry output
             _log_subprocess_details(
-                process_name="Army Man",
-                stdout_content=process.stdout,
-                stderr_content=process.stderr,
-                return_code=process.returncode
+                process_name="army-infantry",
+                stdout_content=stdout,
+                stderr_content=stderr,
+                return_code=process.returncode if process.returncode is not None else -1
             )
-        logger.info("Army Man completed successfully.")
+
+        if process.returncode != 0:
+            logger.error(f"army-infantry execution failed for mission {mission_folder_path} with return code {process.returncode}.")
+            return False
+        logger.info(f"army-infantry completed successfully for mission {mission_folder_path}.")
         return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Run Army Man failed with CalledProcessError: {e.returncode} - {e}")
-        if app_config.log_army_man_output:
-            _log_subprocess_details(
-                process_name="Army Man",
-                stdout_content=e.stdout,
-                stderr_content=e.stderr,
-                return_code=e.returncode
-            )
-        return False
     except FileNotFoundError:
-        logger.error(f"Run Army Man command not found: {command_to_run}")
+        logger.error(f"Failed to run army-infantry: 'uv' command not found or army-infantry src not found at {infantry_directory / 'src/main.py'}. Ensure uv is installed and paths are correct.")
         return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while running army-infantry for {mission_folder_path}: {e}", exc_info=True)
+        return False
+
+
+async def _ensure_git_repo_state(
+    git_service: GitService,
+    original_branch: str,
+    commit_message: str,
+    mission_folder_path: str | None = None
+) -> None:
+    """
+    Ensures the Git repository is in a consistent state.
+    Checks branch, stages, commits changes, and checks out the original branch.
+    """
+    try:
+        current_branch = await git_service.get_current_branch()
+        if not current_branch:
+            error_message = f"{commit_message}: Failed to determine current branch. Unable to proceed with Git state management."
+            raise RuntimeError(error_message)
+
+        # If the current branch matches the original branch, then all is good, infantry ran correctly
+        if mission_folder_path and current_branch == original_branch:
+            logger.info(f"{commit_message}: Current branch '{current_branch}' is the original '{original_branch}'. No checkout needed.")
+            return
+
+        if await git_service.has_unstaged_changes():
+            logger.info(f"{commit_message}: Unstaged changes found. Staging and committing.")
+
+            if await git_service.commit_changes(commit_message):
+                logger.info(f"{commit_message}: Successfully committed")
+            else:
+                logger.error(f"{commit_message}: Failed to commit changes")
+        else:
+            logger.info(f"{commit_message}: No unstaged changes to commit.")
+
+        if await git_service.checkout_branch(original_branch):
+            logger.info(f"{commit_message}: Successfully checked out original branch: {original_branch}")
+        else:
+            raise RuntimeError(f"{commit_message}: Failed to checkout original branch: {original_branch}. Manual intervention likely required.")
+
+    except Exception as e: # Catching generic Exception to include GitServiceError if it's raised
+        raise RuntimeError(f"{commit_message}: An error occurred while ensuring Git repository state: {e}")
 
 async def run() -> None:
     logger.info("Army General orchestration started.")
-
-    secretary_output_file = app_config.secretary_output_file_path
-    secretary_executed_successfully = False 
+    git_service = GitService(app_config.root_git_path)
+    original_branch = None
 
     try:
+        # Get the original branch before running Secretary
+        original_branch = await git_service.get_current_branch()
+        if not original_branch:
+            logger.error("Failed to determine the original Git branch. Aborting.")
+            return
+        logger.info(f"Original Git branch: {original_branch}")
+
+        # Run Secretary to generate the missions and the output file
+        secretary_output_file = app_config.secretary_output_file_path
+
         logger.info("Attempting to run Secretary...")
         if not _run_secretary():
             logger.error("Secretary execution failed. Further processing of its output will be skipped.")
-        else:
-            secretary_executed_successfully = True
-
-        # Proceed only if Secretary was successful
-        if not secretary_executed_successfully:
-            logger.warning("Skipping processing of Secretary's output file due to earlier errors.")
-            return # Exits run(), 'finally' block will execute.
+            return
 
         logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
         if not os.path.exists(secretary_output_file):
             logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
             logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
-            return # Exits run(), 'finally' block will execute.
+            return
 
-        # Parse the folders from the file
+        # Get the mission folders to run the Infantry on
         folders = []
-        try: # Nested try for file reading
+        try:
             with open(secretary_output_file) as file:
                 folders = [line.strip() for line in file if line.strip()]
-            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} folders.")
-        except Exception as e: # Catch any exception during file open/read
+            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} mission folders.")
+        except Exception as e:
             logger.error(f"Failed to read or parse secretary output file {secretary_output_file}: {e}")
-            return # Exits run(), 'finally' block will execute.
+            return
 
         if not folders:
-            logger.warning("No folders found in Secretary output. No Army Man tasks to perform.")
-            return # Exits run(), 'finally' block will execute.
+            logger.warning("No mission folders found in Secretary output. No Infantry tasks to perform.")
+            return
 
-        num_goals_worked_on = 0
-        for folder_index, folder in enumerate(folders):
-            logger.info(f"Processing folder {folder_index + 1}/{len(folders)}: {folder}")
-            if _run_army_man(folder): # Assumes _run_army_man() returns bool
-                num_goals_worked_on += 1
-                logger.info(f"Successfully completed Army Man task for folder: {folder}")
+        # For each folder, run an infantry mission
+        num_missions_worked_on = 0
+        for folder_index, mission_folder_path_from_secretary in enumerate(folders):
+            logger.info(f"Processing mission folder {folder_index + 1}/{len(folders)}: {mission_folder_path_from_secretary}")
+
+            infantry_success = await _run_infantry_mission(mission_folder_path_from_secretary, app_config.root_git_path)
+
+            if infantry_success:
+                logger.info(f"army-infantry successfully processed mission: {mission_folder_path_from_secretary}")
             else:
-                logger.warning(f"Army Man task failed for folder: {folder}. Continuing with next folder if any.")
+                logger.warning(f"army-infantry failed to process mission: {mission_folder_path_from_secretary}. Continuing with cleanup.")
 
-        logger.info(f"Completed processing all folders. Total goals worked on: {num_goals_worked_on}/{len(folders)}.")
+            # Ensure Git repo state after each infantry mission
+            await _ensure_git_repo_state(
+                git_service=git_service,
+                original_branch=original_branch,
+                commit_message="General fixing Infantry Git state",
+                mission_folder_path=mission_folder_path_from_secretary
+            )
 
+            if infantry_success:
+                 num_missions_worked_on +=1
+
+        logger.info(f"Completed processing all mission folders. Total missions successfully processed by Infantry: {num_missions_worked_on}/{len(folders)}.")
+
+    except Exception as e:
+        logger.critical(f"An unhandled exception occurred in the main run loop: {e}", exc_info=True)
     finally:
-        # Cleanup: Attempt to delete the secretary_output_file.
-        # This block executes regardless of exceptions or return statements in the try block.
-        logger.info(f"Initiating cleanup of Secretary output file: {secretary_output_file}")
-        if os.path.exists(secretary_output_file):
-            try:
-                os.remove(secretary_output_file)
-                logger.info(f"Successfully cleaned up Secretary output file: {secretary_output_file}")
-                git_service = GitService(app_config.root_git_path)
-                commit_message = "AI Army General - Work Completed"
-                if await git_service.commit_changes(commit_message):
-                    logger.info(f"Committed changes to git with message: {commit_message}")
-                else:
-                    logger.warning("Failed to commit changes to git.")
-            except OSError as e:
-                logger.error(f"Error deleting Secretary output file {secretary_output_file}: {e}. Manual cleanup might be required.")
-        else:
-            # This is not necessarily an error condition.
-            # It could mean Secretary failed before creating it, or it was (unexpectedly) already cleaned.
-            logger.info(f"Secretary output file {secretary_output_file} was not found during cleanup. This may be normal if Secretary did not produce it or if it was already handled.")
+        logger.info("Initiating cleanup procedures in the 'finally' block.")
 
-    logger.info("Army General finished all operations.") # This is after the try-finally structure.
+        # Delete Secretary output file first, so its deletion can be part of the final commit
+        secretary_file_to_delete = app_config.secretary_output_file_path
+        logger.info(f"Attempting to delete Secretary output file: {secretary_file_to_delete}")
+        if os.path.exists(secretary_file_to_delete):
+            try:
+                os.remove(secretary_file_to_delete)
+                logger.info(f"Successfully deleted Secretary output file: {secretary_file_to_delete}")
+            except OSError as e:
+                logger.error(f"Error deleting Secretary output file {secretary_file_to_delete}: {e}. Manual cleanup might be required.")
+        else:
+            logger.info(f"Secretary output file {secretary_file_to_delete} was not found during cleanup; no deletion needed.")
+
+        # Perform final Git cleanup and state check
+        if original_branch and git_service:
+            logger.info("Performing Army General final Git cleanup and state check.")
+            await _ensure_git_repo_state(
+                git_service=git_service,
+                original_branch=original_branch,
+                commit_message="Army General Final Cleanup"
+            )
+        elif not original_branch:
+            logger.info("Final cleanup: Original branch was not determined, skipping Git state check.")
+
+    logger.info("Army General finished all operations.")
 
 if __name__ == "__main__":
     # Python 3.7+

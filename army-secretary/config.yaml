@@ -4,15 +4,15 @@ project_git_path: "C:\\GithubRepos\\Project-Elder"
 # Filenames (relative to paths above)
 backlog_file_name: "BACKLOG.md"
 
-ai_goals_directory_name: "ai-goals"
-task_description_filename: "task-description.md"
+ai_missions_directory_name: "ai-missions" # Renamed from ai_goals_directory_name
+mission_spec_filename: "mission-spec.md" # Renamed from task_description_filename and value changed
 
 # Default logging configuration
 default_log_directory: "logs"
-default_log_filename: "backlog-to-goals.log"
+default_log_filename: "backlog-to-missions.log" # Renamed from backlog-to-goals.log
 
-# File to write new goal folders to - Used by general to know which goals to work on
-new_goal_folders_filename: "new-goal-folders.txt"
+# File to write new mission folders to - Used by general to know which missions to work on
+new_mission_folders_filename: "new-mission-folders.txt" 
 
 ########################
 #     LLM MODELS

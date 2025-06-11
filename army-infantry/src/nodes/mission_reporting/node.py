@@ -41,7 +41,11 @@ async def _mission_reporting(state: WorkflowState, config: dict[str, Any]) -> Wo
     mission_context: MissionContext = state['mission_context']
 
     critical_error_from_state = state.get("critical_error_message")
-    mission_errors_list = [critical_error_from_state].extend(mission_context.mission_errors)
+    mission_errors_list = []
+    if critical_error_from_state:
+        mission_errors_list.extend(critical_error_from_state)
+    if mission_context.mission_errors:
+        mission_errors_list.extend(mission_context.mission_errors)
 
     # Create variable for timestamp in the format year-month-day hour-minute-second
     report_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
