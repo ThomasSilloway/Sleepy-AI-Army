@@ -1,18 +1,10 @@
-## General double check git branch before Infantry
+## Manifest commit git
 
-General should be updated to double check the git branch is the same every time it runs the Infantry.  If it's not, then need to halt execution.
-
-## Check files for aider
-
-After parsing out the files for aider to work on, if those files don't exist yet, it should fail. Would need to handle the case where it's meant to be a new file that's getting added tho
+Make sure after manifest is created that it's committed via git
 
 ## Refactor aider_service
 
 Refactor aider_service into its own aider folder with prompts.py file that can have the aider prompts.
-
-## Manifest commit git
-
-Make sure after manifest is created that it's committed via git
 
 ## Git branch name check
 
@@ -24,7 +16,12 @@ Aider crashes sometimes - Need to detect crashes (lack of streamed output for X 
 
 ## Fix bug with calling infantry from general
 
+### Notes
+- `update-comments-shoot_component` has an underscore - oh it's just using the value from the config, nopt from commandline.
 
+- Also noticed this time it didn't create a branch for some reason
+
+### Log
 :15.887 - info - Constructed army-infantry run command: uv run src/main.py --root_git_path C:\GithubRepos\Project-Elder --mission_folder_path C:\GithubRepos\Project-Elder\ai-missions\update-comments-with-a-temp-word
 08:15.887 - info - Executing army-infantry from directory: C:\GithubRepos\Sleepy-AI-Army\army-infantry
 08:16.761 - info - --- Start of output from army-infantry ---

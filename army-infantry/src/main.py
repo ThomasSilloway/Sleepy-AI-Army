@@ -38,7 +38,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 2. Initialize AppConfig first, passing the command line argument if provided
-app_config = AppConfig(command_line_git_path=args.root_git_path)
+app_config = AppConfig(command_line_git_path=args.root_git_path, command_line_mission_folder_path=args.mission_folder_path)
 
 # 3. Initialize and setup logging using AppConfig
 setup_logging(app_config)
