@@ -6,7 +6,7 @@ from typing import Optional
 
 from src.config import AppConfig
 from src.models.aider_summary import AiderRunSummary
-from src.services.aider_service import AiderExecutionResult, AiderService
+from src.services.aider_service.aider_service import AiderExecutionResult, AiderService
 from src.services.changelog_service import ChangelogService
 from src.state import WorkflowState
 

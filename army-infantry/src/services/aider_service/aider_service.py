@@ -3,21 +3,13 @@ import asyncio
 import logging
 from typing import Optional
 
-from pydantic import BaseModel
-
 from src.app_config import AppConfig
 from src.models.aider_summary import AiderRunSummary
+from src.services.aider_service.aider_execution_result import AiderExecutionResult
+from src.services.aider_service.prompts import get_system_prompt, get_user_prompt
 from src.services.llm_prompt_service import LlmPromptService
 
 logger = logging.getLogger(__name__)
-
-
-class AiderExecutionResult(BaseModel):
-    """Data class to hold the results of an Aider command execution."""
-    exit_code: int
-    stdout: str
-    stderr: str
-
 
 async def stream_output(
     pipe: asyncio.StreamReader, log_func, output_lines_list: list[str]
@@ -128,39 +120,10 @@ class AiderService:
         (This method was already async and is largely unchanged functionally,
          but it will now be called with the result of an async `execute` method).
         """
-        system_prompt = f"""
-You are an expert at analyzing the output of the 'aider' command-line tool.
-Your task is to extract specific information from aider's stdout and stderr and return it in a structured JSON format
-that matches the AiderRunSummary Pydantic model.
 
-The JSON schema to use for your response is:
-    {AiderRunSummary.model_json_schema()}
-
-Analyze the provided stdout and stderr from an aider execution.
-Extract the information to populate these fields accurately.
-If aider's output clearly indicates a commit, extract the hash and message.
-If aider failed or no specific changes are identifiable, focus on `errors_reported` and `raw_output_summary`.
-Pay close attention to whether a commit was actually made by aider in *this* run. Do not infer commits.
-The output MUST be a JSON object matching the AiderRunSummary structure.
-"""
-        user_prompt_content = f"""
-Please analyze the following output from an 'aider' command execution:
-
-**Aider STDOUT:**
-```
-{result.stdout}
-```
-
-**Aider STDERR:**
-```
-{result.stderr}
-```
-
-Based on this output, provide a JSON summary matching the AiderRunSummary model.
-"""
         llm_messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt_content},
+            {"role": "system", "content": get_system_prompt()},
+            {"role": "user", "content": get_user_prompt(result)},
         ]
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")

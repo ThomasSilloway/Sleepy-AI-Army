@@ -5,7 +5,7 @@ from src.app_config import AppConfig
 
 # MissionContext and StructuredError are now directly imported above
 from src.models.aider_summary import AiderRunSummary
-from src.services.aider_service import AiderExecutionResult, AiderService
+from src.services.aider_service.aider_service import AiderExecutionResult, AiderService
 
 # Corrected import path for MissionContext and StructuredError
 from ...graph_state import MissionContext, WorkflowState

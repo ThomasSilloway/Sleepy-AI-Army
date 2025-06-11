@@ -14,7 +14,7 @@ if project_root not in sys.path:
 
 try:
     from src.config import AppConfig
-    from src.services.aider_service import AiderService
+    from src.services.aider_service.aider_service import AiderService
     from src.utils.logging_setup import setup_logging
 except ImportError as e:
     print(f"Error importing necessary modules. This script expects to be in a 'tests' subdirectory of the project root.")

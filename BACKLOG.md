@@ -1,7 +1,3 @@
-## Refactor aider_service
-
-Refactor aider_service into its own aider folder with prompts.py file that can have the aider prompts.
-
 ## Git branch name check
 
 Git_branch node: Check if branch name exists already, if it does add some kind of hash after to make it unique
