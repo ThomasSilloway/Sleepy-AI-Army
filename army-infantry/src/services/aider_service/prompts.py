@@ -33,10 +33,11 @@ Example 2:
  - Modified `baz.py` to handle new error condition
 Example 3:
  - Removed comment for `_ready()` in `shoot_component.gd`
-Example 4: (multiple changes to same file)
+Example 4: (multiple changes to same file - use a sub-bullet for each change and each line in the list should be its own string in the list)
  - Updated `faz.py` 
     - Handled edge case for `x == 0`
     - Added function `do_something()`
+    - Updated `do_something()` to handle new parameter `y`
 
 Bad Example - Avoid doing this:
  - Added function `foo` to `src/utils/bar.py`
