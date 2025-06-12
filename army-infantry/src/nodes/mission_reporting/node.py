@@ -12,62 +12,6 @@ from . import models, prompts
 logger = logging.getLogger(__name__)
 
 
-async def _generate_execution_summary(
-    commit_hashes: list[str],
-    git_service: GitService,
-    llm_service: LlmPromptService,
-    app_config: AppConfig
-) -> tuple[list[str], float]:
-    """
-    Generates an execution summary from git commits using an LLM.
-    """
-    if not commit_hashes:
-        logger.info("No commit hashes provided, returning default summary.")
-        return (["No commits submitted by aider"], 0.0)
-
-    all_diffs = []
-    logger.info(f"Fetching diffs for {len(commit_hashes)} commits.")
-    for commit_hash in commit_hashes:
-        try:
-            diff = await git_service.get_diff_for_commit(commit_hash)
-            all_diffs.append(diff)
-        except GitServiceError as e:
-            logger.warning(f"Could not get diff for commit {commit_hash}: {e}")
-    
-    if not all_diffs:
-        logger.error("Could not retrieve diffs for any of the provided commits.")
-        return (["Could not retrieve diffs for any commits."], 0.0)
-
-    concatenated_diffs = "\n\n---\n\n".join(all_diffs)
-    
-    system_prompt = prompts.get_system_prompt()
-    user_prompt = prompts.get_user_prompt(concatenated_diffs)
-
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-    ]
-
-    # Assuming a model for reporting is defined in AppConfig, with a fallback.
-    reporting_model = getattr(app_config, 'reporting_model', 'gemini-1.5-flash-latest')
-    logger.info(f"Requesting execution summary from LLM using model: {reporting_model}")
-
-    parsed_response, cost = await llm_service.get_structured_output(
-        messages=messages,
-        output_pydantic_model_type=models.ExecutionSummary,
-        llm_model_name=reporting_model
-    )
-
-    cost = cost or 0.0
-
-    if not parsed_response or not parsed_response.summary:
-        logger.warning("LLM failed to generate a valid execution summary.")
-        return (["Unable to generate Execution Summary, see Aider summary below"], cost)
-
-    logger.info("Successfully generated execution summary from LLM.")
-    return (parsed_response.summary, cost)
-
-
 async def mission_reporting_node(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
     """
     Generates and potentially sends a mission report.
@@ -137,14 +81,14 @@ async def _mission_reporting(state: WorkflowState, config: dict[str, Any]) -> Wo
         "status": mission_context.status,
         "report_timestamp": report_timestamp,
         "execution_summary": execution_summary_list,
-        "aider_changes_made": mission_context.aider_changes_made,
-        "aider_questions_asked": mission_context.aider_questions_asked,
         "files_modified": mission_context.files_modified,
         "files_created": mission_context.files_created,
         "generated_branch_name": mission_context.generated_branch_name,
         "git_summary": mission_context.git_summary,
         "total_cost_usd": mission_context.total_cost_usd,
         "mission_errors": mission_errors_list,
+        "aider_changes_made": mission_context.aider_changes_made,
+        "aider_questions_asked": mission_context.aider_questions_asked,
     }
 
     template_abs_path: str = app_config.mission_report_template_abs_path
@@ -163,3 +107,58 @@ async def _mission_reporting(state: WorkflowState, config: dict[str, Any]) -> Wo
         raise RuntimeError("Failed to render and write mission report. Service returned False.")
 
     return state
+
+async def _generate_execution_summary(
+    commit_hashes: list[str],
+    git_service: GitService,
+    llm_service: LlmPromptService,
+    app_config: AppConfig
+) -> tuple[list[str], float | None]:
+    """
+    Generates an execution summary from git commits using an LLM.
+    """
+    if not commit_hashes:
+        logger.info("No commit hashes provided, returning default summary.")
+        return ([], None)
+
+    all_diffs = []
+    logger.info(f"Fetching diffs for {len(commit_hashes)} commits.")
+    for commit_hash in commit_hashes:
+        try:
+            diff = await git_service.get_diff_for_commit(commit_hash)
+            all_diffs.append(diff)
+        except GitServiceError as e:
+            logger.warning(f"Could not get diff for commit {commit_hash}: {e}")
+
+    if not all_diffs:
+        logger.error("Could not retrieve diffs for any of the provided commits.")
+        return ([], None)
+
+    concatenated_diffs = "\n\n==============================================================\n\n".join(all_diffs)
+
+    system_prompt = prompts.get_system_prompt()
+    user_prompt = prompts.get_user_prompt(concatenated_diffs)
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    # Assuming a model for reporting is defined in AppConfig, with a fallback.
+    reporting_model = getattr(app_config, 'reporting_model', app_config.aider_summary_model)
+    logger.info(f"Requesting execution summary from LLM using model: {reporting_model}")
+
+    parsed_response, cost = await llm_service.get_structured_output(
+        messages=messages,
+        output_pydantic_model_type=models.ExecutionSummary,
+        llm_model_name=reporting_model
+    )
+
+    cost = cost or 0.0
+
+    if not parsed_response or not parsed_response.summary:
+        logger.warning("LLM failed to generate a valid execution summary.")
+        return (["Unable to generate Execution Summary, see Aider summary below"], cost)
+
+    logger.info("Successfully generated execution summary from LLM.")
+    return (parsed_response.summary, cost)
