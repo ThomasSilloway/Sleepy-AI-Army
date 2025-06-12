@@ -57,7 +57,7 @@ class LlmPromptService:
         output_pydantic_model_type: type[T],
         llm_model_name: Optional[str] = None, # Base model name, e.g., "gemini-1.5-flash-latest"
         model_parameters: Optional[dict[str, Any]] = None
-    ) -> Optional[T]:
+    ) -> tuple[Optional[T], Optional[float | None]]:
         """
         Sends prompts to the LLM and attempts to parse the response into the specified Pydantic model.
 
@@ -77,11 +77,11 @@ class LlmPromptService:
         if not os.getenv("GEMINI_API_KEY"):
             logger.error("GEMINI_API_KEY environment variable not set. Cannot make LLM calls.")
             print("GEMINI_API_KEY environment variable not set. Please set it to use the LLM service.")
-            return None
+            return None, None
 
         if not llm_model_name:
             logger.error("LLM model name not provided to get_structured_output. Cannot proceed.")
-            return None
+            return None, None
 
         prefixed_model_name = f"{self.gemini_model_prefix}{llm_model_name}"
         logger.debug(f"Using LLM model: {prefixed_model_name}")
@@ -110,7 +110,7 @@ class LlmPromptService:
 
         if not request_parts:
             logger.error("No valid ModelRequestParts to send to LLM after conversion.")
-            return None
+            return None, None
 
         mrp_instance: Optional[ModelRequestParameters] = None
         if model_parameters:
@@ -120,6 +120,7 @@ class LlmPromptService:
             except Exception as e:
                 logger.warning(f"Could not instantiate ModelRequestParameters from {model_parameters}: {e}. Proceeding without them.")
 
+        cost = None
         try:
             logger.debug(f"Sending request to LLM with {len(request_parts)} parts. Expecting {output_pydantic_model_type.__name__}.")
             for i, part in enumerate(request_parts):
@@ -138,10 +139,20 @@ class LlmPromptService:
 
             # Extract the data from ModelResponse and parse it into the Pydantic model
             if response and response.parts:
+                logger.debug(f"Received response from LLM: {response}")
+                # Parse the usage and calculate cost
+                # Example usage `usage=Usage(requests=1, request_tokens=1058, response_tokens=135, total_tokens=1446, details={'thoughts_tokens': 253, 'text_prompt_tokens': 1058})`
+                if response.usage:
+                    logger.debug(f"Usage: {response.usage}")
+                    request_tokens = response.usage.request_tokens
+                    response_tokens = response.usage.response_tokens
+                    cost = self._calculate_cost(request_tokens, response_tokens, llm_model_name)
+                    logger.debug(f"Request Tokens: {request_tokens}, Response Tokens: {response_tokens}, Cost: ${cost}")
+
+                # Parse the extracted data
                 # Assuming the first part is the relevant one for parsing
                 first_part = response.parts[0]
                 if isinstance(first_part, TextPart):
-                    logger.debug(f"Received response from LLM: {first_part.content}")
                     # Strip any json fencing characters if needed
                     stripped_content = self._strip_json_fencing(first_part.content)
                     logger.debug(f"Received response from LLM (stripped): {stripped_content}")
@@ -150,18 +161,52 @@ class LlmPromptService:
                     try:
                         parsed_result = output_pydantic_model_type.model_validate_json(stripped_content)
                         logger.debug(f"Parsed result: {parsed_result}")
-                        return parsed_result
+                        return parsed_result, cost
                     except Exception as e:
                         logger.error(f"Failed to parse LLM response into {output_pydantic_model_type.__name__}: {e}")
-                        return None
+                        return None, cost
                 else:
                     logger.warning("First part of the response is not a TextPart. Cannot parse.")
-                    return None
+                    return None, cost
             else:
                 logger.warning("No valid parts in LLM response. Cannot parse.")
-                return None
+                return None, cost
 
         except Exception as e:
             logger.error(f"An error occurred during LLM request or processing: {e}", exc_info=True)
             print(f"\nAn error occurred with the LLM service: {e}")
+            return None, cost
+
+    def _calculate_cost(self, request_tokens: int, response_tokens: int, model_name: str) -> float | None:
+        """
+        Calculates the cost of the LLM request based on the number of tokens used and the model name.
+        Pricing is based on https://gemini.google.dev/pricing/.
+        """
+        # Switch based off of model name
+        # gemini-2.5-pro-preview-06-05 = $1.25 per million input tokens, $10 per million output tokens
+        # gemini-2.0-flash-exp = free
+        # gemini-2.5-flash-preview-05-20 = 15c per million input tokens, $3.5 per million output tokens - Note: 3.5 is the high estimate, it's actually lower than that bc thinking tokens cost less
+        # gemini-2.0-flash = 10c per million input tokens, 40c per million output tokens
+        # gemini-2.0-flash-lite = 7.5c per mission input tokens, 30c per million output tokens
+
+        cost_per_model: dict[str, tuple[float, float]] = {
+            "gemini-2.5-pro-preview-06-05": (1.25, 10.0),
+            "gemini-2.0-flash-exp": (0.0, 0.0),
+            "gemini-2.5-flash-preview-05-20": (0.15, 3.5),
+            "gemini-2.0-flash": (0.10, 0.40),
+            "gemini-2.0-flash-lite": (0.075, 0.30)
+        }
+
+        ONE_MILLION = 1000000
+
+        if model_name not in cost_per_model:
+            logger.warning(f"\n\nWARNING: No cost information available for model {model_name}. Treating as free. Update list in LlmPromptService::_calculate_cost()\n\n")
             return None
+
+        input_cost_per_million, output_cost_per_million = cost_per_model.get(model_name)
+        total_cost = (request_tokens / ONE_MILLION) * input_cost_per_million + (response_tokens / ONE_MILLION) * output_cost_per_million
+
+        logger.info(f"Calculated cost: ${total_cost} for {model_name} with {request_tokens} request tokens and {response_tokens} response tokens.")
+        return total_cost
+
+

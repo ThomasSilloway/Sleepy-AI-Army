@@ -44,19 +44,21 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     logger.info(f"Original Git branch: {original_branch_name}")
 
     # Perform LLM call to get MissionData (title and git_branch_base_name)
-    mission_data = await _extract_mission_data(llm_service, app_config, mission_spec_content)
+    mission_data, cost = await _extract_mission_data(llm_service, app_config, mission_spec_content)
 
     # Verify files and prepare for Aider
     # TODO: Extract files to read separately and add to mission_context and then process with `--read` command for Aider so it can't edit them
     files_to_edit = await _verify_and_prepare_aider_files(app_config, mission_data)
 
     # Update mission context
-    mission_context = state['mission_context']
+    mission_context: MissionContext = state['mission_context']
     mission_context.mission_spec_content = mission_spec_content
     mission_context.mission_title = mission_data.mission_title
     mission_context.original_branch_name = original_branch_name
     mission_context.generated_branch_name = mission_data.git_branch_name
     mission_context.aider_editable_files = files_to_edit
+    if cost is not None:
+        mission_context.total_cost_usd += cost
     mission_context.status = "IN_PROGRESS"
 
     debug_files_to_edit: list[str] = [" "]
@@ -85,22 +87,24 @@ def _load_mission_spec_content_from_file(app_config: AppConfig) -> str:
         raise RuntimeError(f"Error reading mission spec file {mission_spec_path}: {e}")
     return mission_spec_content
 
-async def _extract_mission_data(llm_service: LlmPromptService, app_config: AppConfig, mission_spec_content: str) -> MissionData:
+async def _extract_mission_data(llm_service: LlmPromptService, 
+                                app_config: AppConfig, 
+                                mission_spec_content: str) -> tuple[MissionData, float | None]:
     messages = [
         {"role": "system", "content": get_system_prompt(app_config.valid_branch_types)},
         {"role": "user", "content": get_user_prompt(mission_spec_content)}
     ]
     try:
         # Using the updated MissionData model that includes git_branch_base_name
-        extracted_data: MissionData | None = await llm_service.get_structured_output(
+        extracted_data, cost = await llm_service.get_structured_output(
             messages=messages,
             output_pydantic_model_type=MissionData,
             llm_model_name=app_config.mission_data_extraction_model
         )
-        # TODO: Now that this is using a paid model, need to get the cost and add it to the mission context
+        logger.info(f"Successfully extracted mission data. Cost: {cost}")
         if extracted_data and extracted_data.mission_title and extracted_data.git_branch_name:
             extracted_data.sanitize()
-            return extracted_data
+            return extracted_data, cost
         else:
             logger.error("Extracted data is None or mission_title/git_branch_base_name is missing.")
             raise RuntimeError("Extracted data is None or mission_title/git_branch_base_name is missing.")

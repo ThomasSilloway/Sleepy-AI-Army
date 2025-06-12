@@ -128,13 +128,14 @@ class AiderService:
         try:
             logger.info("Attempting to extract Aider execution summary using LLM.")
 
-            aider_run_summary_obj = await self.llm_prompt_service.get_structured_output(
+            aider_run_summary_obj, cost = await self.llm_prompt_service.get_structured_output(
                 messages=llm_messages,
                 output_pydantic_model_type=AiderRunSummary,
                 llm_model_name=self.app_config.aider_summary_model # This should exist in AppConfig
             )
 
             if aider_run_summary_obj:
+                aider_run_summary_obj.total_cost += cost
                 logger.info("Successfully extracted Aider run summary.")
                 logger.debug(f"Aider Run Summary: {aider_run_summary_obj.model_dump_json(indent=2)}")
                 return aider_run_summary_obj
