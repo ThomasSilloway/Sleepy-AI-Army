@@ -24,10 +24,10 @@ aider_config_file_path: ".aider.sleepy.conf.yml" # Path relative to root_git_pat
 #     LLM MODELS
 ########################
 
-# aider_code_model: "gemini/gemini-2.5-pro-preview-06-05"
+aider_code_model: "gemini/gemini-2.5-pro-preview-06-05"
 
 # For testing AI Army Functionality - Use 2.0 flash exp since it's free
-aider_code_model: "gemini/gemini-2.0-flash-exp" 
+# aider_code_model: "gemini/gemini-2.0-flash-exp" 
 
 aider_summary_model: "gemini-2.0-flash-exp"
 
