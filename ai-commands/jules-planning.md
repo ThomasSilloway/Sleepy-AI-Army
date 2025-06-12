@@ -5,12 +5,9 @@ Your current Battlefield objective is:
 ```
 Working Directory: `ai-docs\planning\05_mission-report-summary-refactor\`
 
-Each of the files mentioned below are relative to the working directory.
+Review each of the files in the working directory in order. They are labeled 01_XX, 02_XX, etc.
 
-Review initial recon in `01_reconnaissance.md`
-Review my feedback in `02_feedback.md`
-
-Push the planning forward by one step by creating `03_battleplan.md`
+Push the planning forward by one step by creating `XX_battleplan.md` where XX is the next number in the sequence of files
   - This should cover the steps outlined below
   - Do not generate any code at this stage.
 
