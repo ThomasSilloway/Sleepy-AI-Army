@@ -165,6 +165,23 @@ class GitService:
             logger.error(f"Git commit failed: {e}")
             return False
 
+    async def get_diff_for_commit(self, commit_hash: str) -> str:
+        """
+        Retrieves the diff for a specific commit hash, including summary and file stats.
+        Executes `git show --pretty=format:"%h - %s" --stat <commit_hash>`.
+        """
+        if not commit_hash:
+            raise ValueError("Commit hash cannot be empty for get_diff_for_commit.")
+
+        command = f"show --pretty=format:\"%h - %s\" --stat {shlex.quote(commit_hash)}"
+        try:
+            stdout, _ = await self._run_git_command(command)
+            logger.info(f"Successfully retrieved diff for commit {commit_hash}")
+            return stdout
+        except GitServiceError as e:
+            logger.error(f"Error retrieving diff for commit '{commit_hash}': {e}")
+            raise
+
     # Example of adapting another method, if needed
     async def get_last_commit_file_stats(self) -> str | None:
         try:
