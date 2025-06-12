@@ -73,6 +73,19 @@ class GitService:
             logger.error(f"Error getting current branch: {e}")
             raise
 
+    async def branch_exists(self, branch_name: str) -> bool:
+        """Checks if a local branch with the given name exists."""
+        if not branch_name:
+            return False
+        try:
+            # This command exits with 0 if the branch exists, non-zero otherwise.
+            # _run_git_command will raise GitServiceError on non-zero exit code.
+            await self._run_git_command(f"show-ref --verify --quiet refs/heads/{shlex.quote(branch_name)}")
+            return True
+        except GitServiceError:
+            # The command fails if the branch does not exist, which is the expected case for "not exists".
+            return False
+
     async def create_branch(self, branch_name: str) -> bool:
         """
         Creates a new local branch.
@@ -82,17 +95,9 @@ class GitService:
         if not branch_name:
             raise ValueError("Branch name cannot be empty for create_branch.")
 
-        # Check if branch already exists using show-ref
-        try:
-            await self._run_git_command(f"show-ref --verify --quiet refs/heads/{shlex.quote(branch_name)}")
-            # If the above command succeeds, it means the branch exists.
+        if await self.branch_exists(branch_name):
             logger.warning(f"Attempted to create branch '{branch_name}', but it already exists.")
             raise GitServiceError(f"Branch '{branch_name}' already exists.")
-        except GitServiceError:
-            # We expect a GitServiceError if show-ref fails (branch does not exist)
-            # The error from _run_git_command for "not found" is what we want to ignore here.
-            # This happens if `show-ref` exits with a non-zero status because the ref doesn't exist.
-            pass # Branch does not exist, proceed to create.
 
         # Try to create the branch
         try:
