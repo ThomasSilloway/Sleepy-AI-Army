@@ -272,9 +272,29 @@ When the code critique is completed, assume the role of a software engineer agai
 Here's the problem we are trying to solve:
 
 ```
-Working Directory: `army-general`
+## Working Directory: `army-infantry`
 
-general was recently updated to add support for validating the branch after infantry runs and resetting it if necessary.
-I noticed there's some compile errors, plz fix those
-Also, the run() function is too long. Move the branch related functionality into its own private function, following the standards from the rest of the file.
+## Update formatting in Mission Report - Execution Summary
+
+### File Names
+
+Right now we get: 
+
+```
+Added comments to functions in `projects\isometric_2d_prototype\isometric_2d_prototype\ai_components\shoot_component.gd`
+Removed comment for `_ready()` in `projects\isometric_2d_prototype\isometric_2d_prototype\ai_components\shoot_component.gd`
+```
+
+It would be better if it was just the file name, not the whole relative path like this:
+
+```
+Added comments to functions in `shoot_component.gd`
+Removed comment for `_ready()` in `shoot_component.gd`
+```
+
+We already have the full paths in the Files Modified and Files Created sections, so we can just show the filename in the Execution Summary
+
+### New lines
+
+Right now all the lines are squished together in the markdown preview, need to add `- ` before each line so it becomes a bullet list
 ```

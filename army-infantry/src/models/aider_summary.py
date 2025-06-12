@@ -13,7 +13,7 @@ class AiderRunSummary(BaseModel):
     changes_made: list[str] = Field(
         default_factory=list,
         description="Bulleted list of actual changes applied by aider. Each item should be a clear, concise description of a change."\
-                    "(e.g., \"Added function `foo` to `bar.py`\", \"Modified `baz.py` to handle new error condition\""
+                    "(e.g., \" - Added function `foo` to `bar.py`\", \" - Modified `baz.py` to handle new error condition\""
     )
     files_modified: Optional[list[str]] = Field(
         default_factory=list,
