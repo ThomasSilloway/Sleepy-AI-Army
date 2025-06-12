@@ -44,3 +44,7 @@ class AiderRunSummary(BaseModel):
         If there are multiple lines with this information, choose the one with the highest session cost.
         """
     )
+    questions_asked: Optional[list[str]] = Field(
+        default_factory=list,
+        description="A list of any specific questions that aider asked the user before stopping."
+    )

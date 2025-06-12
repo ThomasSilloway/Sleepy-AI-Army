@@ -43,6 +43,9 @@ Example 4: (multiple changes to same file - use a sub-bullet for each change and
 Bad Example - Avoid doing this:
  - Added function `foo` to `src/utils/bar.py`
 
+## Questions Asked
+If the `aider` output contains any questions posed to the user, extract these questions verbatim and place them in the `questions_asked` list. If there are no questions, this should be an empty list.
+
 ## Final instructions
 The output MUST be a JSON object matching the AiderRunSummary structure.
 """
