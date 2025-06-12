@@ -9,6 +9,7 @@ import asyncio
 import logging
 import os
 import subprocess
+import argparse
 from datetime import datetime
 from pathlib import Path
 
@@ -234,10 +235,11 @@ async def _ensure_git_repo_state(
     except Exception as e: # Catching generic Exception to include GitServiceError if it's raised
         raise RuntimeError(f"{commit_message}: An error occurred while ensuring Git repository state: {e}")
 
-async def run() -> None:
+async def run(args: argparse.Namespace) -> None:
     logger.info("Army General orchestration started.")
     git_service = GitService(app_config.root_git_path)
     original_branch = None
+    ran_secretary = False
 
     try:
         # Pre-flight check for required environment files
@@ -250,32 +252,43 @@ async def run() -> None:
             return
         logger.info(f"Original Git branch: {original_branch}")
 
-        # Run Secretary to generate the missions and the output file
-        secretary_output_file = app_config.secretary_output_file_path
-
-        logger.info("Attempting to run Secretary...")
-        if not _run_secretary():
-            logger.error("Secretary execution failed. Further processing of its output will be skipped.")
-            return
-
-        logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
-        if not os.path.exists(secretary_output_file):
-            logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
-            logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
-            return
-
-        # Get the mission folders to run the Infantry on
         folders = []
-        try:
-            with open(secretary_output_file) as file:
-                folders = [line.strip() for line in file if line.strip()]
-            logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} mission folders.")
-        except Exception as e:
-            logger.error(f"Failed to read or parse secretary output file {secretary_output_file}: {e}")
-            return
+        mission_folder_path_arg = args.mission_folder_path
+
+        if mission_folder_path_arg:
+            logger.info(f"Running on a specific mission folder provided via command line: {mission_folder_path_arg}")
+            if not os.path.isdir(mission_folder_path_arg):
+                logger.error(f"The provided mission folder path does not exist or is not a directory: {mission_folder_path_arg}")
+                return
+            folders = [mission_folder_path_arg]
+        else:
+            # This block runs only if no specific mission folder is given
+            ran_secretary = True
+            logger.info("No specific mission folder provided, running Secretary to generate missions.")
+            secretary_output_file = app_config.secretary_output_file_path
+
+            logger.info("Attempting to run Secretary...")
+            if not _run_secretary():
+                logger.error("Secretary execution failed. Further processing of its output will be skipped.")
+                return
+
+            logger.info(f"Expecting Secretary output file at: {secretary_output_file}")
+            if not os.path.exists(secretary_output_file):
+                logger.error(f"Secretary output file does not exist at the expected path: {secretary_output_file}.")
+                logger.error("\n\n\n ERROR: Are you sure BACKLOG.md was filled out with tasks?\n\n")
+                return
+
+            # Get the mission folders to run the Infantry on
+            try:
+                with open(secretary_output_file) as file:
+                    folders = [line.strip() for line in file if line.strip()]
+                logger.info(f"Successfully read and parsed Secretary output file. Found {len(folders)} mission folders.")
+            except Exception as e:
+                logger.error(f"Failed to read or parse secretary output file {secretary_output_file}: {e}")
+                return
 
         if not folders:
-            logger.warning("No mission folders found in Secretary output. No Infantry tasks to perform.")
+            logger.warning("No mission folders found to process. No Infantry tasks to perform.")
             return
 
         # For each folder, run an infantry mission
@@ -308,17 +321,18 @@ async def run() -> None:
     finally:
         logger.info("Initiating cleanup procedures in the 'finally' block.")
 
-        # Delete Secretary output file first, so its deletion can be part of the final commit
-        secretary_file_to_delete = app_config.secretary_output_file_path
-        logger.info(f"Attempting to delete Secretary output file: {secretary_file_to_delete}")
-        if os.path.exists(secretary_file_to_delete):
-            try:
-                os.remove(secretary_file_to_delete)
-                logger.info(f"Successfully deleted Secretary output file: {secretary_file_to_delete}")
-            except OSError as e:
-                logger.error(f"Error deleting Secretary output file {secretary_file_to_delete}: {e}. Manual cleanup might be required.")
-        else:
-            logger.info(f"Secretary output file {secretary_file_to_delete} was not found during cleanup; no deletion needed.")
+        if ran_secretary:
+            # Delete Secretary output file first, so its deletion can be part of the final commit
+            secretary_file_to_delete = app_config.secretary_output_file_path
+            logger.info(f"Attempting to delete Secretary output file: {secretary_file_to_delete}")
+            if os.path.exists(secretary_file_to_delete):
+                try:
+                    os.remove(secretary_file_to_delete)
+                    logger.info(f"Successfully deleted Secretary output file: {secretary_file_to_delete}")
+                except OSError as e:
+                    logger.error(f"Error deleting Secretary output file {secretary_file_to_delete}: {e}. Manual cleanup might be required.")
+            else:
+                logger.info(f"Secretary output file {secretary_file_to_delete} was not found during cleanup; no deletion needed.")
 
         # Perform final Git cleanup and state check
         if original_branch and git_service:
@@ -334,5 +348,12 @@ async def run() -> None:
     logger.info("Army General finished all operations.")
 
 if __name__ == "__main__":
-    # Python 3.7+
-    asyncio.run(run())
+    parser = argparse.ArgumentParser(description="Army General Main Orchestrator.")
+    parser.add_argument(
+        "--mission_folder_path",
+        type=str,
+        default=None,
+        help="Path to a specific mission folder to run army-infantry on, bypassing army-secretary."
+    )
+    args = parser.parse_args()
+    asyncio.run(run(args))
