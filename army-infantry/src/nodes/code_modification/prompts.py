@@ -42,6 +42,11 @@ def get_aider_prompt_template(mission_spec_filename: str) -> str:
  - COMMIT the changes with git
 ```
 
+### Task 4.5: Commit changes
+```
+ - AUTOCOMMIT the changes to git
+```
+
 ### Task 5: Critique the changes
 ```
  - CRITIQUE the changes you made in Task 4 listing the pros and cons of the approach
@@ -57,6 +62,7 @@ def get_aider_prompt_template(mission_spec_filename: str) -> str:
 ### Task 7: Ignore any further file inputs and exit
 ```
  - Your work is done. Do not do any further analysis, brainstorming, planning, coding, or critique. 
+ - COMMIT any files you generated changes for that have not been committed yet
  - EXIT
 ```
 

@@ -266,7 +266,14 @@ class BacklogProcessor:
 
         if clear_backlog:
             # Clear out BACKLOG.md so its now just the template
-            with open(backlog_filepath, 'w', encoding='utf-8') as f:
-                f.write(f"## {task_name_placeholder}\n\nInsert Task Description Here")
+            # with open(backlog_filepath, 'w', encoding='utf-8') as f:
+            #     f.write(f"## {task_name_placeholder}\n\nInsert Task Description Here")
+
+            # Instead of that, let's try just deleting the file
+            try:
+                os.remove(backlog_filepath)
+                logger.info(f"Successfully deleted backlog file: {backlog_filepath}")
+            except OSError as e:
+                logger.error(f"Error deleting backlog file {backlog_filepath}: {e}. Manual cleanup might be required.")
 
         logger.info("\n\n")
