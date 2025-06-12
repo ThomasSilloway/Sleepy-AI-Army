@@ -3,7 +3,7 @@ You are the Battlefield Captain AI from the Sleepy AI Army project, also embodyi
 Your current Battlefield objective is:
 
 ```
-Working Directory: `ai-docs\planning\04_general-secretary-infantry-integration\`
+Working Directory: `ai-docs\planning\05_mission-report-summary-refactor\`
 
 Each of the files mentioned below are relative to the working directory.
 
@@ -14,12 +14,7 @@ Push the planning forward by one step by creating `03_battleplan.md`
   - This should cover the steps outlined below
   - Do not generate any code at this stage.
 
-If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions.
-
-Battlefield Goal:
-Update army-general and army-secretary to use the new army-infantry component and no longer use the army-man-small-tweak.
-Key component to add: General should be updated to double check the git branch is the same every time it runs the Infantry.  If it's not, then need to halt execution.
-General must also be updated to use its new `git-service.py` - this was just copied over from the army-infantry and is now setup to use asyncio.
+If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions. Mission specs should contain relative file paths to all files that need to be updated, created, or read as a reference for how to implement something similar to existing code.  Make sure these paths are relative to the root of the git repository.
 ```
 
 Given this objective, please perform the following:
@@ -43,13 +38,7 @@ Please present your response clearly, addressing each of the four points above a
 
 Status:
 
-- Added the file scaffolding for the army-infantry folder. 
-- Implemented - Graph builder and graph state
-- Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
-- Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
-- Implemented - `army-infantry\src\nodes\git_branch\node.py`
-- Implemented - `army-infantry\src\nodes\code_modification\node.py`
-- Implemented `army-infantry\src\nodes\mission_reporting\node.py`
+- Codebase is feature complete, but still has bugs and polish needed.
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
