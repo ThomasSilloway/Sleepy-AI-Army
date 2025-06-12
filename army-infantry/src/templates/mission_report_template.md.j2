@@ -56,9 +56,9 @@ Total Cost: ${{ "%.2f" | format(total_cost_usd | default(0.0) | float) }}
 {% for error in mission_errors %}- {{ error }}{% endfor %}
 {% else %}No errors reported.{% endif %}
 
-## Aider Summary
+## Aider Summary (Debug)
 
-{{ aider_run_summary.changes_made | default('No Aider summary available.') }}
+{{ changes_made | default('No Aider summary available.') }}
 
 
 ## Last Update
