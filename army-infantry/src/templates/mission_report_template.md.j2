@@ -8,7 +8,13 @@
 
 ## Execution Summary
 
-{{ execution_summary | default('No summary provided.') }}
+{% if execution_summary %}
+{% for item in execution_summary %}
+- {{ item }}
+{% endfor %}
+{% else %}
+No summary provided.
+{% endif %}
 
 ## Files Modified
 
@@ -49,6 +55,10 @@ Total Cost: ${{ "%.2f" | format(total_cost_usd | default(0.0) | float) }}
 {% if mission_errors %}
 {% for error in mission_errors %}- {{ error }}{% endfor %}
 {% else %}No errors reported.{% endif %}
+
+## Aider Summary
+
+{{ aider_run_summary.changes_made | default('No Aider summary available.') }}
 
 
 ## Last Update
