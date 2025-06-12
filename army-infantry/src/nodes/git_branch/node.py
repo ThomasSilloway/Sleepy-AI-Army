@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from datetime import datetime
 
 from ...graph_state import MissionContext, WorkflowState
 from ...services.git_service import GitService
@@ -26,7 +27,8 @@ async def git_branch_node(state: WorkflowState, config: dict[str, Any]) -> Workf
 async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowState:
     """
     Creates and checks out a new Git branch based on the generated_branch_name
-    stored in the mission_context.
+    stored in the mission_context. If the branch already exists, it appends a
+    timestamp to make it unique.
     """
     mission_context: MissionContext = state['mission_context']
 
@@ -39,7 +41,13 @@ async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowS
     try:
         logger.info(f"Attempting to create and checkout branch: {generated_branch_name}")
 
-        # TODO: Check if branch name exists already, if it does add some kind of hash after to make it unique
+        # Check if branch name exists already, if it does add date and time to make it unique
+        if await git_service.branch_exists(generated_branch_name):
+            timestamp = datetime.now().strftime("%m-%d-%H-%M-%S")
+            original_name = generated_branch_name
+            generated_branch_name = f"{original_name}-{timestamp}"
+            logger.warning(f"Branch '{original_name}' already exists. Creating unique branch: '{generated_branch_name}'")
+            mission_context.generated_branch_name = generated_branch_name
 
         # Attempt to create and checkout the new branch using 'git checkout -b'
         await git_service.checkout_branch(generated_branch_name, create_new=True)
