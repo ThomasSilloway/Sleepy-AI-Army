@@ -250,6 +250,8 @@ async def run() -> None:
             return
         logger.info(f"Original Git branch: {original_branch}")
 
+        # TODO: If commandline param is specified for running on an existing mission, run the infantry on that mission instead of running secretary
+
         # Run Secretary to generate the missions and the output file
         secretary_output_file = app_config.secretary_output_file_path
 
@@ -266,6 +268,7 @@ async def run() -> None:
 
         # Get the mission folders to run the Infantry on
         folders = []
+        # TODO: Update folders to be the commandline param if specified
         try:
             with open(secretary_output_file) as file:
                 folders = [line.strip() for line in file if line.strip()]

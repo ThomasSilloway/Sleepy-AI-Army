@@ -1,3 +1,0 @@
-## placeholder
-
-Placeholder 2
