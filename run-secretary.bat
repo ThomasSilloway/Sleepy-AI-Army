@@ -1,5 +1,5 @@
 @echo off
-echo Running POC 8...
+echo Running Secretary...
 cd army-secretary
 uv run .\src\main.py
 echo.

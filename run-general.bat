@@ -1,5 +1,5 @@
 @echo off
-echo Running POC 8...
+echo Running General...
 cd army-general
 uv run .\src\main.py
 echo.

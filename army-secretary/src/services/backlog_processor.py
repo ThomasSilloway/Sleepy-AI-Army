@@ -265,15 +265,17 @@ class BacklogProcessor:
                  logger.info(f"No valid task sections (starting with '##') found in '{backlog_filepath}'.")
 
         if clear_backlog:
-            # Clear out BACKLOG.md so its now just the template
-            # with open(backlog_filepath, 'w', encoding='utf-8') as f:
-            #     f.write(f"## {task_name_placeholder}\n\nInsert Task Description Here")
+            if self.app_config.delete_backlog_file_on_completion:
+                logger.info(f"Deleting backlog file as per config: {backlog_filepath}")
 
-            # Instead of that, let's try just deleting the file
-            try:
-                os.remove(backlog_filepath)
-                logger.info(f"Successfully deleted backlog file: {backlog_filepath}")
-            except OSError as e:
-                logger.error(f"Error deleting backlog file {backlog_filepath}: {e}. Manual cleanup might be required.")
+                try:
+                    os.remove(backlog_filepath)
+                    logger.info(f"Successfully deleted backlog file: {backlog_filepath}")
+                except OSError as e:
+                    logger.error(f"Error deleting backlog file {backlog_filepath}: {e}. Manual cleanup might be required.")
+            else:
+                # Clear out BACKLOG.md so its now just the template
+                with open(backlog_filepath, 'w', encoding='utf-8') as f:
+                    f.write(f"## {task_name_placeholder}\n\nInsert Task Description Here")
 
         logger.info("\n\n")
