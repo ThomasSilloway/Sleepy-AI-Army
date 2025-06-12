@@ -13,11 +13,19 @@ Push the planning forward by one step by creating `01_reconnaissance.md`
   - This should cover the steps outlined below
   - Do not generate any code at this stage.
 
-If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions.
+If there are any completely unambigous coding missions that can already be performed, create a mission spec for each of them in `mission_plan_<number>.md` while ensuring that <number> is unique considering all missions in the working directory. These specs are optional and should be only created if the work can be done without any further analysis to open questions and directly lead to improving our position on the battlefield. They can be as small as "Update function X to add new parameter and do Y". Or they can be a larger mission as long as there are no remaining open questions. Mission specs should contain relative file paths to all files that need to be updated, created, or read as a reference for how to implement something similar to existing code.
 
 Battlefield Goal:
 Project: army-infantry
-After parsing out the files for aider to work on, if those files don't exist yet, it should fail. Would need to handle the case where it's meant to be a new file that's getting added tho.
+Title: Update mission report summary to have actual file changes
+Details:
+Mission report - the Execution Summary is wrong if Aider decides to ask a question and not commit the changes, the summary includes the changes Aider would have made, but not changes that were actually committed.
+
+Let's rework the Execution Summary and rename that to `Aider Summary` and also pull more details out about if it asked any questions.  Aider Summary should go all the way at the end of the template.
+
+Then re-add the Execution Summary to actually be a summary of the commits that Aider made.  So we already have that information in the Aider summary that we gather from `army-infantry\src\services\aider_service\aider_service.py` in the `get_summary()` function, it includes the commit hashes.  So we can use those commit hashes to get a diff of all of the changes, compile that into one big prompt and then use the `army-secretary\src\services\llm_prompt_service.py` to summarize the changes with a similar prompt to what we have now in `army-infantry\src\services\aider_service\prompts.py` in the `Changes Made` section. Which that file also would need to be updated to remove the `Changes Made` section.
+
+This is a very complex change with many files that will need to be touched, so its important to find all of them that will need to be changed
 ```
 
 Given this objective, please perform the following:
@@ -41,13 +49,7 @@ Please present your response clearly, addressing each of the four points above a
 
 Status:
 
-- Added the file scaffolding for the army-infantry folder. 
-- Implemented - Graph builder and graph state
-- Implemented - `army-infantry\src\nodes\initialize_mission\node.py`
-- Implemented - `army-infantry\src\nodes\git_checkout_original_branch\node.py`
-- Implemented - `army-infantry\src\nodes\git_branch\node.py`
-- Implemented - `army-infantry\src\nodes\code_modification\node.py`
-- Implemented `army-infantry\src\nodes\mission_reporting\node.py`
+- Codebase is feature complete, but still has bugs and polish needed.
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
