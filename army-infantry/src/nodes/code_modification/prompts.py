@@ -39,6 +39,7 @@ def get_aider_prompt_template(mission_spec_filename: str) -> str:
 ### Task 4: Apply the changes
 ```
  - EXECUTE the plan formulated in the previous task to implement the changes specified in the file '{mission_spec_filename}'.
+ - COMMIT the changes with git
 ```
 
 ### Task 5: Critique the changes
@@ -50,6 +51,13 @@ def get_aider_prompt_template(mission_spec_filename: str) -> str:
 ```
     - IMPROVE the changes you made in Task 4 based on the critique you made in Task 5.
     - If you think the changes are already perfect, print out `No changes needed`
+    - If you do make changes, COMMIT the changes with git
+```
+
+### Task 7: Ignore any further file inputs and exit
+```
+ - Your work is done. Do not do any further analysis, brainstorming, planning, coding, or critique. 
+ - EXIT
 ```
 
 """
