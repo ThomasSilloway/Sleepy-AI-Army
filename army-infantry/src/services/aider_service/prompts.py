@@ -18,6 +18,7 @@ Extract the information to populate these fields accurately.
 ## Commits
 If aider's output clearly indicates a commit, extract the hash and message.
 Pay close attention to whether a commit was actually made by aider in *this* run. Do not infer commits.
+If aider did not make a commit, the commits field should be an empty list.
 
 ## Errors
 If aider failed or no specific changes are identifiable, focus on `errors_reported` and `raw_output_summary`.
