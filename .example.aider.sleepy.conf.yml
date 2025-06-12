@@ -1,13 +1,18 @@
 api-key:
 - gemini=<Insert your key here>
 
-model: gemini/gemini-2.5-pro-preview-05-06
-# model: gemini/gemini-2.0-flash-exp
-weak-model: gemini/gemini-2.5-flash-preview-04-17
+# Don't specify models here, they are overridden in the Infantry Agent config
+
+# model: gemini/gemini-2.5-pro-preview-05-06
+# # model: gemini/gemini-2.0-flash-exp
+# weak-model: gemini/gemini-2.5-flash-preview-04-17
 
 dark-mode: true
 
 map-tokens: 0
+
+## Enable/disable auto commit of LLM changes (default: True)
+auto-commits: true
 
 ## Specify a custom prompt for generating commit messages
 commit-prompt: "You are an expert software engineer that generates concise, one-line Git commit messages based on the provided diffs. Review the provided context and diffs which are about to be committed to a git repo. Review the diffs carefully. Generate a one-line commit message for those changes. The commit message should be structured as follows: `Aider: <type>: <description>`. Use these for <type>: Fix, Feature, Build, Chore, CI, Docs, Style, Refactor, Performance, Test. Ensure the commit message:{language_instruction} - Starts with the appropriate prefix. - Is in the imperative mood (e.g., \"Add feature\" not \"Added feature\" or \"Adding feature\"). - Does not exceed 72 characters. Reply only with the one-line commit message, without any additional text, explanations, or line breaks. Reply only with the one-line commit message, without any additional text, explanations, or line breaks."
