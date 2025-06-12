@@ -1,2 +1,0 @@
-C:\GithubRepos\Sleepy-AI-Army\ai-missions\enhance-git-service-to-retrieve-individual-commit-diffs
-C:\GithubRepos\Sleepy-AI-Army\ai-missions\update-aider-summary-to-capture-questions
