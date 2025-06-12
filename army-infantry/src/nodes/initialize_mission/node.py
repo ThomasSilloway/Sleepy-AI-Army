@@ -95,8 +95,9 @@ async def _extract_mission_data(llm_service: LlmPromptService, app_config: AppCo
         extracted_data: MissionData | None = await llm_service.get_structured_output(
             messages=messages,
             output_pydantic_model_type=MissionData,
-            llm_model_name=app_config.mission_title_extraction_model # Assuming same model is used
+            llm_model_name=app_config.mission_data_extraction_model
         )
+        # TODO: Now that this is using a paid model, need to get the cost and add it to the mission context
         if extracted_data and extracted_data.mission_title and extracted_data.git_branch_name:
             extracted_data.sanitize()
             return extracted_data
@@ -122,8 +123,8 @@ async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: M
     for file_path in mission_data.files_to_edit:
         full_path = os.path.join(project_git_root, file_path)
         if not os.path.exists(full_path):
-            logger.error(f"File specified for editing does not exist: {file_path}")
-            raise RuntimeError(f"File specified for editing does not exist: {file_path}")
+            logger.error(f"File specified for editing does not exist: {file_path} (full path: {full_path})")
+            raise RuntimeError(f"File specified for editing does not exist: {file_path} (full path: {full_path})")
         verified_files_to_edit.append(file_path)
 
     # Process mission_data.files_to_read
