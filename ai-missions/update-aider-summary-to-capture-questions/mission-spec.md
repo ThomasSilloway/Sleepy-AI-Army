@@ -5,8 +5,8 @@
 The current `AiderRunSummary` does not explicitly capture if `aider` stopped to ask a question instead of committing changes. This mission updates the Pydantic model and the corresponding LLM prompt to extract and store any questions `aider` asked during its run. This makes the `Aider Summary` in the final report more informative.
 
 **Files to Modify:**
-- `src/models/aider_summary.py`
-- `src/services/aider_service/prompts.py`
+- `army-infantry/src/models/aider_summary.py`
+- `army-infantry/src/services/aider_service/prompts.py`
 
 **Implementation Details:**
 1.  **Model Update:**

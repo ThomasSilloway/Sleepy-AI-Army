@@ -5,7 +5,7 @@
 To build an accurate execution summary, we first need the ability to get the specific changes from each commit `aider` makes. This mission is to add a new method to the `GitService` that can retrieve the full diff for a single commit hash.
 
 **Files to Modify:**
-- `src/services/git_service.py`
+- `army-infantry/src/services/git_service.py`
 
 **Implementation Details:**
 1.  In `army-infantry/src/services/git_service.py`, add a new `async` method: `get_diff_for_commit(self, commit_hash: str) -> str`.
