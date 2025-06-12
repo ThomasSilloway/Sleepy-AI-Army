@@ -12,7 +12,8 @@ class MissionContext(BaseModel):
     original_branch_name: Optional[str] = None
     generated_branch_name: Optional[str] = None
     status: Optional[str] = None # IN_PROGRESS, SUCCESS, FAILURE, BLOCKED
-    execution_summary: Optional[str] = None
+    aider_changes_made: list[str] = Field(default_factory=list)
+    aider_questions_asked: list[str] = Field(default_factory=list)
     files_modified: list[str] = Field(default_factory=list)
     files_created: list[str] = Field(default_factory=list)
     git_summary: list[str] = Field(default_factory=list) # list of "hash - message"

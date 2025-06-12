@@ -98,11 +98,8 @@ async def _get_aider_summary(aider_service: AiderService, aider_result: AiderExe
 
 def _update_mission_context_from_aider_summary(mission_context: MissionContext, aider_summary: AiderRunSummary, state: WorkflowState):
 
-    # Update execution summary
-    if aider_summary.changes_made:
-        mission_context.execution_summary = "\n".join(aider_summary.changes_made)
-    else:
-        mission_context.execution_summary = aider_summary.raw_output_summary
+    mission_context.aider_changes_made = aider_summary.changes_made
+    mission_context.aider_questions_asked = getattr(aider_summary, 'questions_asked', [])
 
     # Update files modified/created
     mission_context.files_created = aider_summary.files_created
