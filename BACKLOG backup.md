@@ -13,6 +13,10 @@ Add support for general commandline to operate on an already created mission
 - E- r- r- o- r-  - i- n-  - c- o- d- e- _- m- o- d- i- f- i- c- a- t- i- o- n- _- n- o- d- e- :-  - A- i- d- e- r-  - d- i- d-  - n- o- t-  - m- a- k- e-  - a- n- y-  - c- o- m- m- i- t- s-  - d- u- r- i- n- g-  - i- t- s-  - e- x- e- c- u- t- i- o- n- .
 ```
 
-## Try no auto acceptance of aider questions
+Note: Can repro this by running in on this repo and reverting the change to delete the backlog
 
-Backlog.md keeps getting added to the context at the end. I wonder if we should actually do no auto accept prompts
+## Aider questions hang the process
+
+Aider fails to commit changes when it identifies new files to add without a clear directive of what to do.
+
+Not really sure how to solve this, but one idea would be to have a separate thread listen for these kinds of questions and tell it to just do the best with what it has and apply the changes.
