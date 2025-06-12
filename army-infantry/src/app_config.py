@@ -32,6 +32,7 @@ class AppConfig:
     aider_summary_model: str
 
     mission_title_extraction_model: str
+    mission_data_extraction_model: str
 
     # Paths for code modification node
     conventions_file_path: str
@@ -91,6 +92,7 @@ class AppConfig:
         self.aider_code_model = yml_config.get("aider_code_model")
         self.aider_summary_model = yml_config.get("aider_summary_model")
         self.mission_title_extraction_model = yml_config.get("mission_title_extraction_model")
+        self.mission_data_extraction_model = yml_config.get("mission_data_extraction_model")
 
         # Load paths for code modification
         self.conventions_file_path = yml_config.get("conventions_file_path", "ai-docs/CONVENTIONS.md")
@@ -179,6 +181,8 @@ class AppConfig:
             raise ValueError("aider_summary_model is not set in config.yml.")
         if not self.mission_title_extraction_model:
             raise ValueError("mission_title_extraction_model is not set in config.yml.")
+        if not self.mission_data_extraction_model:
+            raise ValueError("mission_data_extraction_model is not set in config.yml.")
 
         if not self.conventions_file_path:
             raise ValueError("conventions_file_path is not set in config.yml.")

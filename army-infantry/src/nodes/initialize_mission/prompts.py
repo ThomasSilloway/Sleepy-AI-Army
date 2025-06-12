@@ -19,13 +19,15 @@ def get_system_prompt(possible_git_branch_base_names: list[str]) -> str:
         - The description should be short and descriptive.
     3. Identify all file paths explicitly mentioned in the mission specification. You must categorize these files into two lists:
        - 'files_to_edit': Include files that are mentioned for modification, improvement, refactoring, or any action that implies the file already exists.
+       - 'files_to_read': Include files that are mentioned for reading, analysis, looking at, based off of, or reference, but not for modification.
        - 'files_to_create': Include files that are explicitly stated to be created, generated, or new. For example, "create a new file named 'src/services/new_service.py'" or "generate a component in 'src/components/new_widget.js'".
        If the mission spec says "work on file X" and doesn't explicitly state it's a new file, assume it's for 'files_to_edit'.
        If no files are mentioned for editing, 'files_to_edit' should be an empty list (`[]`).
+       If no files are mentioned for reading, 'files_to_read' should be an empty list (`[]`).
        If no files are mentioned for creation, 'files_to_create' should be an empty list (`[]`).
        File paths should be relative to the project root (e.g., "src/module/file.py").
 
-    Adhere strictly to the JSON schema for your output, ensuring 'git_branch_name' matches this 'type/description' format, 'files_to_edit' is a list of strings, and 'files_to_create' is a list of strings.
+    Adhere strictly to the JSON schema for your output, ensuring 'git_branch_name' matches this 'type/description' format, 'files_to_edit' is a list of strings, and 'files_to_create' is a list of strings, etc.
 """
 
 def get_user_prompt(mission_spec_content: str) -> str:
