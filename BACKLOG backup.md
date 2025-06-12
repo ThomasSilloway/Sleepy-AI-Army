@@ -11,3 +11,9 @@ Add support for general commandline to operate on an already created mission
 Aider fails to commit changes when it identifies new files to add without a clear directive of what to do.
 
 Not really sure how to solve this, but one idea would be to have a separate thread listen for these kinds of questions and tell it to just do the best with what it has and apply the changes.
+
+
+## Cost Tracking
+
+Update `army-infantry\src\nodes\initialize_mission\node.py` to add the cost of using that node to the mission context
+
