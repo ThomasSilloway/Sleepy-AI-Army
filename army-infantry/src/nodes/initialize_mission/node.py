@@ -47,6 +47,7 @@ async def _initialize_mission(state: WorkflowState, config: dict[str, Any]) -> W
     mission_data = await _extract_mission_data(llm_service, app_config, mission_spec_content)
 
     # Verify files and prepare for Aider
+    # TODO: Extract files to read separately and add to mission_context and then process with `--read` command for Aider so it can't edit them
     files_to_edit = await _verify_and_prepare_aider_files(app_config, mission_data)
 
     # Update mission context
@@ -114,6 +115,7 @@ async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: M
     """
     project_git_root = app_config.root_git_path
     verified_files_to_edit = []
+    verified_files_to_read = []
     prepared_files_to_create = []
 
     # Process mission_data.files_to_edit
@@ -123,6 +125,14 @@ async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: M
             logger.error(f"File specified for editing does not exist: {file_path}")
             raise RuntimeError(f"File specified for editing does not exist: {file_path}")
         verified_files_to_edit.append(file_path)
+
+    # Process mission_data.files_to_read
+    for file_path in mission_data.files_to_read:
+        full_path = os.path.join(project_git_root, file_path)
+        if not os.path.exists(full_path):
+            logger.error(f"File specified for reading does not exist: {file_path}")
+            raise RuntimeError(f"File specified for reading does not exist: {file_path}")
+        verified_files_to_read.append(file_path)
 
     # Process mission_data.files_to_create
     for file_path in mission_data.files_to_create:
@@ -144,4 +154,4 @@ async def _verify_and_prepare_aider_files(app_config: AppConfig, mission_data: M
                 )
         prepared_files_to_create.append(file_path) # Add to list if it exists or was successfully created
 
-    return verified_files_to_edit + prepared_files_to_create
+    return verified_files_to_edit + prepared_files_to_create + verified_files_to_read
