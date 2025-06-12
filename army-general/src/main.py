@@ -70,6 +70,37 @@ def _log_subprocess_details(
     logger.info(f"--- End of output from {process_name} ---")
 
 
+def _check_required_env_files() -> None:
+    """
+    Checks for the existence of .env files in required project directories.
+    Raises FileNotFoundError if any are missing.
+    """
+    logger.info("Checking for required .env files...")
+    current_root_directory = Path(__file__).resolve().parent.parent.parent
+
+    projects_to_check = {
+        "army-infantry": current_root_directory / "army-infantry",
+        "army-secretary": current_root_directory / "army-secretary",
+    }
+
+    missing_files = []
+    for project_name, project_path in projects_to_check.items():
+        env_file_path = project_path / ".env"
+        if not env_file_path.exists():
+            missing_files.append(str(env_file_path))
+            logger.error(f"Missing required .env file for '{project_name}' at: {env_file_path}")
+
+    if missing_files:
+        error_message = (
+            "One or more required .env files are missing. "
+            "Please ensure they are created and configured correctly. "
+            f"Missing files: {', '.join(missing_files)}"
+        )
+        raise FileNotFoundError(error_message)
+
+    logger.info("All required .env files found.")
+
+
 def _run_secretary() -> bool:
     # Implement Secretary execution:
     #    - Construct command and execute using app_config.secretary_run_command_template.
@@ -209,6 +240,9 @@ async def run() -> None:
     original_branch = None
 
     try:
+        # Pre-flight check for required environment files
+        _check_required_env_files()
+
         # Get the original branch before running Secretary
         original_branch = await git_service.get_current_branch()
         if not original_branch:
