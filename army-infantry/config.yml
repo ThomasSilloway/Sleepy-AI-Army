@@ -1,8 +1,8 @@
 # Configuration for Army Man (Small Tweak)
 
 # Paths - overridden by General if run from the General
-root_git_path: "C:\\GithubRepos\\Project-Elder"
-mission_folder_path: "ai-missions\\update-comments-shoot_component"
+root_git_path: "C:\\GithubRepos\\Sleepy-AI-Army"
+mission_folder_path: "ai-missions\\operate-on-existing-mission"
 
 # Filenames (relative to paths above or defaults in AppConfig model)
 mission_report_filename: "mission-report.md"
