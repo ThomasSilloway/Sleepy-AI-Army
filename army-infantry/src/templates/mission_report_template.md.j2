@@ -58,8 +58,19 @@ Total Cost: ${{ "%.2f" | format(total_cost_usd | default(0.0) | float) }}
 
 ## Aider Summary (Debug)
 
-{{ changes_made | default('No Aider summary available.') }}
+{% if aider_changes_made %}
+{% for item in aider_changes_made %}
+- {{ item }}
+{% endfor %}
+{% else %}ERROR: No Aider summary available.
+{% endif %}
 
+{% if aider_questions %}
+{% for item in aider_questions %}
+- {{ item }}
+{% endfor %}
+{% else %}Aider did not ask any questions.
+{% endif %}
 
 ## Last Update
 {{ report_timestamp }}
