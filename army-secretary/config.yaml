@@ -14,6 +14,10 @@ default_log_filename: "backlog-to-missions.log" # Renamed from backlog-to-goals.
 # File to write new mission folders to - Used by general to know which missions to work on
 new_mission_folders_filename: "new-mission-folders.txt" 
 
+# Whether to delete the backlog file after all of the missions have been created
+# If false, will replace the backlog with a template
+delete_backlog_file_on_completion: false
+
 ########################
 #     LLM MODELS
 ########################

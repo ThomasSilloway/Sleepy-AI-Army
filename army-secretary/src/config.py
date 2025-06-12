@@ -30,6 +30,7 @@ class AppConfig:
     default_log_directory: str
     default_log_filename: str
     new_mission_folders_filename: str # Renamed
+    delete_backlog_file_on_completion: bool
 
     def __init__(self, command_line_git_path: Optional[str] = None) -> None:
         """
@@ -63,6 +64,7 @@ class AppConfig:
         self.default_log_directory = yaml_config.get("default_log_directory")
         self.default_log_filename = yaml_config.get("default_log_filename") # This will read the new default log filename from YAML
         self.new_mission_folders_filename = yaml_config.get("new_mission_folders_filename") # Renamed field, will read new key from YAML
+        self.delete_backlog_file_on_completion = yaml_config.get("delete_backlog_file_on_completion", False)
 
         load_dotenv()
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
