@@ -31,6 +31,8 @@ class AppConfig:
     aider_code_model: str
     aider_summary_model: str
 
+    code_diff_summary_model: str
+
     mission_title_extraction_model: str
     mission_data_extraction_model: str
 
@@ -91,6 +93,7 @@ class AppConfig:
 
         self.aider_code_model = yml_config.get("aider_code_model")
         self.aider_summary_model = yml_config.get("aider_summary_model")
+        self.code_diff_summary_model = yml_config.get("code_diff_summary_model")
         self.mission_title_extraction_model = yml_config.get("mission_title_extraction_model")
         self.mission_data_extraction_model = yml_config.get("mission_data_extraction_model")
 
@@ -179,6 +182,8 @@ class AppConfig:
             raise ValueError("aider_code_model is not set in config.yml.")
         if not self.aider_summary_model:
             raise ValueError("aider_summary_model is not set in config.yml.")
+        if not self.code_diff_summary_model:
+            raise ValueError("code_diff_summary_model is not set in config.yml.")
         if not self.mission_title_extraction_model:
             raise ValueError("mission_title_extraction_model is not set in config.yml.")
         if not self.mission_data_extraction_model:
