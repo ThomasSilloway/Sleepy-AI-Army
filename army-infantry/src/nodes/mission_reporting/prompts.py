@@ -43,12 +43,8 @@ def get_user_prompt(diff: str) -> str:
         The user-facing prompt.
     """
     return f"""
-Please analyze the following `git diff` output and generate an execution summary.
+# Below is the `git diff` output to analyze:
 
-**Git Diff:**
-```diff
 {diff}
-```
 
-Based on this diff, provide a JSON summary conforming to the system prompt's instructions.
 """
