@@ -1,0 +1,2 @@
+C:\GithubRepos\Sleepy-AI-Army\ai-missions\update-mission-report-template
+C:\GithubRepos\Sleepy-AI-Army\ai-missions\add-execution-summary-model-and-prompt
