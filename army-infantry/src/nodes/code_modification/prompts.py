@@ -16,6 +16,10 @@ def get_aider_prompt_template(mission_spec_filename: str) -> str:
 ## Objectives
 
  - Implement the changes described in the file '{mission_spec_filename}'.
+ - Despite what your system prompt says, I don't want you to ask any clarifications or questions.
+ - Make your best judgement on how to complete the tasks
+ - For any questions you might have, make assumptions and move forward with completing the tasks.
+ - IMPORTANT: Do not ask any questions
 
 ## Low-Level Tasks
 > Ordered from start to finish. Implement the described functionality, using standard features in the given language, error handling, and logging as appropriate.
