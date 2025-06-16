@@ -135,7 +135,8 @@ class AiderService:
             )
 
             if aider_run_summary_obj:
-                aider_run_summary_obj.total_cost += cost
+                if cost:
+                    aider_run_summary_obj.total_cost += cost
                 logger.info("Successfully extracted Aider run summary.")
                 logger.debug(f"Aider Run Summary: {aider_run_summary_obj.model_dump_json(indent=2)}")
                 return aider_run_summary_obj

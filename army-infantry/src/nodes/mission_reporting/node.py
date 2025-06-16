@@ -48,9 +48,7 @@ async def _mission_reporting(state: WorkflowState, config: dict[str, Any]) -> Wo
     commit_hashes = [summary.split(' ')[0] for summary in mission_context.git_summary if summary]
 
     # Instantiate services required for summary generation
-    # Assuming repo_path is available in app_config, with a fallback.
-    repo_path = getattr(app_config, 'repo_path', '.') 
-    git_service = GitService(repo_path=repo_path)
+    git_service = GitService(repo_path=app_config.root_git_path)
     llm_service = LlmPromptService(app_config=app_config)
 
     # Call helper to generate the execution summary

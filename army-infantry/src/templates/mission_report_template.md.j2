@@ -10,10 +10,18 @@
 
 {% if execution_summary %}
 {% for item in execution_summary %}
-- {{ item }}
+{{ item }}
 {% endfor %}
 {% else %}
 No summary provided.
+{% endif %}
+
+{% if aider_questions %}
+{% for item in aider_questions %}
+{{ item }}
+{% endfor %}
+{% else %}
+Aider did not ask any questions.
 {% endif %}
 
 ## Files Modified
@@ -22,7 +30,9 @@ No summary provided.
 {% for file in files_modified %}
 - `{{ file }}`
 {% endfor %}
-{% else %}No files modified.{% endif %}
+{% else %}
+No files modified.
+{% endif %}
 
 ## Files Created
 
@@ -30,7 +40,8 @@ No summary provided.
 {% for file in files_created %}
 - `{{ file }}`
 {% endfor %}
-{% else %}No files created.
+{% else %}
+No files created.
 {% endif %}
 
 ## Git Branch
@@ -43,7 +54,8 @@ No summary provided.
 {% for commit_msg in git_summary %}
 - {{ commit_msg }}
 {% endfor %}
-{% else %}No Git summary available.
+{% else %}
+No Git summary available.
 {% endif %}
 
 ## LLM Usage Cost
@@ -53,24 +65,23 @@ Total Cost: ${{ "%.2f" | format(total_cost_usd | default(0.0) | float) }}
 ## Errors and Issues
 
 {% if mission_errors %}
-{% for error in mission_errors %}- {{ error }}{% endfor %}
-{% else %}No errors reported.{% endif %}
+{% for error in mission_errors %}
+- {{ error }}
+{% endfor %}
+{% else %}
+No errors reported.
+{% endif %}
 
 ## Aider Summary (Debug)
 
 {% if aider_changes_made %}
 {% for item in aider_changes_made %}
-- {{ item }}
+{{ item }}
 {% endfor %}
-{% else %}ERROR: No Aider summary available.
-{% endif %}
-
-{% if aider_questions %}
-{% for item in aider_questions %}
-- {{ item }}
-{% endfor %}
-{% else %}Aider did not ask any questions.
+{% else %}
+ERROR: No Aider summary available.
 {% endif %}
 
 ## Last Update
 {{ report_timestamp }}
+
