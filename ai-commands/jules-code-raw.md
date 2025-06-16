@@ -232,40 +232,18 @@ async def _git_branch(state: WorkflowState, config: dict[str, Any]) -> WorkflowS
 
 ```
 
-## Task instructions
+## Docs
 
 Refer to the following planning files for more context:
 - `ai-docs\planning\01_infantry-full\01_vision-statement.md`
 - `ai-docs\planning\01_infantry-full\03_tech-design-considerations.md`
 - `ai-docs\planning\01_infantry-full\04_feature-list.md`
 
-Update `army-general` for asyncio `git-service.py` Usage:
+## Task Instructions
 
-- **Mission ID:** `general_update_git_service_usage_01`
+In `army-infantry\src\nodes\mission_reporting\node.py` - Add and call a new function that will commit the mission report to git with the commit name: `Add mission report <mission_title>`
 
-## Objective
+Read `army-infantry\src\services\git_service.py` for the API of how to commit changes.
 
-Modify `army-general`'s codebase, primarily within `army-general/src/main.py` and any other files that directly invoke methods from `army-general/src/services/git_service.py`, to correctly use the `async` nature of the `git_service.py`. This involves ensuring that all calls to async methods in `git_service.py` are properly `await`ed.
 
-## Scope
-
-- Identify all call sites of `git_service.py` methods within `army-general`.
-- Update these call sites to use `await` where the called method is `async`.
-- Ensure that the calling methods themselves are `async` if they weren't already, and propagate `async` up the call stack as necessary.
-- The `git-service.py` itself (`army-general/src/services/git_service.py`) is already `async` and does not need to be modified for this mission.
-
-## Key Files to Modify (anticipated)
-
-- `army-general/src/main.py`
-- Potentially other service or utility files within `army-general/src/` if they use `git_service.py`.
-
-## Acceptance Criteria
-
-- All calls to `git_service.py` methods that are asynchronous are `await`ed.
-- `army-general` remains fully functional with these changes (existing tests should pass, or be updated if their structure is impacted by async changes).
-- No linting errors related to `async/await` usage are present in the modified files.
-
-## Commander's Notes
-
-This mission is a prerequisite for other `army-general` refactoring tasks that depend on correct `async` operation of git commands, such as branch checking and cleanup operations. Focus on making the existing callsites compliant with `asyncio`.
 
