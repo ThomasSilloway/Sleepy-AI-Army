@@ -104,7 +104,25 @@ async def _mission_reporting(state: WorkflowState, config: dict[str, Any]) -> Wo
     if not success:
         raise RuntimeError("Failed to render and write mission report. Service returned False.")
 
+    # Commit the generated report to Git
+    logger.info("Mission report successfully written, proceeding to commit.")
+    await _commit_mission_report(git_service=git_service, mission_title=mission_context.mission_title)
+
     return state
+
+
+async def _commit_mission_report(git_service: GitService, mission_title: str) -> None:
+    """Commits the generated mission report to the git repository."""
+    logger.info(f"Attempting to commit mission report for: {mission_title}")
+    commit_message = f"Add mission report {mission_title}"
+    try:
+        await git_service.commit_changes(commit_message)
+        logger.info(f"Successfully committed mission report with message: {commit_message}")
+    except GitServiceError as e:
+        # Log the specific GitServiceError and re-raise to be caught by the main error handler
+        logger.error(f"Failed to commit mission report for '{mission_title}': {e.stderr or str(e)}")
+        raise  # Re-raise the original error to be handled by the caller
+
 
 async def _generate_execution_summary(
     commit_hashes: list[str],
