@@ -274,27 +274,158 @@ Here's the problem we are trying to solve:
 ```
 ## Working Directory: `army-infantry`
 
-## Update formatting in Mission Report - Execution Summary
+Implement the title extraction as an agent with retries & structured output
 
-### File Names
+Title extraction happens in `army-infantry\src\nodes\initialize_mission\node.py` I think the code needs to go into `_extract_mission_data()` function.
 
-Right now we get: 
+To do this, make a new service class pydantic_ai_agent.py in the services folder. This should mirror the way we set up the other service classes.  You'll need to add this new service to main.py or graph_builder.py i'm not sure where the other services are created right now.  Then it'll automatically get passed around in the configurable variable.
 
-```
-Added comments to functions in `projects\isometric_2d_prototype\isometric_2d_prototype\ai_components\shoot_component.gd`
-Removed comment for `_ready()` in `projects\isometric_2d_prototype\isometric_2d_prototype\ai_components\shoot_component.gd`
-```
+Use the Pydantic Agent docs below for proper API usage.
 
-It would be better if it was just the file name, not the whole relative path like this:
-
-```
-Added comments to functions in `shoot_component.gd`
-Removed comment for `_ready()` in `shoot_component.gd`
+Make sure it uses structured output, retries, and also use the tokens in the responses to calculate the costs of the query that we add to the MissionContext.
 ```
 
-We already have the full paths in the Files Modified and Files Created sections, so we can just show the filename in the Execution Summary
+# Pydantic Agent Docs
 
-### New lines
+## Agent with retries
 
-Right now all the lines are squished together in the markdown preview, need to add `- ` before each line so it becomes a bullet list
+```
+agent = Agent(model="gemini-1.5-flash", retries=3, result_type=CityInfo)
+result = agent.run_sync("Where was the 2012 Olympics?")
+```
+
+## Agent with system prompt (instructions)
+
+Note: Don't actually use system prompt variable in most cases, use instructions instead.
+
+```
+from pydantic_ai import Agent
+
+agent = Agent(
+    'openai:gpt-4o',
+    instructions='You are a helpful assistant that can answer questions and help with tasks.',  
+)
+
+result = agent.run_sync('What is the capital of France?')
+print(result.output)
+#> Paris
+```
+
+## Structured output Example 2
+
+```
+from pydantic import BaseModel
+
+from pydantic_ai import Agent
+
+
+class CityLocation(BaseModel):
+    city: str
+    country: str
+
+
+agent = Agent('google-gla:gemini-1.5-flash', output_type=CityLocation)
+result = agent.run_sync('Where were the olympics held in 2012?')
+print(result.output)
+#> city='London' country='United Kingdom'
+print(result.usage())
+#> Usage(requests=1, request_tokens=57, response_tokens=8, total_tokens=65)
+```
+
+## Getting printing debug info for messages and tracking all tokens
+
+```
+from pydantic_ai import Agent
+
+agent = Agent('openai:gpt-4o', system_prompt='Be a helpful assistant.')
+
+result = agent.run_sync('Tell me a joke.')
+print(result.output)
+#> Did you hear about the toothpaste scandal? They called it Colgate.
+
+# all messages from the run
+print(result.all_messages())
+"""
+[
+    ModelRequest(
+        parts=[
+            SystemPromptPart(
+                content='Be a helpful assistant.',
+                timestamp=datetime.datetime(...),
+            ),
+            UserPromptPart(
+                content='Tell me a joke.',
+                timestamp=datetime.datetime(...),
+            ),
+        ]
+    ),
+    ModelResponse(
+        parts=[
+            TextPart(
+                content='Did you hear about the toothpaste scandal? They called it Colgate.'
+            )
+        ],
+        usage=Usage(requests=1, request_tokens=60, response_tokens=12, total_tokens=72),
+        model_name='gpt-4o',
+        timestamp=datetime.datetime(...),
+    ),
+]
+"""
+```
+
+## Storing and loading messages to json
+
+```
+from pydantic_core import to_jsonable_python
+
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessagesTypeAdapter  
+
+agent = Agent('openai:gpt-4o', system_prompt='Be a helpful assistant.')
+
+result1 = agent.run_sync('Tell me a joke.')
+history_step_1 = result1.all_messages()
+as_python_objects = to_jsonable_python(history_step_1)  
+same_history_as_step_1 = ModelMessagesTypeAdapter.validate_python(as_python_objects)
+
+result2 = agent.run_sync(  
+    'Tell me a different joke.', message_history=same_history_as_step_1
+)
+```
+
+## Storing and loading messages (to JSON)
+
+While maintaining conversation state in memory is enough for many applications, often times you may want to store the messages history of an agent run on disk or in a database. This might be for evals, for sharing data between Python and JavaScript/TypeScript, or any number of other use cases.
+
+The intended way to do this is using a `TypeAdapter`.
+
+We export ModelMessagesTypeAdapter that can be used for this
+
+## ModelMessagesTypeAdapter
+
+```
+ModelMessagesTypeAdapter = TypeAdapter(
+    list[ModelMessage],
+    config=ConfigDict(
+        defer_build=True,
+        ser_json_bytes="base64",
+        val_json_bytes="base64",
+    ),
+)
+
+-----
+
+validate_python(
+    object: Any,
+    /,
+    *,
+    strict: bool | None = None,
+    from_attributes: bool | None = None,
+    context: dict[str, Any] | None = None,
+    experimental_allow_partial: (
+        bool | Literal["off", "on", "trailing-strings"]
+    ) = False,
+    by_alias: bool | None = None,
+    by_name: bool | None = None,
+) -> T
 ```
